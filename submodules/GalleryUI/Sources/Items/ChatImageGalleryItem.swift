@@ -777,6 +777,27 @@ final class ChatImageGalleryItemNode: ZoomableContentGalleryItemNode {
                             controller.present(UndoOverlayController(presentationData: strongSelf.presentationData, content: .mediaSaved(text: strongSelf.presentationData.strings.Gallery_ImageSaved), elevatedLayout: false, animateInAsReplacement: false, action: { _ in return false }), in: .window(.root))
                         })
                     })))
+
+                    // LuminaGram: OCR image translate - one-tap version of the existing manual
+                    // text-selection "Translate" action, reusing the same on-device Vision
+                    // recognizer. See LuminaOcrTranslateAction.swift.
+                    items.append(.action(ContextMenuActionItem(text: "Translate Image", icon: { theme in generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/Translate"), color: theme.actionSheet.primaryTextColor) }, action: { [weak self] _, f in
+                        f(.default)
+                        guard let self else {
+                            return
+                        }
+                        LuminaOcrTranslateAction.translateImageText(context: context, image: { [weak self] in self?.imageNode.image }, messageId: message.id, presentController: { [weak self] controller, _ in
+                            guard let self else {
+                                return
+                            }
+                            self.galleryController()?.presentInGlobalOverlay(controller, with: nil)
+                        }, noTextFound: { [weak self] in
+                            guard let self, let controller = self.galleryController() else {
+                                return
+                            }
+                            controller.present(UndoOverlayController(presentationData: self.presentationData, content: .info(title: nil, text: "No text found in this image.", timeout: nil, customUndoText: nil), elevatedLayout: false, animateInAsReplacement: false, action: { _ in return false }), in: .window(.root))
+                        })
+                    })))
                 }
             }
             

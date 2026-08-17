@@ -1152,7 +1152,27 @@ func contextMenuForChatPresentationInterfaceState(chatPresentationInterfaceState
         } else {
             resourceAvailable = false
         }
-        
+
+        // LuminaGram: voice-to-text - on-device transcription (Apple Speech framework) for
+        // voice notes / round videos, triggered from this context menu. Never uses Telegram's
+        // premium server transcription. See LuminaVoiceTranscription.swift.
+        if resourceAvailable {
+            for media in message.effectiveMedia {
+                if let file = media as? TelegramMediaFile, file.isVoice || file.isInstantVideo, LuminaVoiceTranscription.isApplicable(to: message) {
+                    actions.append(.action(ContextMenuActionItem(text: "Transcribe", icon: { theme in
+                        return generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/Audio"), color: theme.actionSheet.primaryTextColor)
+                    }, action: { _, f in
+                        f(.default)
+                        LuminaVoiceTranscription.transcribe(context: context, message: message, displayUndo: { content in
+                            controllerInteraction.displayUndo(content)
+                        })
+                    })))
+                    _ = file
+                    break
+                }
+            }
+        }
+
         if !isPremium && isDownloading {
             var isLargeFile = false
             for media in message.effectiveMedia {
