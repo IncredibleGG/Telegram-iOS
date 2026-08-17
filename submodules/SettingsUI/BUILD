@@ -18,6 +18,9 @@ swift_library(
         "//submodules/MtProtoKit:MtProtoKit",
         "//submodules/TelegramPresentationData:TelegramPresentationData",
         "//submodules/AccountContext:AccountContext",
+        # LuminaGram: reverse-voice (type -> TTS -> OGG/Opus -> send as a real voice message).
+        "//submodules/OpusBinding:OpusBinding",
+        "//submodules/AudioWaveform:AudioWaveform",
         "//submodules/ActivityIndicator:ActivityIndicator",
         "//submodules/AlertUI:AlertUI",
         "//submodules/PresentationDataUtils:PresentationDataUtils",

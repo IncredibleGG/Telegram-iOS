@@ -928,6 +928,10 @@ final class UniversalVideoGalleryItemNode: ZoomableContentGalleryItemNode {
     private var imageNode: TransformImageNode?
     private var videoNode: UniversalVideoNode?
     private var videoNodeUserInteractionEnabled: Bool = false
+    // LuminaGram: auto-pause video in background (LuminaSettings.autoPauseBackgroundVideo).
+    private var luminaAutoPauseBackgroundVideoEnabled: Bool = false
+    private var luminaSettingsDisposable: Disposable?
+    private var luminaBackgroundObserver: NSObjectProtocol?
     private var videoFramePreview: FramePreview?
     private var pictureInPictureNode: UniversalVideoGalleryItemPictureInPictureNode?
     private var disablePictureInPicturePlaceholder: Bool = false
@@ -1194,9 +1198,29 @@ final class UniversalVideoGalleryItemNode: ZoomableContentGalleryItemNode {
                 strongSelf.updateControlsVisibility(false)
             }
         }).strict()
+
+        // LuminaGram: auto-pause video in background - keep a live subscription to
+        // LuminaSettings.autoPauseBackgroundVideo for this node's lifetime (same reactive-settings
+        // idiom the rest of this init already uses above), then actually pause playback (not just
+        // detach the render layer, which is all PlatformVideoContent's own backgrounding does) when
+        // the app enters background, gated on the setting.
+        self.luminaSettingsDisposable = (context.sharedContext.accountManager.sharedData(keys: [ApplicationSpecificSharedDataKeys.luminaSettings])
+        |> deliverOnMainQueue).start(next: { [weak self] sharedData in
+            self?.luminaAutoPauseBackgroundVideoEnabled = sharedData.entries[ApplicationSpecificSharedDataKeys.luminaSettings]?.get(LuminaSettings.self)?.autoPauseBackgroundVideo ?? true
+        })
+        self.luminaBackgroundObserver = NotificationCenter.default.addObserver(forName: UIApplication.didEnterBackgroundNotification, object: nil, queue: nil, using: { [weak self] _ in
+            guard let self, self.luminaAutoPauseBackgroundVideoEnabled else {
+                return
+            }
+            self.videoNode?.pause()
+        })
     }
-    
+
     deinit {
+        self.luminaSettingsDisposable?.dispose()
+        if let luminaBackgroundObserver = self.luminaBackgroundObserver {
+            NotificationCenter.default.removeObserver(luminaBackgroundObserver)
+        }
         self.statusDisposable.dispose()
         self.moreButtonStateDisposable.dispose()
         self.mediaPlaybackStateDisposable.dispose()

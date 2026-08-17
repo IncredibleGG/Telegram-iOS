@@ -45,6 +45,50 @@ private func appSpecificAssetCollection() -> Signal<PHAssetCollection, NoError> 
     }
 }
 
+// LuminaGram: save-media-folder analogue. iOS Photos has no filesystem folders (Android's
+// MediaStore RELATIVE_PATH has no equivalent), so this ports the concept as a second named
+// PHAssetCollection album alongside the existing "Telegram" one above - saved photos/videos are
+// added to BOTH when LuminaSettings.saveMediaToLuminaAlbum is on. Gated at the call site in
+// DownloadedMediaStoreContext.start, not here.
+private func luminaAppSpecificAssetCollection() -> Signal<PHAssetCollection, NoError> {
+    return Signal { subscriber in
+        let fetchOption = PHFetchOptions()
+        let albumName = "LuminaGram"
+        fetchOption.predicate = NSPredicate(format: "title == '" + albumName + "'")
+
+        let fetchResult = PHAssetCollection.fetchAssetCollections(
+            with: .album,
+            subtype: .albumRegular,
+            options: fetchOption)
+
+        if let collection = fetchResult.firstObject {
+            subscriber.putNext(collection)
+            subscriber.putCompletion()
+        } else {
+            PHPhotoLibrary.shared().performChanges({
+                PHAssetCollectionChangeRequest.creationRequestForAssetCollection(withTitle: albumName)
+            }, completionHandler: { success, error in
+                if let error = error {
+                    Logger.shared.log("luminaAppSpecificAssetCollection", "error: \(error)")
+                }
+
+                if success {
+                    let fetchResult = PHAssetCollection.fetchAssetCollections(
+                        with: .album,
+                        subtype: .albumRegular,
+                        options: fetchOption)
+                    if let collection = fetchResult.firstObject {
+                        subscriber.putNext(collection)
+                        subscriber.putCompletion()
+                    }
+                }
+            })
+        }
+
+        return EmptyDisposable
+    }
+}
+
 private final class DownloadedMediaStoreContext {
     private let queue: Queue
     private var disposable: Disposable?
@@ -57,7 +101,7 @@ private final class DownloadedMediaStoreContext {
         self.disposable?.dispose()
     }
     
-    func start(postbox: Postbox, collection: Signal<PHAssetCollection, NoError>, peerId: EnginePeer.Id, timestamp: Int32, media: AnyMediaReference, completed: @escaping () -> Void) {
+    func start(postbox: Postbox, collection: Signal<PHAssetCollection, NoError>, luminaCollection: Signal<PHAssetCollection, NoError>, luminaSettings: Signal<LuminaSettings, NoError>, peerId: EnginePeer.Id, timestamp: Int32, media: AnyMediaReference, completed: @escaping () -> Void) {
         var resource: TelegramMediaResource?
         if let image = media.media as? TelegramMediaImage {
             resource = largestImageRepresentation(image.representations)?.resource
@@ -124,26 +168,39 @@ private final class DownloadedMediaStoreContext {
                 }
             }
             |> take(1)
-            |> mapToSignal { store -> Signal<(PHAssetCollection, MediaResourceData), NoError> in
+            |> mapToSignal { store -> Signal<(PHAssetCollection, MediaResourceData, PHAssetCollection?, LuminaSettings), NoError> in
                 if !store {
                     return .complete()
                 } else {
-                    return combineLatest(collection |> take(1), postbox.mediaBox.resourceData(resource))
+                    // LuminaGram: only fetch/create the LuminaGram album when the setting is on.
+                    return (luminaSettings |> take(1)) |> mapToSignal { settingsValue -> Signal<(PHAssetCollection, MediaResourceData, PHAssetCollection?, LuminaSettings), NoError> in
+                        let luminaCollectionSignal: Signal<PHAssetCollection?, NoError> = settingsValue.saveMediaToLuminaAlbum ? (luminaCollection |> take(1) |> map { Optional($0) }) : .single(nil)
+                        return combineLatest(collection |> take(1), postbox.mediaBox.resourceData(resource), luminaCollectionSignal)
+                        |> map { collectionValue, dataValue, luminaCollectionValue -> (PHAssetCollection, MediaResourceData, PHAssetCollection?, LuminaSettings) in
+                            return (collectionValue, dataValue, luminaCollectionValue, settingsValue)
+                        }
+                    }
                 }
             }
-            |> deliverOn(queue)).startStrict(next: { collection, data in
+            |> deliverOn(queue)).startStrict(next: { collection, data, luminaCollectionValue, luminaSettingsValue in
                 if !data.complete {
                     return
                 }
-                
+
                 var filename: String?
                 if let image = media.media as? TelegramMediaImage {
                     filename = "telegram-photo-\(image.imageId.namespace)-\(image.imageId.id).jpg"
                 } else if let file = media.media as? TelegramMediaFile {
-                    filename = "telegram-video-\(file.fileId.namespace)-\(file.fileId.id).mov"
+                    // LuminaGram: keep the sender's original filename instead of Telegram's
+                    // generated one, when enabled and available.
+                    if luminaSettingsValue.keepOriginalFilename, let originalName = file.fileName, !originalName.isEmpty {
+                        filename = originalName
+                    } else {
+                        filename = "telegram-video-\(file.fileId.namespace)-\(file.fileId.id).mov"
+                    }
                 }
                 let creationDate = Date(timeIntervalSince1970: TimeInterval(timestamp))
-                
+
                 let storeAsset: () -> Void = {
                     if let _ = media.media as? TelegramMediaImage {
                         PHPhotoLibrary.shared().performChanges({
@@ -158,12 +215,18 @@ private final class DownloadedMediaStoreContext {
                                 let request = PHAssetCollectionChangeRequest(for: collection)
                                 if let placeholderForCreatedAsset = creationRequest.placeholderForCreatedAsset {
                                     request?.addAssets([placeholderForCreatedAsset] as NSArray)
+                                    // LuminaGram: save-media-folder analogue - file into the
+                                    // LuminaGram album too, alongside the camera roll.
+                                    if let luminaCollectionValue {
+                                        let luminaRequest = PHAssetCollectionChangeRequest(for: luminaCollectionValue)
+                                        luminaRequest?.addAssets([placeholderForCreatedAsset] as NSArray)
+                                    }
                                 }
                             }
                         })
                     } else if let file = media.media as? TelegramMediaFile, file.isVideo {
                         let tempFile = TempBox.shared.tempFile(fileName: filename ?? "file.mov")
-                        
+
                         PHPhotoLibrary.shared().performChanges({
                             if let _ = try? FileManager.default.copyItem(atPath: data.path, toPath: tempFile.path) {
                                 let creationRequest = PHAssetCreationRequest.forAsset()
@@ -176,6 +239,10 @@ private final class DownloadedMediaStoreContext {
                                 let request = PHAssetCollectionChangeRequest(for: collection)
                                 if let placeholderForCreatedAsset = creationRequest.placeholderForCreatedAsset {
                                     request?.addAssets([placeholderForCreatedAsset] as NSArray)
+                                    if let luminaCollectionValue {
+                                        let luminaRequest = PHAssetCollectionChangeRequest(for: luminaCollectionValue)
+                                        luminaRequest?.addAssets([placeholderForCreatedAsset] as NSArray)
+                                    }
                                 }
                             }
                         }, completionHandler: { _, error in
@@ -227,11 +294,15 @@ private final class DownloadedMediaStoreManagerPrivateImpl {
     
     private let appSpecificAssetCollectionValue: Promise<PHAssetCollection>
     private let storeSettings = Promise<MediaAutoDownloadSettings>()
-    
+    // LuminaGram: lazily-created "LuminaGram" album + a live LuminaSettings feed, both consumed
+    // by DownloadedMediaStoreContext.start for keepOriginalFilename / saveMediaToLuminaAlbum.
+    private let luminaAssetCollectionValue: Promise<PHAssetCollection>
+    private let luminaSettingsValue = Promise<LuminaSettings>()
+
     init(queue: Queue, postbox: Postbox, accountManager: AccountManager<TelegramAccountManagerTypes>) {
         self.queue = queue
         self.postbox = postbox
-        
+
         self.appSpecificAssetCollectionValue = Promise(initializeOnFirstAccess: appSpecificAssetCollection())
         self.storeSettings.set(accountManager.sharedData(keys: [ApplicationSpecificSharedDataKeys.automaticMediaDownloadSettings])
         |> map { sharedData -> MediaAutoDownloadSettings in
@@ -240,6 +311,11 @@ private final class DownloadedMediaStoreManagerPrivateImpl {
             } else {
                 return .defaultSettings
             }
+        })
+        self.luminaAssetCollectionValue = Promise(initializeOnFirstAccess: luminaAppSpecificAssetCollection())
+        self.luminaSettingsValue.set(accountManager.sharedData(keys: [ApplicationSpecificSharedDataKeys.luminaSettings])
+        |> map { sharedData -> LuminaSettings in
+            return sharedData.entries[ApplicationSpecificSharedDataKeys.luminaSettings]?.get(LuminaSettings.self) ?? .defaultSettings
         })
     }
     
@@ -261,7 +337,9 @@ private final class DownloadedMediaStoreManagerPrivateImpl {
             let context = DownloadedMediaStoreContext(queue: self.queue)
             self.storeContexts[id] = context
             let appSpecificAssetCollectionValue = self.appSpecificAssetCollectionValue
-            context.start(postbox: self.postbox, collection: deferred { appSpecificAssetCollectionValue.get() }, peerId: peerId, timestamp: timestamp, media: media, completed: { [weak self, weak context] in
+            let luminaAssetCollectionValue = self.luminaAssetCollectionValue
+            let luminaSettingsValue = self.luminaSettingsValue
+            context.start(postbox: self.postbox, collection: deferred { appSpecificAssetCollectionValue.get() }, luminaCollection: deferred { luminaAssetCollectionValue.get() }, luminaSettings: luminaSettingsValue.get(), peerId: peerId, timestamp: timestamp, media: media, completed: { [weak self, weak context] in
                 guard let strongSelf = self, let context = context else {
                     return
                 }
