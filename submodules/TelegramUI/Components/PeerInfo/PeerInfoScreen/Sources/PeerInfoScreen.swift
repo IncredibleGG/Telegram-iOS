@@ -155,6 +155,7 @@ enum PeerInfoContextSubject {
 enum PeerInfoSettingsSection {
     case avatar
     case edit
+    case luminaGram
     case proxy
     case stories
     case savedMessages

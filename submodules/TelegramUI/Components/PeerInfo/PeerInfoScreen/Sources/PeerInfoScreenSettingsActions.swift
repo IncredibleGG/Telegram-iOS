@@ -48,6 +48,8 @@ extension PeerInfoScreenNode {
             self.controller?.openAvatarForEditing()
         case .edit:
             self.headerNode.navigationButtonContainer.performAction?(.edit, nil, nil)
+        case .luminaGram:
+            self.controller?.push(luminaGramSettingsController(context: self.context))
         case .proxy:
             self.controller?.push(proxySettingsController(context: self.context))
         case .profile:

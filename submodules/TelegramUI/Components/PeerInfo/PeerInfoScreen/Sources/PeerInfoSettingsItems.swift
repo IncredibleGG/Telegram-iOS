@@ -18,6 +18,7 @@ enum SettingsSection: Int, CaseIterable {
     case phone
     case accounts
     case myProfile
+    case luminaGram
     case proxy
     case apps
     case shortcuts
@@ -149,6 +150,13 @@ func settingsItems(data: PeerInfoScreenData?, context: AccountContext, presentat
         
         items[.myProfile]!.append(PeerInfoScreenDisclosureItem(id: 0, text: presentationData.strings.Settings_MyProfile, icon: PresentationResourcesSettings.myProfile, action: {
             interaction.openSettings(.profile)
+        }))
+        
+        // LuminaGram: placed right under My Profile so it is prominent on the main
+        // Settings screen, ahead of Proxy/Apps/Shortcuts/Advanced. Hardcoded English text -
+        // see LuminaGramSettingsController.swift for why this doesn't use presentationData.strings.
+        items[.luminaGram]!.append(PeerInfoScreenDisclosureItem(id: 0, text: "LuminaGram", icon: PresentationResourcesSettings.aiTools, action: {
+            interaction.openSettings(.luminaGram)
         }))
         
         if !settings.proxySettings.servers.isEmpty {
