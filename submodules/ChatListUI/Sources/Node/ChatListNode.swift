@@ -308,7 +308,14 @@ public struct ChatListNodeState: Equatable {
     public var selectedPeerMap: [EnginePeer.Id: EnginePeer]
     public var selectedThreadIds: Set<Int64>
     public var archiveStoryState: StoryState?
-    
+    // LuminaGram: chat-lock / private folder. Bumped every time LuminaChatLock.changes()
+    // fires (lock/unlock or a search-field reveal) so this otherwise-unrelated state value
+    // changes and chatListNodeEntriesForView() gets recomputed through the ordinary
+    // statePromise pipeline - see the subscription in ChatListNode.init below. A counter
+    // rather than the raw Bool/Set itself so two rapid changes can never coincidentally
+    // cancel out to the same value and get swallowed by ValuePromise(ignoreRepeated: true).
+    public var chatLockChangeToken: Int = 0
+
     public init(
         presentationData: ChatListPresentationData,
         editing: Bool,
@@ -323,7 +330,8 @@ public struct ChatListNodeState: Equatable {
         hiddenItemShouldBeTemporaryRevealed: Bool,
         hiddenPsaPeerId: EnginePeer.Id?,
         selectedThreadIds: Set<Int64>,
-        archiveStoryState: StoryState?
+        archiveStoryState: StoryState?,
+        chatLockChangeToken: Int = 0
     ) {
         self.presentationData = presentationData
         self.editing = editing
@@ -339,6 +347,7 @@ public struct ChatListNodeState: Equatable {
         self.hiddenPsaPeerId = hiddenPsaPeerId
         self.selectedThreadIds = selectedThreadIds
         self.archiveStoryState = archiveStoryState
+        self.chatLockChangeToken = chatLockChangeToken
     }
     
     public static func ==(lhs: ChatListNodeState, rhs: ChatListNodeState) -> Bool {
@@ -382,6 +391,9 @@ public struct ChatListNodeState: Equatable {
             return false
         }
         if lhs.archiveStoryState != rhs.archiveStoryState {
+            return false
+        }
+        if lhs.chatLockChangeToken != rhs.chatLockChangeToken {
             return false
         }
         return true
@@ -1322,6 +1334,8 @@ public final class ChatListNode: ListViewImpl {
     private let chatListLocation = ValuePromise<ChatListNodeLocation>()
     private let chatListDisposable = MetaDisposable()
     private var activityStatusesDisposable: Disposable?
+    // LuminaGram: chat-lock / private folder - see the subscription in init below.
+    private let luminaChatLockDisposable = MetaDisposable()
     
     private let scrollToTopOptionPromise = Promise<ChatListGlobalScrollOption>(.none)
     public var scrollToTopOption: Signal<ChatListGlobalScrollOption, NoError> {
@@ -1430,7 +1444,23 @@ public final class ChatListNode: ListViewImpl {
         self.verticalScrollIndicatorFollowsOverscroll = true
         
         self.keepMinimalScrollHeightWithTopInset = self.scrollHeightTopInset
-        
+
+        // LuminaGram: chat-lock / private folder. LuminaChatLock's locked set and reveal flag
+        // live outside ChatListNodeState (LuminaChatLock.swift), so without this the rendered
+        // list would only pick up a lock/unlock/reveal the next time some UNRELATED state
+        // change happened to trigger a recompute. Bumping chatLockChangeToken through the
+        // ordinary updateState -> statePromise pipeline makes chatListNodeEntriesForView()
+        // (ChatListNodeEntries.swift) recompute immediately, the same way every other
+        // ChatListNodeState field already does.
+        self.luminaChatLockDisposable.set((LuminaChatLock.changes(accountManager: context.sharedContext.accountManager)
+        |> deliverOnMainQueue).start(next: { [weak self] in
+            self?.updateState { state in
+                var state = state
+                state.chatLockChangeToken += 1
+                return state
+            }
+        }))
+
         let nodeInteraction = ChatListNodeInteraction(context: context, animationCache: self.animationCache, animationRenderer: self.animationRenderer, activateSearch: { [weak self] in
             if let strongSelf = self, let activateSearch = strongSelf.activateSearch {
                 activateSearch()
@@ -3197,6 +3227,7 @@ public final class ChatListNode: ListViewImpl {
         self.pollFilterUpdatesDisposable?.dispose()
         self.chatFilterUpdatesDisposable?.dispose()
         self.updateIsMainTabDisposable?.dispose()
+        self.luminaChatLockDisposable.dispose() // LuminaGram: chat-lock / private folder
     }
     
     func updateFilter(_ filter: ChatListFilter?) {

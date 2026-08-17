@@ -4,6 +4,7 @@ import Display
 import AccountContext
 import TelegramPresentationData
 import TelegramCore
+import TelegramUIPreferences // LuminaGram: hide own phone number, registration date row
 import PeerInfoUI
 import TextFormat
 import PhoneNumberFormat
@@ -89,6 +90,7 @@ func infoItems(
         let ItemAbout = 3003
         let ItemNote = 3004
         let ItemAppFooter = 3005
+        let ItemRegistrationDate = 3006 // LuminaGram: show account registration date
         let ItemAffiliate = 4000
         let ItemAffiliateInfo = 4001
         let ItemBusinessHours = 5000
@@ -175,20 +177,52 @@ func infoItems(
         }
         
         if let phone = user.phone {
-            let formattedPhone = formatPhoneNumber(context: context, number: phone)
-            let label: String
-            if formattedPhone.hasPrefix("+888 ") {
-                label = presentationData.strings.UserInfo_AnonymousNumberLabel
+            // LuminaGram: hide own phone number (privacy bucket). isMyProfile is true only
+            // when this is the account's own profile - pure local render gate, never applied
+            // to a contact's phone number. Masked rather than omitted (matches Android's
+            // masked-row behavior), with no tap action since there is nothing useful to
+            // reveal by tapping a masked value. See LuminaHidePhone.swift.
+            LuminaSettingsCache.ensureSubscribed(accountManager: context.sharedContext.accountManager)
+            if isMyProfile && LuminaSettingsCache.settings.hideOwnPhone {
+                items[currentPeerInfoSection]!.append(PeerInfoScreenLabeledValueItem(id: ItemPhoneNumber, label: presentationData.strings.ContactInfo_PhoneLabelMobile, text: LuminaHidePhone.maskedText, textColor: .primary, action: nil, requestLayout: { animated in
+                    interaction.requestLayout(animated)
+                }))
             } else {
-                label = presentationData.strings.ContactInfo_PhoneLabelMobile
+                let formattedPhone = formatPhoneNumber(context: context, number: phone)
+                let label: String
+                if formattedPhone.hasPrefix("+888 ") {
+                    label = presentationData.strings.UserInfo_AnonymousNumberLabel
+                } else {
+                    label = presentationData.strings.ContactInfo_PhoneLabelMobile
+                }
+                items[currentPeerInfoSection]!.append(PeerInfoScreenLabeledValueItem(id: ItemPhoneNumber, label: label, text: formattedPhone, textColor: .accent, action: { node, progress in
+                    interaction.openPhone(phone, node, nil, progress)
+                }, longTapAction: nil, contextAction: { node, gesture, _ in
+                    interaction.openPhone(phone, node, gesture, nil)
+                }, requestLayout: { animated in
+                    interaction.requestLayout(animated)
+                }))
             }
-            items[currentPeerInfoSection]!.append(PeerInfoScreenLabeledValueItem(id: ItemPhoneNumber, label: label, text: formattedPhone, textColor: .accent, action: { node, progress in
-                interaction.openPhone(phone, node, nil, progress)
-            }, longTapAction: nil, contextAction: { node, gesture, _ in
-                interaction.openPhone(phone, node, gesture, nil)
-            }, requestLayout: { animated in
-                interaction.requestLayout(animated)
-            }))
+        }
+        // LuminaGram: show account registration date (privacy bucket) - helps judge a
+        // stranger's account-age risk. Never for our own profile. Source 1 (authoritative):
+        // Telegram's own server-provided registrationDate on PeerStatusSettings, when sent -
+        // shown as-is, no leading "~". Source 2 (fallback): a purely local id-based estimate,
+        // always available - shown with a leading "~" since it is a heuristic, never a fact.
+        // See LuminaRegistrationDate.swift (anchor table transcribed from Android's
+        // ProfileActivity.java / desktop's lumina_registration_date.cpp).
+        if !isMyProfile, LuminaSettingsCache.settings.showRegistrationDate {
+            var registrationText: String?
+            if let serverValue = (data.cachedData as? CachedUserData)?.peerStatusSettings?.registrationDate, !serverValue.isEmpty {
+                registrationText = serverValue
+            } else if let (month, year) = LuminaRegistrationDate.estimatedMonthAndYear(userId: user.id.toInt64()) {
+                registrationText = "~" + stringForMonth(strings: presentationData.strings, month: month, ofYear: year)
+            }
+            if let registrationText {
+                items[currentPeerInfoSection]!.append(PeerInfoScreenLabeledValueItem(id: ItemRegistrationDate, label: "Registration", text: registrationText, textColor: .primary, action: nil, requestLayout: { animated in
+                    interaction.requestLayout(animated)
+                }))
+            }
         }
         if let mainUsername = user.addressName {
             var additionalUsernames: String?

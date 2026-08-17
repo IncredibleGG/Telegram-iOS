@@ -4,6 +4,7 @@ import Display
 import AccountContext
 import TelegramPresentationData
 import TelegramCore
+import TelegramUIPreferences // LuminaGram: hide own phone number
 import PhoneNumberFormat
 import ItemListUI
 import SwiftSignalKit
@@ -452,7 +453,17 @@ func settingsEditingItems(data: PeerInfoScreenData?, state: PeerInfoState, conte
     }
     
     if case let .user(user) = data.peer {
-        items[.info]!.append(PeerInfoScreenDisclosureItem(id: ItemPhoneNumber, label: .text(user.phone.flatMap({ formatPhoneNumber(context: context, number: $0) }) ?? ""), text: presentationData.strings.Settings_PhoneNumber, icon: PresentationResourcesSettings.recentCalls, action: {
+        // LuminaGram: hide own phone number (privacy bucket). This row is always the
+        // account's own settings, never another peer's - pure local render gate, see
+        // LuminaHidePhone.swift.
+        LuminaSettingsCache.ensureSubscribed(accountManager: context.sharedContext.accountManager)
+        let phoneLabel: String
+        if LuminaSettingsCache.settings.hideOwnPhone {
+            phoneLabel = LuminaHidePhone.maskedText
+        } else {
+            phoneLabel = user.phone.flatMap({ formatPhoneNumber(context: context, number: $0) }) ?? ""
+        }
+        items[.info]!.append(PeerInfoScreenDisclosureItem(id: ItemPhoneNumber, label: .text(phoneLabel), text: presentationData.strings.Settings_PhoneNumber, icon: PresentationResourcesSettings.recentCalls, action: {
             interaction.openSettings(.phoneNumber)
         }))
     }

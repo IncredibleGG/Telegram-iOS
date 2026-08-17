@@ -16,6 +16,7 @@ import FetchVideoMediaResource
 import FetchAudioMediaResource
 import Display
 import UIKit
+import TelegramUIPreferences // LuminaGram: strip photo EXIF on send
 
 public func makeTelegramAccountAuxiliaryMethods(uploadInBackground: ((Postbox, MediaResource) -> Signal<String?, NoError>)?) -> AccountAuxiliaryMethods {
     return AccountAuxiliaryMethods(fetchResource: { postbox, resource, ranges, _ in
@@ -60,7 +61,15 @@ public func makeTelegramAccountAuxiliaryMethods(uploadInBackground: ((Postbox, M
             }
             |> castError(MediaResourceDataFetchError.self)
             |> mapToSignal { useExif -> Signal<MediaResourceDataFetchResult, MediaResourceDataFetchError> in
-                return fetchPhotoLibraryResource(localIdentifier: photoLibraryResource.localIdentifier, width: photoLibraryResource.width, height: photoLibraryResource.height, format: photoLibraryResource.format, quality: photoLibraryResource.quality, hd: photoLibraryResource.forceHd, useExif: useExif)
+                // LuminaGram: strip photo EXIF on send (privacy bucket). Read synchronously
+                // from LuminaSettingsCache rather than threading an AccountManager through
+                // this closure (this function only has a Postbox, not an AccountManager) -
+                // safe because the cache's un-subscribed default (LuminaSettings.defaultSettings.
+                // stripPhotoMetadata = true) is itself the privacy-safe direction, and in
+                // practice the cache is already subscribed by the time a user can send a
+                // photo at all (ChatListNode.init subscribes it - see LuminaSettingsCache.swift).
+                let stripMetadata = LuminaSettingsCache.settings.stripPhotoMetadata
+                return fetchPhotoLibraryResource(localIdentifier: photoLibraryResource.localIdentifier, width: photoLibraryResource.width, height: photoLibraryResource.height, format: photoLibraryResource.format, quality: photoLibraryResource.quality, hd: photoLibraryResource.forceHd, useExif: useExif, stripMetadata: stripMetadata)
             }
         } else if let resource = resource as? ICloudFileResource {
             return fetchICloudFileResource(resource: resource)

@@ -104,7 +104,13 @@ extension UIImage.Orientation {
 
 private let fetchPhotoWorkers = ThreadPool(threadCount: 3, threadPriority: 0.2)
 
-public func fetchPhotoLibraryResource(localIdentifier: String, width: Int32?, height: Int32?, format: MediaImageFormat?, quality: Int32?, hd: Bool, useExif: Bool) -> Signal<EngineMediaResourceDataFetchResult, EngineMediaResourceDataFetchError> {
+// LuminaGram: strip photo EXIF on send (privacy bucket). `stripMetadata` is resolved by the
+// caller (TelegramAccountAuxiliaryMethods.swift, which has access to LuminaSettingsCache /
+// LuminaSettings.stripPhotoMetadata) rather than read in here, so this module - a fairly
+// low-level one, already depended on by several others - does not need a new dependency on
+// TelegramUIPreferences. Defaults to false so any other, unseen call site keeps its old
+// behaviour unchanged.
+public func fetchPhotoLibraryResource(localIdentifier: String, width: Int32?, height: Int32?, format: MediaImageFormat?, quality: Int32?, hd: Bool, useExif: Bool, stripMetadata: Bool = false) -> Signal<EngineMediaResourceDataFetchResult, EngineMediaResourceDataFetchError> {
     return Signal { subscriber in
         let queue = ThreadPoolQueue(threadPool: fetchPhotoWorkers)
         
@@ -182,10 +188,16 @@ public func fetchPhotoLibraryResource(localIdentifier: String, width: Int32?, he
                                     defer {
                                         EngineTempBox.shared.dispose(tempFile)
                                     }
-                                    if let scaledImage = scaledImage, let data = compressImageToJPEG(scaledImage, quality: 0.6, tempFilePath: tempFile.path) {
+                                    if let scaledImage = scaledImage, var data = compressImageToJPEG(scaledImage, quality: 0.6, tempFilePath: tempFile.path) {
     #if DEBUG
                                         print("compression completion \((CACurrentMediaTime() - startTime) * 1000.0) ms")
     #endif
+                                        // LuminaGram: strip photo EXIF on send (privacy bucket).
+                                        // See LuminaExifStrip.swift for what this does and does
+                                        // not remove, and stripForUpload's fallback contract.
+                                        if stripMetadata {
+                                            data = LuminaExifStrip.stripForUpload(data)
+                                        }
                                         subscriber.putNext(.dataPart(resourceOffset: 0, data: data, range: 0 ..< Int64(data.count), complete: true))
                                         subscriber.putCompletion()
                                     } else {

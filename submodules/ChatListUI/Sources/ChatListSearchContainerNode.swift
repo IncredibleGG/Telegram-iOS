@@ -710,6 +710,17 @@ public final class ChatListSearchContainerNode: SearchDisplayControllerContentNo
     }
     
     override public func searchTextUpdated(text: String) {
+        // LuminaGram: chat-lock / private folder. The reveal code is typed into this same
+        // ordinary chat-list search field: if chats are locked and `text` matches the
+        // configured code, reveal them and swallow the query here so the code is never run as
+        // a real search and never appears in search results/history. Fail-open and a no-op
+        // for everyone who has never locked a chat - see LuminaChatLock.maybeReveal(fromQuery:).
+        // Mirrors desktop's Widget::applySearchUpdate() / Android's tryRevealFromSearch exactly.
+        LuminaSettingsCache.ensureSubscribed(accountManager: self.context.sharedContext.accountManager)
+        if LuminaChatLock.maybeReveal(fromQuery: text) {
+            self.searchTextUpdated(text: "")
+            return
+        }
         let searchQuery: String? = !text.isEmpty ? text : nil
 
         if !text.hasPrefix("#") && self.paneContainerNode.currentPaneKey == .publicPosts {

@@ -33,6 +33,7 @@ swift_library(
         "//submodules/SolidRoundedButtonNode:SolidRoundedButtonNode",
         "//submodules/TelegramUI/Components/MediaEditor",
         "//submodules/AnimatedCountLabelNode",
+        "//submodules/TelegramUIPreferences",  # LuminaGram: strip photo EXIF on send
     ],
     visibility = [
         "//visibility:public",

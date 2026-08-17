@@ -9,6 +9,7 @@ import TelegramPresentationData
 import DeviceAccess
 import AccountContext
 import ImageCompression
+import TelegramUIPreferences // LuminaGram: strip photo EXIF on send
 import MimeTypes
 import LocalMediaResources
 import LegacyUI
@@ -687,6 +688,30 @@ public func legacyAssetPickerEnqueueMessages(
                         case let .file(data, thumbnail, mimeType, name, caption):
                             switch data {
                                 case let .tempFile(path):
+                                    // LuminaGram: strip photo EXIF on send (privacy bucket).
+                                    // "Send as file" uploads this temp file's bytes close to
+                                    // as-is (LocalFileReferenceMediaResource below just points
+                                    // at `path`), unlike the compressed-photo send path, which
+                                    // is already metadata-free by construction (it recompresses
+                                    // from a decoded, EXIF-less UIImage - see LuminaExifStrip.swift's
+                                    // header comment). Desktop's lumina_exif_strip.cpp documents
+                                    // exactly this shape of gap ("the send-as-file path is
+                                    // leakier still: it uploads the file byte for byte") - this
+                                    // is that same fix, ported. Rewrites `path` in place before
+                                    // it is referenced below; safe because this branch only ever
+                                    // sees a `.tempFile` this picker already owns, not an
+                                    // arbitrary user-owned file.
+                                    LuminaSettingsCache.ensureSubscribed(accountManager: context.sharedContext.accountManager)
+                                    if mimeType.hasPrefix("image/"), LuminaSettingsCache.settings.stripPhotoMetadata, let original = try? Data(contentsOf: URL(fileURLWithPath: path)) {
+                                        let (stripStatus, strippedData) = LuminaExifStrip.stripLocationAndCameraInfo(original)
+                                        switch stripStatus {
+                                        case .stripped:
+                                            try? strippedData.write(to: URL(fileURLWithPath: path), options: [.atomic])
+                                        case .unchanged, .failed:
+                                            break
+                                        }
+                                    }
+
                                     var previewRepresentations: [TelegramMediaImageRepresentation] = []
                                     if let thumbnail = thumbnail {
                                         let resource = LocalFileMediaResource(fileId: Int64.random(in: Int64.min ... Int64.max))
