@@ -439,7 +439,7 @@ public class ChatMessageTextBubbleContentNode: ChatMessageBubbleContentNode {
                                 // translation (honoring the fold setting for long originals) instead of
                                 // replacing it outright. Falls back to Telegram's stock translation-only
                                 // rendering when the setting is off.
-                                let luminaSettings = item.context.sharedContext.currentLuminaSettings.with { $0 }
+                                let luminaSettings = LuminaSettingsCache.shared.current()
                                 if luminaSettings.dualLanguageDisplay {
                                     let composed = LuminaDualLanguageText.compose(original: rawText, originalEntities: messageEntities ?? [], translated: attribute.text, translatedEntities: attribute.entities, fold: luminaSettings.foldOriginalLongMessages)
                                     rawText = composed.text

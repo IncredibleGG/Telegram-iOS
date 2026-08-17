@@ -34,12 +34,11 @@ import PresentationDataUtils
 /// Hook point: called once per active account from `AppDelegate.runForegroundTasks()`
 /// (`submodules/TelegramUI/Sources/AppDelegate.swift`), the existing per-account foreground loop.
 ///
-/// UNSURE-compiles: the very first successful check for an account seeds the baseline from
-/// `LuminaSettings.sessionGuardKnownHashes.isEmpty` rather than a dedicated "have we ever run"
-/// flag (Android has `LuminaConfig.hasKnownSessions`, which this port has no equivalent field
-/// for — `LuminaSettings.swift` is out of scope for this commit). An account that genuinely has
-/// zero other sessions and then gets exactly one new one will silently seed instead of alerting
-/// once; see the final report for the suggested `sessionGuardBaselineSeeded` field.
+/// The very first successful check for an account seeds the baseline and flips the dedicated
+/// `LuminaSettings.sessionGuardBaselineSeeded` flag (the analogue of Android's
+/// `LuminaConfig.hasKnownSessions`). Using that flag rather than
+/// `sessionGuardKnownHashes.isEmpty` means an account that baselined with zero other sessions
+/// still alerts on the first new session it later gains, instead of silently re-seeding.
 public enum LuminaSessionGuard {
     /// Minimum gap between two automatic (foreground) checks, per account. Avoids API flood.
     /// In-memory only (resets on relaunch) since there is no persisted per-account timestamp
@@ -82,22 +81,25 @@ public enum LuminaSessionGuard {
             |> take(1)
             |> deliverOnMainQueue).start(next: { state in
                 LuminaSessionGuard.pending[key] = nil
-                LuminaSessionGuard.handle(context: context, sessions: state.sessions, knownHashes: settings.sessionGuardKnownHashes, present: present)
+                LuminaSessionGuard.handle(context: context, sessions: state.sessions, knownHashes: settings.sessionGuardKnownHashes, baselineSeeded: settings.sessionGuardBaselineSeeded, present: present)
             })
         })
     }
 
     // MARK: - internals
 
-    private static func handle(context: AccountContext, sessions: [RecentAccountSession], knownHashes: [Int64], present: @escaping (ViewController) -> Void) {
+    private static func handle(context: AccountContext, sessions: [RecentAccountSession], knownHashes: [Int64], baselineSeeded: Bool, present: @escaping (ViewController) -> Void) {
         let others = sessions.filter { !$0.isCurrent }
         let presentHashes = Set(others.map { $0.hash })
         let knownSet = Set(knownHashes)
 
-        if knownSet.isEmpty {
-            // Baseline only: whatever the account already has is treated as known, so a fresh
-            // install (or a genuinely session-free account) never opens a wall of alerts.
-            persistKnown(context: context, hashes: Array(presentHashes))
+        if !baselineSeeded {
+            // First run for this account: whatever it already has is treated as known, so a fresh
+            // install (or a genuinely session-free account) never opens a wall of alerts. The
+            // dedicated sessionGuardBaselineSeeded flag (not knownHashes.isEmpty) marks this done,
+            // so an account that baselined with zero other sessions still alerts on the first one
+            // it later gains.
+            seedBaseline(context: context, hashes: Array(presentHashes))
             return
         }
 
@@ -156,6 +158,18 @@ public enum LuminaSessionGuard {
         let _ = updateLuminaSettingsInteractively(accountManager: context.sharedContext.accountManager, { settings in
             var settings = settings
             settings.sessionGuardKnownHashes = hashes
+            return settings
+        }).start()
+    }
+
+    /// Records the one-time baseline for an account: adopts the currently-present sessions as
+    /// known and flips sessionGuardBaselineSeeded so subsequent checks alert on anything new,
+    /// even if the baseline itself was empty.
+    private static func seedBaseline(context: AccountContext, hashes: [Int64]) {
+        let _ = updateLuminaSettingsInteractively(accountManager: context.sharedContext.accountManager, { settings in
+            var settings = settings
+            settings.sessionGuardKnownHashes = hashes
+            settings.sessionGuardBaselineSeeded = true
             return settings
         }).start()
     }

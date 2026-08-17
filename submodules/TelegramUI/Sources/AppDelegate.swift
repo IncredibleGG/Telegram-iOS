@@ -2023,6 +2023,14 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
         
         self.maybeCheckForUpdates()
         
+        // LuminaGram: unread digest on return after absence - foreground/on-launch trigger,
+        // since iOS gives no persistent background socket to compute this while away.
+        let _ = (self.sharedContextPromise.get()
+        |> take(1)
+        |> deliverOnMainQueue).start(next: { sharedApplicationContext in
+            luminaMaybeShowUnreadDigest(sharedContext: sharedApplicationContext.sharedContext)
+        })
+        
         SharedDisplayLinkDriver.shared.updateForegroundState(self.isActiveValue)
         
         func cancelWindowPanGestures(view: UIView) {

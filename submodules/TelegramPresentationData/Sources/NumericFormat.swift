@@ -1,8 +1,15 @@
 import Foundation
 import PresentationStrings
 import TelegramCore
+import TelegramUIPreferences
 
 public func compactNumericCountString(_ count: Int, decimalSeparator: String = ".", showDecimalPart: Bool = true) -> String {
+    // LuminaGram: precise counts - return the exact integer instead of 1.2K/3.4M rounding
+    // when disableNumberRounding is set. Gating the one shared formatter here covers every
+    // call site (reactions, members, views, ...) instead of touching each of them.
+    if LuminaSettingsCache.shared.current().disableNumberRounding {
+        return "\(count)"
+    }
     if count >= 1000 * 1000 {
         let remainder = (count % (1000 * 1000)) / (1000 * 100)
         if remainder != 0 && showDecimalPart {

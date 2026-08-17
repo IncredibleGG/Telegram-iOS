@@ -1381,9 +1381,10 @@ public protocol SharedAccountContext: AnyObject {
     var currentStickerSettings: Atomic<StickerSettings> { get }
     var currentMediaDisplaySettings: Atomic<MediaDisplaySettings> { get }
     var currentChatSettings: Atomic<ChatSettings> { get }
-    // LuminaGram: synchronous LuminaSettings access for render-path call sites (e.g. dual-language
-    // display) that cannot subscribe to a Signal. Same shape as currentChatSettings above.
-    var currentLuminaSettings: Atomic<LuminaSettings> { get }
+    // LuminaGram: synchronous LuminaSettings access is now provided by the standalone global
+    // LuminaSettingsCache (submodules/TelegramUIPreferences/Sources/LuminaSettingsCache.swift),
+    // not an AccountContext protocol member — see that file's header for why one process-wide
+    // instance is correct for this single-account-independent local device state.
 
     var energyUsageSettings: EnergyUsageSettings { get }
     

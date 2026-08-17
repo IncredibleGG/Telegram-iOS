@@ -149,6 +149,12 @@ public struct LuminaSettings: Codable, Equatable {
     // guard diffs against on foreground/launch. iOS has no persistent background socket,
     // so this is polled, not pushed - see the roadmap's Security & anti-scam section.
     public var sessionGuardKnownHashes: [Int64]
+    // Whether the session guard has already taken its one-time baseline of existing
+    // authorizations. Distinguishes "first run for this account — adopt whatever sessions
+    // already exist as known" from "baseline taken — alert on anything new". Without it, an
+    // account that had zero other sessions at first run and later gains exactly one would seed
+    // silently instead of alerting (see LuminaSessionGuard.swift).
+    public var sessionGuardBaselineSeeded: Bool
     public var cryptoClipboardGuard: Bool
     public var linkSafetyCheck: Bool
     public var scamKeywordWarning: Bool
@@ -213,6 +219,7 @@ public struct LuminaSettings: Codable, Equatable {
             otpGuardEnabled: true,
             sessionGuardEnabled: true,
             sessionGuardKnownHashes: [],
+            sessionGuardBaselineSeeded: false,
             cryptoClipboardGuard: true,
             linkSafetyCheck: true,
             scamKeywordWarning: true,
@@ -268,6 +275,7 @@ public struct LuminaSettings: Codable, Equatable {
         otpGuardEnabled: Bool,
         sessionGuardEnabled: Bool,
         sessionGuardKnownHashes: [Int64],
+        sessionGuardBaselineSeeded: Bool,
         cryptoClipboardGuard: Bool,
         linkSafetyCheck: Bool,
         scamKeywordWarning: Bool,
@@ -320,6 +328,7 @@ public struct LuminaSettings: Codable, Equatable {
         self.otpGuardEnabled = otpGuardEnabled
         self.sessionGuardEnabled = sessionGuardEnabled
         self.sessionGuardKnownHashes = sessionGuardKnownHashes
+        self.sessionGuardBaselineSeeded = sessionGuardBaselineSeeded
         self.cryptoClipboardGuard = cryptoClipboardGuard
         self.linkSafetyCheck = linkSafetyCheck
         self.scamKeywordWarning = scamKeywordWarning
@@ -379,6 +388,7 @@ public struct LuminaSettings: Codable, Equatable {
         self.otpGuardEnabled = try container.decodeIfPresent(Bool.self, forKey: "otpGuardEnabled") ?? defaults.otpGuardEnabled
         self.sessionGuardEnabled = try container.decodeIfPresent(Bool.self, forKey: "sessionGuardEnabled") ?? defaults.sessionGuardEnabled
         self.sessionGuardKnownHashes = try container.decodeIfPresent([Int64].self, forKey: "sessionGuardKnownHashes") ?? defaults.sessionGuardKnownHashes
+        self.sessionGuardBaselineSeeded = try container.decodeIfPresent(Bool.self, forKey: "sessionGuardBaselineSeeded") ?? defaults.sessionGuardBaselineSeeded
         self.cryptoClipboardGuard = try container.decodeIfPresent(Bool.self, forKey: "cryptoClipboardGuard") ?? defaults.cryptoClipboardGuard
         self.linkSafetyCheck = try container.decodeIfPresent(Bool.self, forKey: "linkSafetyCheck") ?? defaults.linkSafetyCheck
         self.scamKeywordWarning = try container.decodeIfPresent(Bool.self, forKey: "scamKeywordWarning") ?? defaults.scamKeywordWarning
@@ -439,6 +449,7 @@ public struct LuminaSettings: Codable, Equatable {
         try container.encode(self.otpGuardEnabled, forKey: "otpGuardEnabled")
         try container.encode(self.sessionGuardEnabled, forKey: "sessionGuardEnabled")
         try container.encode(self.sessionGuardKnownHashes, forKey: "sessionGuardKnownHashes")
+        try container.encode(self.sessionGuardBaselineSeeded, forKey: "sessionGuardBaselineSeeded")
         try container.encode(self.cryptoClipboardGuard, forKey: "cryptoClipboardGuard")
         try container.encode(self.linkSafetyCheck, forKey: "linkSafetyCheck")
         try container.encode(self.scamKeywordWarning, forKey: "scamKeywordWarning")

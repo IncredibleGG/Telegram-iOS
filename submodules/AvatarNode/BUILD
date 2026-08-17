@@ -18,6 +18,7 @@ swift_library(
         "//submodules/AnimationUI:AnimationUI",
         "//submodules/AppBundle:AppBundle",
         "//submodules/AccountContext:AccountContext",
+        "//submodules/TelegramUIPreferences:TelegramUIPreferences",
         "//submodules/Emoji:Emoji",
         "//submodules/TinyThumbnail:TinyThumbnail",
         "//submodules/FastBlur:FastBlur",

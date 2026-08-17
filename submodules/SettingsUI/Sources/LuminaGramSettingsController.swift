@@ -106,23 +106,23 @@ private enum LuminaGramSettingsEntry: ItemListNodeEntry {
             return ItemListSectionHeaderItem(presentationData: presentationData, text: "FEATURES", sectionId: self.section)
         case .translation:
             return ItemListDisclosureItem(presentationData: presentationData, icon: PresentationResourcesSettings.autoTranslate, title: "Translation", label: "", sectionId: self.section, style: .blocks, action: {
-                arguments.pushController(luminaGramPlaceholderController(context: arguments.context, title: "Translation", text: "Per-chat translate-before-send, dual-language display, glossary and provider settings will appear here."))
+                arguments.pushController(luminaTranslateSettingsController(context: arguments.context))
             })
         case .voice:
             return ItemListDisclosureItem(presentationData: presentationData, icon: PresentationResourcesSettings.language, title: "Voice & Media", label: "", sectionId: self.section, style: .blocks, action: {
-                arguments.pushController(luminaGramPlaceholderController(context: arguments.context, title: "Voice & Media", text: "Voice-to-text, reverse voice and media handling settings will appear here."))
+                arguments.pushController(luminaVoiceMediaSettingsController(context: arguments.context))
             })
         case .security:
             return ItemListDisclosureItem(presentationData: presentationData, icon: PresentationResourcesSettings.security, title: "Security", label: "", sectionId: self.section, style: .blocks, action: {
-                arguments.pushController(luminaGramPlaceholderController(context: arguments.context, title: "Security", text: "OTP guard, session guard, link and file safety checks will appear here."))
+                arguments.pushController(luminaSecuritySettingsController(context: arguments.context))
             })
         case .privacy:
             return ItemListDisclosureItem(presentationData: presentationData, icon: PresentationResourcesSettings.lockOrange, title: "Privacy", label: "", sectionId: self.section, style: .blocks, action: {
-                arguments.pushController(luminaGramPlaceholderController(context: arguments.context, title: "Privacy", text: "Hidden phone number, locked chats and photo metadata stripping will appear here."))
+                arguments.pushController(luminaPrivacySettingsController(context: arguments.context))
             })
         case .tools:
             return ItemListDisclosureItem(presentationData: presentationData, icon: PresentationResourcesSettings.aiTools, title: "Tools", label: "", sectionId: self.section, style: .blocks, action: {
-                arguments.pushController(luminaGramPlaceholderController(context: arguments.context, title: "Tools", text: "Bookmarks, quick-reply templates and local encrypted backup will appear here."))
+                arguments.pushController(luminaToolsController(context: arguments.context))
             })
         case .storedLocallyFooter:
             return ItemListTextItem(presentationData: presentationData, text: .plain("LuminaGram options are stored on this device only and are never synced to Telegram."), sectionId: self.section)

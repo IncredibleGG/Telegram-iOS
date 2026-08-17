@@ -12,6 +12,7 @@ import AccountContext
 import Emoji
 import Accelerate
 import ComponentFlow
+import TelegramUIPreferences
 import AvatarStoryIndicatorComponent
 import DirectMediaImageCache
 
@@ -1374,6 +1375,14 @@ public final class AvatarNode: ASDisplayNode {
     }
     
     public func setStoryStats(storyStats: StoryStats?, presentationParams: StoryPresentationParams, transition: ComponentTransition) {
+        // LuminaGram: stories fully off - AvatarNode is the single shared avatar-rendering
+        // node used everywhere (chat list rows, chat headers, peer info, ...), and every
+        // caller that wants a story ring goes through this one setter, so forcing nil here
+        // removes the ring app-wide without touching each call site.
+        var storyStats = storyStats
+        if LuminaSettingsCache.shared.current().storiesFullyOff {
+            storyStats = nil
+        }
         if self.storyStats != storyStats || self.storyPresentationParams != presentationParams {
             self.storyStats = storyStats
             self.storyPresentationParams = presentationParams

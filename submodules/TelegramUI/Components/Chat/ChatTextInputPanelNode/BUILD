@@ -11,12 +11,13 @@ swift_library(
     ],
     deps = [
         "//submodules/Display",
+        "//submodules/ItemListUI",  # LuminaGram: quick-reply picker/edit rows (utility bucket)
         "//submodules/AsyncDisplayKit",
         "//submodules/SSignalKit/SwiftSignalKit",
         "//submodules/TelegramCore",
         "//submodules/TelegramPresentationData",
-        "//submodules/TelegramUIPreferences",  # LuminaGram: crypto-address paste guard (LuminaSettings)
-        "//submodules/PresentationDataUtils",  # LuminaGram: crypto-address paste guard alert (textAlertController)
+        "//submodules/TelegramUIPreferences",  # LuminaGram: crypto-address paste guard (LuminaSettings) + quick replies
+        "//submodules/PresentationDataUtils",  # LuminaGram: crypto-address paste guard alert (textAlertController) + quick replies
         "//submodules/TextFormat",
         "//submodules/AccountContext",
         "//submodules/TouchDownGesture",

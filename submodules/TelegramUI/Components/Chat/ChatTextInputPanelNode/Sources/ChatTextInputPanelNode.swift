@@ -5009,6 +5009,13 @@ public class ChatTextInputPanelNode: ChatInputPanelNode, ASEditableTextNodeDeleg
             } else {
                 return ASEditableTextNodeTargetForAction(target: nil)
             }
+        } else if action == makeSelectorFromString("_quickReply:") {
+            // LuminaGram: quick-reply templates - unlike _translate:, this doesn't need a
+            // selection; inserting a template into an empty composer is the common case.
+            if case .format = self.inputMenu.state {
+                return ASEditableTextNodeTargetForAction(target: nil)
+            }
+            return ASEditableTextNodeTargetForAction(target: self)
         } else if action == #selector(self.formatAttributesBold(_:)) || action == #selector(self.formatAttributesItalic(_:)) || action == #selector(self.formatAttributesMonospace(_:)) || action == #selector(self.formatAttributesLink(_:)) || action == #selector(self.formatAttributesStrikethrough(_:)) || action == #selector(self.formatAttributesUnderline(_:)) || action == #selector(self.formatAttributesSpoiler(_:)) || action == #selector(self.formatAttributesQuote(_:)) || action == #selector(self.formatAttributesCodeBlock(_:)) {
             if case .format = self.inputMenu.state {
                 if action == #selector(self.formatAttributesSpoiler(_:)), let selectedRange = self.richTextInputNode?.selectedRange {
@@ -5222,6 +5229,12 @@ public class ChatTextInputPanelNode: ChatInputPanelNode, ASEditableTextNodeDeleg
         var elements = defaultElements.filter { ($0 as? UIMenu)?.title != "Format" }
         let insertIndex = min(1, elements.count)
         elements.insert(formatMenu, at: insertIndex)
+        // LuminaGram: quick-reply templates - "Insert a saved reply" entry, reachable from
+        // this same long-press menu instead of a dedicated always-visible composer icon
+        // (which would need new manual layout/frame code in this file to add safely).
+        elements.insert(UIAction(title: "Quick Reply", image: nil) { [weak self] _ in
+            self?._quickReply(0)
+        }, at: min(insertIndex + 1, elements.count))
         return elements
     }
 
@@ -5275,6 +5288,31 @@ public class ChatTextInputPanelNode: ChatInputPanelNode, ASEditableTextNodeDeleg
                 }
             }
         })
+    }
+    
+    // LuminaGram: quick-reply templates - picker sheet, presented via the generic
+    // interfaceInteraction.presentController hook (ChatPanelInterfaceInteraction.swift) so
+    // this doesn't need a new interaction field threaded through every call site that
+    // constructs a ChatPanelInterfaceInteraction. Inserts the picked text at the current
+    // selection/cursor, replacing any selected text - same shape as _translate(_:) above.
+    @objc public func _quickReply(_ sender: Any) {
+        guard let context = self.context else {
+            return
+        }
+        self.interfaceInteraction?.presentController(luminaQuickReplyPickerController(context: context, select: { [weak self] text in
+            guard let self else {
+                return
+            }
+            self.interfaceInteraction?.updateTextInputStateAndMode { current, inputMode in
+                if let inputText = current.inputText.mutableCopy() as? NSMutableAttributedString {
+                    inputText.replaceCharacters(in: NSMakeRange(current.selectionRange.lowerBound, current.selectionRange.count), with: text)
+                    let updatedRange = current.selectionRange.lowerBound + (text as NSString).length
+                    return (ChatTextInputState(inputText: inputText, selectionRange: updatedRange ..< updatedRange), .text)
+                } else {
+                    return (ChatTextInputState(inputText: NSAttributedString(string: text)), inputMode)
+                }
+            }
+        }), nil)
     }
     
     @objc public func _showTextStyleOptions(_ sender: Any) {
