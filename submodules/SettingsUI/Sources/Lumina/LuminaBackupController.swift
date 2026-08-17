@@ -197,8 +197,12 @@ public func luminaBackupController(context: AccountContext) -> ViewController {
             }
         })
         pickerHandler = handler
-        let documentTypes: [UTType] = [.data]
-        let pickerController = UIDocumentPickerViewController(forOpeningContentTypes: documentTypes)
+        let pickerController: UIDocumentPickerViewController
+        if #available(iOS 14.0, *) {
+            pickerController = UIDocumentPickerViewController(forOpeningContentTypes: [.data])
+        } else {
+            pickerController = UIDocumentPickerViewController(documentTypes: ["public.data"], in: .open)
+        }
         pickerController.delegate = handler
         context.sharedContext.applicationBindings.presentNativeController(pickerController)
     })

@@ -75,7 +75,7 @@ final class LuminaTelegramEngine: LuminaTranslatorEngine {
         if let peerId {
             toneSignal = luminaCurrentSettings(context: context)
             |> map { settings -> TranslationTone in
-                return LuminaRegister.telegramTone(LuminaRegister.get(settings: settings, peerId: peerId))
+                return LuminaRegister.telegramTone(stored: LuminaRegister.get(settings: settings, peerId: peerId))
             }
         } else {
             toneSignal = .single(.neutral)

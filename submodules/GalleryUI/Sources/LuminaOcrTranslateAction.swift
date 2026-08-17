@@ -7,6 +7,7 @@ import TelegramPresentationData
 import TelegramUIPreferences
 import AccountContext
 import ImageContentAnalysis
+import ChatRichTextEditorComposer
 
 // LuminaGram: one-tap "Translate Image" for the full-screen photo viewer. Telegram-iOS already
 // ships on-device Vision-based text recognition for images (ImageContentAnalysis.recognizedContent,

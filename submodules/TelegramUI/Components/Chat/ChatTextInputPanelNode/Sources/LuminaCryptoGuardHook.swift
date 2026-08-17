@@ -5,6 +5,7 @@ import SwiftSignalKit
 import TelegramCore
 import TelegramUIPreferences
 import PresentationDataUtils
+import AccountContext
 import ChatPresentationInterfaceState
 
 // LuminaGram: crypto-address paste guard — the AccountContext/UI-aware half of
