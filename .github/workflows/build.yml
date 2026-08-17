@@ -65,20 +65,22 @@ jobs:
             --configuration=release_arm64 \
             --buildNumber="$BUILD_NUMBER"
 
-          # collect ipa
+          # collect ipa (bazel-bin is the canonical symlink; the opt-config
+          # directory name under bazel-out is not stable, so glob missed it)
           OUTPUT_PATH="build/artifacts"
           rm -rf "$OUTPUT_PATH"
           mkdir -p "$OUTPUT_PATH"
-          for f in bazel-out/applebin_ios-ios_arm*-opt-ST-*/bin/Telegram/Telegram.ipa; do
-            cp "$f" $OUTPUT_PATH/
-          done
+          if [ -f bazel-bin/Telegram/Telegram.ipa ]; then
+            cp bazel-bin/Telegram/Telegram.ipa "$OUTPUT_PATH/"
+          else
+            cp "$(find -L bazel-out -type f -name Telegram.ipa -path '*/bin/Telegram/*' | head -1)" "$OUTPUT_PATH/"
+          fi
+          ls -la "$OUTPUT_PATH/"
 
-          # collect dsym
+          # collect dsym (best-effort)
           mkdir -p build/DSYMs
-          for f in bazel-out/applebin_ios-ios_arm*-opt-ST-*/bin/Telegram/*.dSYM; do
-            cp -R "$f" build/DSYMs/
-          done
-          zip -r "./$OUTPUT_PATH/Telegram.DSYMs.zip" build/DSYMs 1>/dev/null
+          cp -R bazel-bin/Telegram/*.dSYM build/DSYMs/ 2>/dev/null || true
+          zip -r "./$OUTPUT_PATH/Telegram.DSYMs.zip" build/DSYMs 1>/dev/null 2>&1 || true
 
       - name: Upload unsigned IPA
         uses: actions/upload-artifact@v4
