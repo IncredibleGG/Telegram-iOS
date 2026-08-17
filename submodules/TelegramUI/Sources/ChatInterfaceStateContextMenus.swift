@@ -1489,6 +1489,19 @@ func contextMenuForChatPresentationInterfaceState(chatPresentationInterfaceState
                     })))
                 }
 
+                // LuminaGram: per-chat translate settings (translate-before-send + target
+                // language + tone/register for this dialog). Same "not a secret chat" gate as
+                // Translate above; secret chats already opt out of every translation feature.
+                if let luminaPeerId = chatPresentationInterfaceState.chatLocation.peerId, luminaPeerId.namespace != Namespaces.Peer.SecretChat {
+                    actions.append(.action(ContextMenuActionItem(text: "Chat Translation Settings", icon: { theme in
+                        return generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/Translate"), color: theme.actionSheet.primaryTextColor)
+                    }, action: { c, _ in
+                        c?.dismiss(completion: {
+                            controllerInteraction.navigationController()?.pushViewController(luminaChatTranslateSettingsController(context: context, peerId: luminaPeerId))
+                        })
+                    })))
+                }
+
                 if isSpeakSelectionEnabled() && !messageText.isEmpty {
                     actions.append(.action(ContextMenuActionItem(text: chatPresentationInterfaceState.strings.Conversation_ContextMenuSpeak, icon: { theme in
                         return generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/Message"), color: theme.actionSheet.primaryTextColor)
