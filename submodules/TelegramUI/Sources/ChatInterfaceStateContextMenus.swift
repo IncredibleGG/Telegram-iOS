@@ -1457,6 +1457,30 @@ func contextMenuForChatPresentationInterfaceState(chatPresentationInterfaceState
                     })))
                 }
                 
+                // LuminaGram: message bookmarks - local-only alternative to Saved Messages,
+                // persisted in LuminaSettings.bookmarks (submodules/TelegramUIPreferences).
+                // No server RPC; snippet + peer/message id only, so it round-trips into the
+                // backup export too.
+                actions.append(.action(ContextMenuActionItem(text: "Bookmark", icon: { theme in
+                    return generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/ReadingList"), color: theme.actionSheet.primaryTextColor)
+                }, action: { _, f in
+                    if let peerId = chatPresentationInterfaceState.chatLocation.peerId {
+                        var snippet = messageText
+                        if snippet.count > 140 {
+                            snippet = String(snippet.prefix(140))
+                        }
+                        let bookmark = LuminaSettings.Bookmark(peerId: peerId.toInt64(), messageId: message.id.id, messageNamespace: message.id.namespace, snippet: snippet, timestamp: message.timestamp)
+                        let _ = updateLuminaSettingsInteractively(accountManager: context.sharedContext.accountManager, { settings in
+                            var settings = settings
+                            if !settings.bookmarks.contains(where: { $0.peerId == bookmark.peerId && $0.messageId == bookmark.messageId && $0.messageNamespace == bookmark.messageNamespace }) {
+                                settings.bookmarks.append(bookmark)
+                            }
+                            return settings
+                        }).start()
+                    }
+                    f(.default)
+                })))
+                
                 if isSpeakSelectionEnabled() && !messageText.isEmpty {
                     actions.append(.action(ContextMenuActionItem(text: chatPresentationInterfaceState.strings.Conversation_ContextMenuSpeak, icon: { theme in
                         return generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/Message"), color: theme.actionSheet.primaryTextColor)

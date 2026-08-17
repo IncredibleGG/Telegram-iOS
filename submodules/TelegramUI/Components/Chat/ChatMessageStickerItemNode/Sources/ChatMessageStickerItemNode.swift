@@ -5,6 +5,7 @@ import Display
 import SwiftSignalKit
 import TelegramCore
 import TelegramPresentationData
+import TelegramUIPreferences
 import TextFormat
 import AccountContext
 import StickerResources
@@ -420,7 +421,12 @@ public class ChatMessageStickerItemNode: ChatMessageItemView {
     }
     
     override public func asyncLayout() -> (_ item: ChatMessageItem, _ params: ListViewItemLayoutParams, _ mergedTop: ChatMessageMerge, _ mergedBottom: ChatMessageMerge, _ dateHeaderAtBottom: ChatMessageHeaderSpec) -> (ListViewItemNodeLayout, (ListViewItemUpdateAnimation, ListViewItemApply, Bool) -> Void) {
-        let displaySize = CGSize(width: 184.0, height: 184.0)
+        // LuminaGram: sticker size - scale the base display size by the user's stickerScale
+        // percent (75/100/125, matching Android's KEY_STICKER_SCALE). displaySize is the
+        // single value aspectFitted(...) below is measured against, so scaling it here scales
+        // the whole rendered sticker + its bubble layout.
+        let luminaStickerScaleFactor = CGFloat(LuminaSettingsCache.shared.current().stickerScale) / 100.0
+        let displaySize = CGSize(width: 184.0 * luminaStickerScaleFactor, height: 184.0 * luminaStickerScaleFactor)
         let telegramFile = self.telegramFile
         let layoutConstants = self.layoutConstants
         let imageLayout = self.imageNode.asyncLayout()

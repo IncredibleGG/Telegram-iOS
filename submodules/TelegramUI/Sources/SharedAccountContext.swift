@@ -515,6 +515,11 @@ public final class SharedAccountContextImpl: SharedAccountContext {
             }
         })
         
+        // LuminaGram: start the synchronous LuminaSettings snapshot used by hot-path reads
+        // (precise counts, sticker size, seconds timestamps, stories-off) that have no
+        // Signal-friendly call path of their own - see LuminaSettingsCache.swift.
+        LuminaSettingsCache.shared.start(accountManager: self.accountManager)
+        
         let immediateExperimentalUISettingsValue = self.immediateExperimentalUISettingsValue
         let _ = immediateExperimentalUISettingsValue.swap(initialPresentationDataAndSettings.experimentalUISettings)
         

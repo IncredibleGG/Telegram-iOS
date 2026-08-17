@@ -16,6 +16,9 @@ import WebUI
 import AvatarNode
 import PeerNameColorItem
 import BoostLevelIconComponent
+import TelegramUIPreferences
+import UndoUI
+import SettingsUI
 
 private let enabledPublicBioEntities: EnabledEntityTypes = [.allUrl, .mention, .hashtag]
 private let enabledPrivateBioEntities: EnabledEntityTypes = [.internalUrl, .mention, .hashtag]
@@ -88,6 +91,9 @@ func infoItems(
         let ItemAbout = 3003
         let ItemNote = 3004
         let ItemAppFooter = 3005
+        // LuminaGram: numeric user ID + private contact note rows.
+        let ItemLuminaUserId = 3006
+        let ItemLuminaContactNote = 3007
         let ItemAffiliate = 4000
         let ItemAffiliateInfo = 4001
         let ItemBusinessHours = 5000
@@ -167,6 +173,32 @@ func infoItems(
                 interaction.openPhone(phone, node, nil, progress)
             }, longTapAction: nil, contextAction: { node, gesture, _ in
                 interaction.openPhone(phone, node, gesture, nil)
+            }, requestLayout: { animated in
+                interaction.requestLayout(animated)
+            }))
+        }
+        
+        // LuminaGram: numeric user ID - default-on, no toggle, shown for every peer
+        // (mirrors Android's always-on ProfileActivity ID line). Local display of data the
+        // client already holds; tap copies it.
+        let luminaUserIdText = "\(user.id.id._internalGetInt64Value())"
+        items[currentPeerInfoSection]!.append(PeerInfoScreenLabeledValueItem(id: ItemLuminaUserId, label: "ID", text: luminaUserIdText, textColor: .accent, action: { _, _ in
+            UIPasteboard.general.string = luminaUserIdText
+            if let controller = interaction.getController() {
+                controller.present(UndoOverlayController(presentationData: presentationData, content: .copy(text: "ID copied"), elevatedLayout: false, animateInAsReplacement: false, action: { _ in return false }), in: .current)
+            }
+        }, requestLayout: { animated in
+            interaction.requestLayout(animated)
+        }))
+        
+        // LuminaGram: private contact notes & tags - local-only, keyed by peerId in
+        // LuminaSettings.contactNotes. Never touches Telegram's own profile or server;
+        // distinct from Telegram's own server-synced "Notes" field further down
+        // (ItemNote / cachedData.note). Only shown on other people's profiles, not your own.
+        if !isMyProfile {
+            let luminaContactNote = LuminaSettingsCache.shared.current().contactNotes.first(where: { $0.peerId == user.id.toInt64() })
+            items[currentPeerInfoSection]!.append(PeerInfoScreenLabeledValueItem(id: ItemLuminaContactNote, label: "Note", text: luminaContactNote?.note.isEmpty == false ? luminaContactNote!.note : "Add a private note", textColor: .primary, textBehavior: .multiLine(maxLines: 3, enabledEntities: []), action: { _, _ in
+                interaction.getController()?.push(luminaContactNoteController(context: context, peerId: user.id))
             }, requestLayout: { animated in
                 interaction.requestLayout(animated)
             }))

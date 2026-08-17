@@ -107,7 +107,12 @@ public func stringForMessageTimestampStatus(
         timestamp = orignalDate
     }
     
-    var dateText = stringForMessageTimestamp(timestamp: timestamp, dateTimeFormat: dateTimeFormat)
+    // LuminaGram: seconds in message timestamps - stringForMessageTimestamp already takes
+    // a withSeconds parameter (submodules/TextFormat/Sources/DateFormat.swift), it was just
+    // never wired to anything. This is the single call site that feeds every bubble type's
+    // dateText (ChatMessageBubbleItemNode, ChatMessageStickerItemNode, etc. all funnel
+    // through stringForMessageTimestampStatus), so gating it here covers all of them.
+    var dateText = stringForMessageTimestamp(timestamp: timestamp, dateTimeFormat: dateTimeFormat, withSeconds: LuminaSettingsCache.shared.current().timeWithSeconds)
     if timestamp == scheduleWhenOnlineTimestamp {
         dateText = "         "
     }

@@ -8,6 +8,7 @@ import Postbox
 import TelegramCore
 import CoreImage
 import TelegramPresentationData
+import TelegramUIPreferences
 import Compression
 import TextFormat
 import AccountContext
@@ -832,7 +833,10 @@ public class ChatMessageAnimatedStickerItemNode: ChatMessageItemView {
     }
         
     override public func asyncLayout() -> (_ item: ChatMessageItem, _ params: ListViewItemLayoutParams, _ mergedTop: ChatMessageMerge, _ mergedBottom: ChatMessageMerge, _ dateHeaderAtBottom: ChatMessageHeaderSpec) -> (ListViewItemNodeLayout, (ListViewItemUpdateAnimation, ListViewItemApply, Bool) -> Void) {
-        var displaySize = CGSize(width: 180.0, height: 180.0)
+        // LuminaGram: sticker size - base for both the 180x180 regular case and the 240x240
+        // video-thumbnail case below; scaling here before either branch runs covers both.
+        let luminaStickerScaleFactor = CGFloat(LuminaSettingsCache.shared.current().stickerScale) / 100.0
+        var displaySize = CGSize(width: 180.0 * luminaStickerScaleFactor, height: 180.0 * luminaStickerScaleFactor)
         let telegramFile = self.telegramFile
         let emojiFile = self.emojiFile
         let telegramDice = self.telegramDice
@@ -869,7 +873,7 @@ public class ChatMessageAnimatedStickerItemNode: ChatMessageItemView {
             var imageBottomPadding: CGFloat = 0.0
             var imageHorizontalOffset: CGFloat = 0.0
             if !(telegramFile?.videoThumbnails.isEmpty ?? true) {
-                displaySize = CGSize(width: 240.0, height: 240.0)
+                displaySize = CGSize(width: 240.0 * luminaStickerScaleFactor, height: 240.0 * luminaStickerScaleFactor)
                 imageVerticalInset = -20.0
                 imageHorizontalOffset = 12.0
             }

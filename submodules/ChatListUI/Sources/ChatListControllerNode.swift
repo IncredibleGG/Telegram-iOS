@@ -1668,6 +1668,13 @@ final class ChatListControllerNode: ASDisplayNode, ASGestureRecognizerDelegate {
             }
         }
         
+        // LuminaGram: stories-hide-post-entry - keep others' stories visible in the tray
+        // (storiesFullyOff is a stronger, separate flag already handled above) but drop the
+        // account's own "add a story" slot from it.
+        if LuminaSettingsCache.shared.current().storiesHidePostEntry, let current = effectiveStorySubscriptions, current.accountItem != nil {
+            effectiveStorySubscriptions = EngineStorySubscriptions(accountItem: nil, items: current.items, hasMoreToken: current.hasMoreToken)
+        }
+        
         let navigationBarSize = self.navigationBarView.update(
             transition: transition,
             component: AnyComponent(ChatListNavigationBar(
@@ -2459,6 +2466,11 @@ final class ChatListControllerNode: ASDisplayNode, ASGestureRecognizerDelegate {
 }
 
 func shouldDisplayStoriesInChatListHeader(storySubscriptions: EngineStorySubscriptions, isHidden: Bool) -> Bool {
+    // LuminaGram: stories fully off - single choke point for every call site in this file
+    // that decides whether to show the stories tray in the chat list header.
+    if LuminaSettingsCache.shared.current().storiesFullyOff {
+        return false
+    }
     if !storySubscriptions.items.isEmpty {
         return true
     }
