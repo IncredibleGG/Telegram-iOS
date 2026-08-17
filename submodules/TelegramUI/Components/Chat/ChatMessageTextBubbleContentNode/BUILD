@@ -39,6 +39,7 @@ swift_library(
         "//submodules/TelegramUI/Components/InteractiveTextComponent",
         "//submodules/TelegramUI/Components/ShimmeringMask",
         "//submodules/TelegramUI/Components/StreamingTextReveal:StreamingTextReveal",
+        "//submodules/TelegramUIPreferences", # LuminaGram: dual-language display (LuminaSettings)
     ],
     visibility = [
         "//visibility:public",

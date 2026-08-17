@@ -273,7 +273,11 @@ public final class SharedAccountContextImpl: SharedAccountContext {
     
     public let currentChatSettings: Atomic<ChatSettings>
     private var chatSettingsDisposable: Disposable?
-    
+
+    // LuminaGram: synchronous LuminaSettings access (see currentLuminaSettings on SharedAccountContext)
+    public let currentLuminaSettings: Atomic<LuminaSettings>
+    private var luminaSettingsDisposable: Disposable?
+
     public let currentStickerSettings: Atomic<StickerSettings>
     private var stickerSettingsDisposable: Disposable?
     
@@ -360,7 +364,11 @@ public final class SharedAccountContextImpl: SharedAccountContext {
         self.currentStickerSettings = Atomic(value: initialPresentationDataAndSettings.stickerSettings)
         self.currentInAppNotificationSettings = Atomic(value: initialPresentationDataAndSettings.inAppNotificationSettings)
         self.currentChatSettings = Atomic(value: initialPresentationDataAndSettings.chatSettings)
-        
+        // LuminaGram: not threaded through InitialPresentationDataAndSettings (out of scope for this
+        // bucket) — seeded with defaults and swapped for the real value by luminaSettingsDisposable
+        // below, same as every other currentXSettings above briefly reads defaults pre-launch.
+        self.currentLuminaSettings = Atomic(value: LuminaSettings.defaultSettings)
+
         if automaticEnergyUsageShouldBeOnNow(settings: self.currentAutomaticMediaDownloadSettings) {
             self.energyUsageSettings = EnergyUsageSettings.powerSavingDefault
         } else {
@@ -514,7 +522,16 @@ public final class SharedAccountContextImpl: SharedAccountContext {
                 }
             }
         })
-        
+
+        // LuminaGram: keep currentLuminaSettings in sync with LuminaSettings.swift's SharedData entry.
+        self.luminaSettingsDisposable = (self.accountManager.sharedData(keys: [ApplicationSpecificSharedDataKeys.luminaSettings])
+        |> deliverOnMainQueue).start(next: { [weak self] sharedData in
+            if let strongSelf = self {
+                let settings = sharedData.entries[ApplicationSpecificSharedDataKeys.luminaSettings]?.get(LuminaSettings.self) ?? LuminaSettings.defaultSettings
+                let _ = strongSelf.currentLuminaSettings.swap(settings)
+            }
+        })
+
         let immediateExperimentalUISettingsValue = self.immediateExperimentalUISettingsValue
         let _ = immediateExperimentalUISettingsValue.swap(initialPresentationDataAndSettings.experimentalUISettings)
         
@@ -1109,6 +1126,7 @@ public final class SharedAccountContextImpl: SharedAccountContext {
         self.mediaInputSettingsDisposable?.dispose()
         self.mediaDisplaySettingsDisposable?.dispose()
         self.chatSettingsDisposable?.dispose()
+        self.luminaSettingsDisposable?.dispose() // LuminaGram
         self.stickerSettingsDisposable?.dispose()
         self.callDisposable?.dispose()
         self.groupCallDisposable?.dispose()

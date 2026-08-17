@@ -231,13 +231,15 @@ public func chatTranslationState(context: AccountContext, peerId: EnginePeer.Id,
             |> map { sharedData -> TranslationSettings in
                 return sharedData.entries[ApplicationSpecificSharedDataKeys.translationSettings]?.get(TranslationSettings.self) ?? TranslationSettings.defaultSettings
             },
-            context.engine.data.subscribe(TelegramEngine.EngineData.Item.Peer.AutoTranslateEnabled(id: peerId))
+            context.engine.data.subscribe(TelegramEngine.EngineData.Item.Peer.AutoTranslateEnabled(id: peerId)),
+            // LuminaGram: group-skip my languages
+            luminaCurrentSettings(context: context)
         )
-        |> mapToSignal { settings, autoTranslateEnabled in
+        |> mapToSignal { settings, autoTranslateEnabled, luminaSettings in
             if !settings.translateChats && !autoTranslateEnabled {
                 return .single(nil)
             }
-            
+
             var dontTranslateLanguages = Set<String>()
             if let ignoredLanguages = settings.ignoredLanguages {
                 dontTranslateLanguages = Set(ignoredLanguages)
@@ -247,6 +249,9 @@ public func chatTranslationState(context: AccountContext, peerId: EnginePeer.Id,
                     dontTranslateLanguages.insert(language)
                 }
             }
+            // LuminaGram: group-skip my languages — extend Telegram's own ignored-language set
+            // with LuminaSettings.myLanguages/trReadLang, gated by groupSkipMyLanguages.
+            dontTranslateLanguages.formUnion(luminaAdditionalIgnoredTranslationLanguages(settings: luminaSettings))
             
             return cachedChatTranslationState(engine: context.engine, peerId: peerId, threadId: threadId)
             |> mapToSignal { cached in

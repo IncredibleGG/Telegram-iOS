@@ -27,6 +27,7 @@ import ChatControllerInteraction
 import InteractiveTextComponent
 import ShimmeringMask
 import StreamingTextReveal
+import TelegramUIPreferences // LuminaGram: dual-language display
 
 private final class CachedChatMessageText {
     let text: String
@@ -434,8 +435,19 @@ public class ChatMessageTextBubbleContentNode: ChatMessageBubbleContentNode {
                                 isTranslating = false
                                 isSummaryApplied = true
                             } else if let attribute = item.message.attributes.first(where: { $0 is TranslationMessageAttribute }) as? TranslationMessageAttribute, !attribute.text.isEmpty, attribute.toLang == translateToLanguage {
-                                rawText = attribute.text
-                                messageEntities = attribute.entities
+                                // LuminaGram: dual-language display — show the original alongside the
+                                // translation (honoring the fold setting for long originals) instead of
+                                // replacing it outright. Falls back to Telegram's stock translation-only
+                                // rendering when the setting is off.
+                                let luminaSettings = item.context.sharedContext.currentLuminaSettings.with { $0 }
+                                if luminaSettings.dualLanguageDisplay {
+                                    let composed = LuminaDualLanguageText.compose(original: rawText, originalEntities: messageEntities ?? [], translated: attribute.text, translatedEntities: attribute.entities, fold: luminaSettings.foldOriginalLongMessages)
+                                    rawText = composed.text
+                                    messageEntities = composed.entities
+                                } else {
+                                    rawText = attribute.text
+                                    messageEntities = attribute.entities
+                                }
                                 if !isSummarized {
                                     isTranslating = false
                                 }
