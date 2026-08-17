@@ -4,6 +4,7 @@ import TelegramCore
 import TelegramPresentationData
 import MergeLists
 import AccountContext
+import TelegramUIPreferences // LuminaGram: chat-lock / private folder (LuminaChatLock.isHidden)
 
 enum ChatListNodeEntryId: Hashable {
     case Header
@@ -664,9 +665,14 @@ func chatListNodeEntriesForView(view: EngineChatList, state: ChatListNodeState, 
     }
     
     var hiddenGeneralThread: ChatListNodeEntry?
-    
+
     var hasPinned = false
-    
+
+    // LuminaGram: chat-lock / private folder. Computed once for the whole pass rather than
+    // once per row inside the loop below, since hasSecretCode() reads the Keychain - see
+    // LuminaChatLock.hiddenPeerIdsSnapshot()'s comment for why that matters here.
+    let luminaHiddenPeerIds = LuminaChatLock.hiddenPeerIdsSnapshot()
+
     loop: for entry in view.items {
         var peerId: EnginePeer.Id?
         var threadId: Int64?
@@ -684,6 +690,16 @@ func chatListNodeEntriesForView(view: EngineChatList, state: ChatListNodeState, 
             continue loop
         }
         if let peerId = peerId, state.pendingRemovalItemIds.contains(ChatListNodeState.ItemId(peerId: peerId, threadId: threadId)) {
+            continue loop
+        }
+        // LuminaGram: chat-lock / private folder. A locked, not-yet-revealed dialog is left
+        // out of the rendered list entirely - display-layer only, never touches read/typing/
+        // online state or removes anything from the Postbox chat list itself (see
+        // LuminaChatLock.swift). Fail-open: luminaHiddenPeerIds is nil whenever nothing
+        // should be hidden right now (revealed, no code configured, or nothing locked).
+        // Scoped to top-level dialog rows (threadId == nil) only, matching desktop/Android's
+        // per-conversation granularity - a forum's own topic list is a different surface.
+        if threadId == nil, let peerId, let luminaHiddenPeerIds, luminaHiddenPeerIds.contains(peerId.toInt64()) {
             continue loop
         }
         var updatedMessages = entry.messages

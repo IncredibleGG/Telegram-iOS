@@ -26,6 +26,7 @@ swift_library(
         "//submodules/ICloudResources",
         "//submodules/TelegramUI/Components/Resources/FetchVideoMediaResource",
         "//submodules/TelegramUI/Components/Resources/FetchAudioMediaResource",
+        "//submodules/TelegramUIPreferences", # LuminaGram: strip photo EXIF on send
     ],
     visibility = [
         "//visibility:public",

@@ -1236,8 +1236,12 @@ final class PeerInfoHeaderNode: ASDisplayNode {
             smallTitleAttributes = MultiScaleTextState.Attributes(font: Font.medium(28.0), color: .white, shadowColor: titleShadowColor)
             
             if self.isSettings, case let .user(user) = peer {
-                var subtitle = formatPhoneNumber(context: self.context, number: user.phone ?? "")
-                
+                // LuminaGram: hide own phone number (privacy bucket). isSettings means this
+                // header is always the account's own Settings screen, never another peer's -
+                // pure local render gate, see LuminaHidePhone.swift.
+                LuminaSettingsCache.ensureSubscribed(accountManager: self.context.sharedContext.accountManager)
+                var subtitle = LuminaSettingsCache.settings.hideOwnPhone ? LuminaHidePhone.maskedText : formatPhoneNumber(context: self.context, number: user.phone ?? "")
+
                 if let mainUsername = user.addressName, !mainUsername.isEmpty {
                     subtitle = "\(subtitle) • @\(mainUsername)"
                 }
