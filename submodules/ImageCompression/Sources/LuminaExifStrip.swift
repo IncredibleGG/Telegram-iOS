@@ -71,9 +71,9 @@ public enum LuminaExifStrip {
         // that dictionary from the output rather than copy it from the source - the
         // documented ImageIO idiom for removing metadata without decoding pixels.
         let removalProperties: [String: Any] = [
-            gpsKey: kCFNull,
-            exifKey: kCFNull,
-            tiffKey: kCFNull,
+            gpsKey: kCFNull!,
+            exifKey: kCFNull!,
+            tiffKey: kCFNull!,
         ]
 
         let output = NSMutableData()
