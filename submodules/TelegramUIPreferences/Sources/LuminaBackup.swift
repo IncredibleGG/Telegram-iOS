@@ -76,7 +76,15 @@ public enum LuminaBackup {
     }
 
     private static func deriveKey(passphrase: String, salt: Data) -> SymmetricKey {
-        let passphraseKey = SymmetricKey(data: Data(passphrase.utf8))
-        return HKDF<SHA256>.deriveKey(inputKeyMaterial: passphraseKey, salt: salt, info: self.hkdfInfo, outputByteCount: 32)
+        // Manual HKDF-SHA256. CryptoKit's HKDF type is iOS 14+, but HMAC is iOS 13+,
+        // and the min deployment target here is iOS 13.0.
+        let ikm = Data(passphrase.utf8)
+        // Extract: PRK = HMAC(key: salt, message: IKM)
+        let prk = HMAC<SHA256>.authenticationCode(for: ikm, using: SymmetricKey(data: salt))
+        // Expand: single 32-byte block = HMAC(key: PRK, message: info || 0x01)
+        var expandInput = self.hkdfInfo
+        expandInput.append(0x01)
+        let okm = HMAC<SHA256>.authenticationCode(for: expandInput, using: SymmetricKey(data: Data(prk)))
+        return SymmetricKey(data: Data(okm))
     }
 }

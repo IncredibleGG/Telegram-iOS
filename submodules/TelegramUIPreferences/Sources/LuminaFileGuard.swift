@@ -278,7 +278,16 @@ public enum LuminaFileGuard {
             return nil
         }
         defer { try? handle.close() }
-        guard let head = try? handle.read(upToCount: 8), head.count >= 4 else {
+        let head: Data
+        if #available(iOS 13.4, *) {
+            guard let h = try? handle.read(upToCount: 8) else {
+                return nil
+            }
+            head = h
+        } else {
+            head = handle.readData(ofLength: 8)
+        }
+        guard head.count >= 4 else {
             return nil
         }
         let b0 = head[head.startIndex], b1 = head[head.startIndex + 1]
