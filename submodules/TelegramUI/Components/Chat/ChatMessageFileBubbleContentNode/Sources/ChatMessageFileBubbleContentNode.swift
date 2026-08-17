@@ -47,7 +47,13 @@ public class ChatMessageFileBubbleContentNode: ChatMessageBubbleContentNode {
         
         self.interactiveFileNode.activateLocalContent = { [weak self] in
             if let strongSelf = self, let item = strongSelf.item {
-                let _ = item.controllerInteraction.openMessage(item.message, OpenMessageParams(mode: .default))
+                // LuminaGram: file-masquerade guard — warn before opening a disguised-name file
+                // (bidi-override filenames, extension/MIME mismatch, "EvilVideo"-style
+                // executables dressed as media). See LuminaFileGuardHook.swift in this same
+                // module's Sources/ directory for luminaCheckFileGuardBeforeOpening.
+                strongSelf.luminaCheckFileGuardBeforeOpening(item: item, proceed: {
+                    let _ = item.controllerInteraction.openMessage(item.message, OpenMessageParams(mode: .default))
+                })
             }
         }
         

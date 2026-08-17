@@ -15,6 +15,8 @@ swift_library(
         "//submodules/SSignalKit/SwiftSignalKit",
         "//submodules/TelegramCore",
         "//submodules/TelegramPresentationData",
+        "//submodules/TelegramUIPreferences",  # LuminaGram: crypto-address paste guard (LuminaSettings)
+        "//submodules/PresentationDataUtils",  # LuminaGram: crypto-address paste guard alert (textAlertController)
         "//submodules/TextFormat",
         "//submodules/AccountContext",
         "//submodules/TouchDownGesture",

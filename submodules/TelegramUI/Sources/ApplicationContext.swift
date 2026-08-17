@@ -391,6 +391,43 @@ final class AuthorizedApplicationContext {
                                     }
                                 }
                             }
+
+                            // LuminaGram: scam-keyword warning — local incoming-message keyword
+                            // scan (LuminaScamKeywords.swift in
+                            // submodules/TelegramUIPreferences/Sources), gated on
+                            // LuminaSettings.scamKeywordWarning. This is the same centralized
+                            // "a new message just arrived" pipeline the built-in sound/vibration
+                            // feedback just above already uses (context.account.stateManager.
+                            // notificationMessages), rather than a per-ChatController hook, so it
+                            // fires once per genuinely new message regardless of which chat (if
+                            // any) is currently open. One-on-one chats only, independent of mute
+                            // state (mirrors Android's luminaCheckScamKeywordWarning). Shows a
+                            // single dismissible alert; never blocks, edits or re-scans a message.
+                            //
+                            // UNSURE-compiles / known gap: does not exclude the sender's own
+                            // contacts the way Android's port does (ContactsController.isContact)
+                            // — an extra `context.engine.data.get(...IsContact...)` read would be
+                            // needed for parity; omitted here to keep this shared-file edit small.
+                            if firstMessage.id.peerId.namespace == Namespaces.Peer.CloudUser, firstMessage.id.peerId != context.account.peerId, !firstMessage.text.isEmpty {
+                                let _ = (context.sharedContext.accountManager.sharedData(keys: Set([ApplicationSpecificSharedDataKeys.luminaSettings]))
+                                |> take(1)
+                                |> deliverOnMainQueue).start(next: { sharedData in
+                                    let settings = sharedData.entries[ApplicationSpecificSharedDataKeys.luminaSettings]?.get(LuminaSettings.self) ?? LuminaSettings.defaultSettings
+                                    guard settings.scamKeywordWarning else {
+                                        return
+                                    }
+                                    guard LuminaScamKeywords.matchedKeyword(in: firstMessage.text, extraKeywords: settings.scamKeywords) != nil else {
+                                        return
+                                    }
+                                    strongSelf.mainWindow.present(textAlertController(
+                                        sharedContext: context.sharedContext,
+                                        title: "Possible Scam",
+                                        text: "This message contains a phrase commonly used in scams. Be careful with money, gift cards, codes or personal details in this chat.",
+                                        actions: [TextAlertAction(type: .defaultAction, title: "OK", action: {})]
+                                    ), on: .root)
+                                })
+                            }
+
                             if let forwardInfo = firstMessage.forwardInfo, forwardInfo.flags.contains(.isImported) {
                                 return
                             }
