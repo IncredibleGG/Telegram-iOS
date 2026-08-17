@@ -9012,8 +9012,19 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
             
             if commit || !isScheduledMessages {
                 self.commitPurposefulAction()
-                
-                let _ = (enqueueMessages(account: self.context.account, peerId: peerId, messages: self.transformEnqueueMessages(messages, postpone: postpone))
+
+                // LuminaGram: translate-before-send — intercept outgoing text before it is
+                // enqueued. Fast no-op (.single(messages), no extra hop) unless the feature and
+                // this specific dialog are both enabled, so the stock send path below is
+                // otherwise unaffected. Placed here (inside the immediate-send branch) rather
+                // than around the whole function so the recursive commit:true re-entry from the
+                // schedule-time-picker branch below is not translated a second time.
+                let _ = (luminaTranslateMessagesBeforeSend(context: self.context, peerId: peerId, present: { [weak self] c in
+                    self?.present(c, in: .window(.root))
+                }, messages: self.transformEnqueueMessages(messages, postpone: postpone))
+                |> mapToSignal { translatedMessages in
+                    return enqueueMessages(account: self.context.account, peerId: peerId, messages: translatedMessages)
+                }
                 |> deliverOnMainQueue).startStandalone(next: { [weak self] _ in
                     if let strongSelf = self, strongSelf.presentationInterfaceState.subject != .scheduledMessages {
                         strongSelf.chatDisplayNode.historyNode.scrollToEndOfHistory()

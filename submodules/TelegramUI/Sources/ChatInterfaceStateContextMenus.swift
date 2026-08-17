@@ -1451,12 +1451,44 @@ func contextMenuForChatPresentationInterfaceState(chatPresentationInterfaceState
                                 messageEntities = attribute.entities
                             }
                         }
-                        
+
                         controllerInteraction.performTextSelectionAction(message, !isCopyProtected, NSAttributedString(string: messageText), messageEntities, .translate)
                         f(.default)
                     })))
                 }
-                
+
+                // LuminaGram: explain-a-message — sends messageText to the user's own LLM engine
+                // and shows the result in a sheet. Gated on LuminaSettings.explainMessage (default
+                // ON); the row itself is not shown when the setting is off.
+                let luminaSettings = context.sharedContext.currentLuminaSettings.with { $0 }
+                if luminaSettings.explainMessage, !messageText.isEmpty {
+                    actions.append(.action(ContextMenuActionItem(text: "Explain", icon: { theme in
+                        return generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/Translate"), color: theme.actionSheet.primaryTextColor)
+                    }, action: { c, _ in
+                        c?.dismiss(completion: {
+                            luminaExplainMessage(context: context, present: { vc in
+                                controllerInteraction.presentController(vc, nil)
+                            }, text: messageText)
+                        })
+                    })))
+                }
+
+                // LuminaGram: reveal the pre-translation original on an own message translate-
+                // before-send translated and sent. Only ever shows up on outgoing messages that
+                // actually went through that pipeline (luminaOriginalText returns nil otherwise).
+                if !message.effectivelyIncoming(context.account.peerId), let luminaOriginal = luminaOriginalText(for: message) {
+                    actions.append(.action(ContextMenuActionItem(text: "Show Original", icon: { theme in
+                        return generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/Translate"), color: theme.actionSheet.primaryTextColor)
+                    }, action: { c, _ in
+                        c?.dismiss(completion: {
+                            let presentationData = context.sharedContext.currentPresentationData.with { $0 }
+                            controllerInteraction.presentController(textAlertController(context: context, title: nil, text: luminaOriginal, actions: [
+                                TextAlertAction(type: .defaultAction, title: presentationData.strings.Common_OK, action: {})
+                            ]), nil)
+                        })
+                    })))
+                }
+
                 if isSpeakSelectionEnabled() && !messageText.isEmpty {
                     actions.append(.action(ContextMenuActionItem(text: chatPresentationInterfaceState.strings.Conversation_ContextMenuSpeak, icon: { theme in
                         return generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/Message"), color: theme.actionSheet.primaryTextColor)
