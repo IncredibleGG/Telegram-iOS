@@ -1994,9 +1994,20 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
         |> deliverOnMainQueue).start(next: { sharedApplicationContext in
             let _ = (sharedApplicationContext.sharedContext.activeAccountContexts
              |> take(1)
-             |> deliverOnMainQueue).start(next: { activeAccounts in
+             |> deliverOnMainQueue).start(next: { [weak self] activeAccounts in
                 for (_, context, _) in activeAccounts.accounts {
                     (context.downloadedMediaStoreManager as? DownloadedMediaStoreManagerImpl)?.runTasks()
+
+                    // LuminaGram: login/session guard — foreground poll + known-session diff,
+                    // throttled internally per account (LuminaSessionGuard.swift). Official
+                    // account.getAuthorizations/resetAuthorization APIs only; never terminates a
+                    // session without an explicit user tap. AppDelegate is a long-lived
+                    // singleton for the app's process lifetime, so capturing self here (to reach
+                    // mainWindow) is not a meaningful retain-cycle risk, matching this file's
+                    // existing style elsewhere in this same method.
+                    LuminaSessionGuard.checkOnForeground(context: context, present: { controller in
+                        self?.mainWindow.present(controller, on: .root)
+                    })
                 }
             })
         })

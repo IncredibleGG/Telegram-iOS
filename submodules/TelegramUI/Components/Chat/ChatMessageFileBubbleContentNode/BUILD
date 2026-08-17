@@ -15,6 +15,7 @@ swift_library(
         "//submodules/SSignalKit/SwiftSignalKit",
         "//submodules/TelegramCore",
         "//submodules/TelegramUIPreferences",
+        "//submodules/PresentationDataUtils",  # LuminaGram: file-masquerade guard alert (textAlertController)
         "//submodules/ComponentFlow",
         "//submodules/TelegramUI/Components/AudioTranscriptionButtonComponent",
         "//submodules/TelegramUI/Components/Chat/ChatMessageDateAndStatusNode",

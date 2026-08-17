@@ -16,6 +16,7 @@ import WebUI
 import AvatarNode
 import PeerNameColorItem
 import BoostLevelIconComponent
+import TelegramUIPreferences  // LuminaGram: homoglyph / impersonation warning row
 
 private let enabledPublicBioEntities: EnabledEntityTypes = [.allUrl, .mention, .hashtag]
 private let enabledPrivateBioEntities: EnabledEntityTypes = [.internalUrl, .mention, .hashtag]
@@ -113,6 +114,24 @@ func infoItems(
         
         if let cachedUserData = data.cachedData as? CachedUserData, cachedUserData.flags.contains(.unofficialSecurityRisk) {
             items[.unofficial]!.append(PeerInfoScreenInfoItem(id: 0, title: "", text: .markdown(presentationData.strings.PeerInfo_UnofficialSecurityRisk(EnginePeer(user).compactDisplayTitle).string), style: .compact, linkAction: nil))
+        }
+        
+        // LuminaGram: homoglyph / impersonation warning — on-device, no upload. Flags a display
+        // name that mixes look-alike characters from different alphabets (LuminaHomoglyph.swift
+        // in submodules/TelegramUIPreferences/Sources), the classic trick used to pass a fake
+        // account off as someone trusted. Placed in the same `.unofficial` risk-banner section
+        // as the built-in unofficial-account warning just above, for the same visual treatment.
+        //
+        // UNSURE-compiles / known gap: this is NOT gated on LuminaSettings.homoglyphWarn here —
+        // `infoItems(...)` is a synchronous, already-computed-data function with no
+        // AccountManager signal threaded through it, and adding one would mean changing this
+        // function's signature (and its call site's combineLatest chain in PeerInfoScreen.swift)
+        // while other feature buckets are concurrently touching this same file's profile rows.
+        // See the final report for the recommended hub-wiring: thread a `homoglyphWarn: Bool`
+        // parameter in from the caller, which already has a presentationData-style signal
+        // available to extend.
+        if !isMyProfile, LuminaHomoglyph.containsSuspiciousChars(EnginePeer(user).compactDisplayTitle) {
+            items[.unofficial]!.append(PeerInfoScreenInfoItem(id: 1, title: "", text: .plain("This name mixes look-alike characters from different alphabets — a common trick used to impersonate someone. Verify who you're talking to before trusting this contact."), style: .compact, linkAction: nil))
         }
         
         if !callMessages.isEmpty {

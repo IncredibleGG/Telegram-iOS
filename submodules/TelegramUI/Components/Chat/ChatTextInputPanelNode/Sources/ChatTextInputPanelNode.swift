@@ -5477,6 +5477,17 @@ public class ChatTextInputPanelNode: ChatInputPanelNode, ASEditableTextNodeDeleg
     public func chatInputTextNodeShouldPaste() -> Bool {
         let pasteboard = UIPasteboard.general
 
+        // LuminaGram: crypto-address paste guard — checked before ANY of the existing paste
+        // handling below. When the ENTIRE clipboard text matches a wallet-address shape, this
+        // paste is always intercepted (return false); luminaHandleCryptoAddressPaste decides
+        // asynchronously whether to show the guard alert or insert unchanged, since reading
+        // LuminaSettings.cryptoClipboardGuard needs the accountManager's async SharedData signal
+        // (see LuminaCryptoGuardHook.swift in this same module's Sources/ directory).
+        if let candidate = pasteboard.string, LuminaCryptoAddress.isWalletAddress(candidate) {
+            self.luminaHandleCryptoAddressPaste(candidate)
+            return false
+        }
+
         // A rich structural fragment (e.g. a copied table/list) from the WYSIWYG editor carries the private
         // `RichTextEditorClipboard.fragmentUTI`, which the legacy NSAttributedString paste below cannot represent
         // (a table would flatten through RTF). Route it to the native backend — which reads the fragment and

@@ -8984,6 +8984,25 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
             return
         }
         
+        // LuminaGram: OTP leak guard — warn before a Telegram login code leaves the composer.
+        // Hooked here, BEFORE shouldDivertMessagesToScheduled/enqueueMessages, so a triggered
+        // warning can cancel the send outright (this is the send-path hook the translation
+        // bucket's translate-before-send also needs, but earlier in the pipeline than that would
+        // run). Pure local text scan (LuminaOtpGuard.containsLoginCode in
+        // submodules/TelegramUIPreferences/Sources/LuminaOtpGuard.swift) plus one signal read for
+        // "did 777000 (Telegram's service account) message us recently"
+        // (TelegramEngine.EngineData.Item.Messages.TopMessage). Fails open: any unexpected state,
+        // or the setting being off, calls proceed() immediately with no user-visible change.
+        self.luminaCheckOtpGuardBeforeSending(messages, peerId: peerId, proceed: { [weak self] in
+            self?.luminaSendMessagesAfterOtpGuard(messages, media: media, postpone: postpone, commit: commit, peerId: peerId)
+        })
+    }
+
+    // LuminaGram: OTP leak guard — see luminaCheckOtpGuardBeforeSending below. This is the
+    // original, UNCHANGED body of `sendMessages(_:media:postpone:commit:)`, reached only after
+    // the guard above has either not triggered or been explicitly confirmed by the user.
+    private func luminaSendMessagesAfterOtpGuard(_ messages: [EnqueueMessage], media: Bool, postpone: Bool, commit: Bool, peerId: PeerId) {
+        
         let _ = (self.shouldDivertMessagesToScheduled(messages: messages)
         |> deliverOnMainQueue).startStandalone(next: { [weak self] shouldDivert in
             guard let self else {
@@ -9873,6 +9892,34 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
     }
     
     func openUrl(
+        _ url: String,
+        concealed: Bool,
+        forceExternal: Bool = false,
+        forceUpdate: Bool = false,
+        skipUrlAuth: Bool = false,
+        skipConcealedAlert: Bool = false,
+        message: Message? = nil,
+        allowInlineWebpageResolution: Bool = false,
+        progress: Promise<Bool>? = nil,
+        commit: @escaping () -> Void = {}
+    ) {
+        // LuminaGram: link safety check — reveal the real destination before navigating to an
+        // external http/https link. Hooked at the single choke point both message-text link
+        // taps and the link context menu's "Open" action funnel through
+        // (ChatInterfaceStateContextMenus.swift's Open Link item calls this same openUrl).
+        // Pure on-device heuristic (LuminaLinkSafety.swift in
+        // submodules/TelegramUIPreferences/Sources); shares confusable-domain detection with the
+        // homoglyph profile-row warning (LuminaHomoglyph.swift). Fails open: any unexpected
+        // state, or the setting being off, proceeds with the original behavior unchanged.
+        self.luminaCheckLinkSafetyBeforeOpening(url, proceed: { [weak self] in
+            self?.luminaOpenUrlAfterLinkSafety(url, concealed: concealed, forceExternal: forceExternal, forceUpdate: forceUpdate, skipUrlAuth: skipUrlAuth, skipConcealedAlert: skipConcealedAlert, message: message, allowInlineWebpageResolution: allowInlineWebpageResolution, progress: progress, commit: commit)
+        })
+    }
+
+    // LuminaGram: link safety check — see luminaCheckLinkSafetyBeforeOpening below. This is
+    // the original, UNCHANGED body of `openUrl(...)`, reached only after the guard above has
+    // either not triggered or been explicitly confirmed by the user.
+    private func luminaOpenUrlAfterLinkSafety(
         _ url: String,
         concealed: Bool,
         forceExternal: Bool = false,
