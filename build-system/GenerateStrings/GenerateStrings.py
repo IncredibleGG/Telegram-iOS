@@ -445,6 +445,91 @@ static NSString * _Nonnull getPluralizationSuffix(uint32_t lc, int32_t value) {
     }
 }
 
+// ---------------------------------------------------------------------------------------
+// LuminaGram brand layer.
+//
+// Every string this generated file returns funnels through getSingle() below - the plain
+// property getters, the getFormatted{N} helpers (via getSingle for the format string) and
+// getPluralized() (same) all call it - so it is the single choke point for a resolved
+// string value, the iOS analogue of desktop's Lang::details::Current() /
+// Lumina::BrandedLangValue() (tdesktop/Telegram/SourceFiles/lumina/lumina_brand.{h,mm})
+// and Android's LocaleController.getStringInternal() + LUMINA_BRAND_LOCKED_KEYS.
+//
+// Only the keys named in LuminaBrandedKeys() are touched - the app describing ITSELF
+// (intro tour, passcode lock, update prompts, "this app needs access to your camera" and
+// the like). Telegram's own product/network strings ("Telegram Premium", "joined
+// Telegram", "the Telegram cloud") are not in the list and pass through unchanged, in
+// whatever language the cloud pack or the bundled Localizable.strings resolved them to -
+// see IOS-PORT-PLAN.md for the "who is speaking about what" rule this list follows.
+//
+// A key whose English text carries a literal telegram.org URL is deliberately excluded
+// even when it is otherwise self-referential (Conversation.UnsupportedMedia is the one
+// candidate) - rewriting the domain would point the user at an address LuminaGram does not
+// own. The whole-word matching below is a second safeguard on top of that curation, not a
+// replacement for it: \\b alone does not stop a match inside "telegram.org" (a period is
+// already a word boundary), so the curation is what actually keeps URLs untouched.
+static NSSet<NSString *> * _Nonnull LuminaBrandedKeys(void) {
+    static NSSet<NSString *> *keys = nil;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        keys = [NSSet setWithArray:@[
+            // Identity / intro tour.
+            @"Tour.Title1", @"Tour.Text2", @"Tour.Text3", @"Tour.Text4", @"Tour.Text5", @"Tour.Text6",
+            // Passcode lock screen.
+            @"Passcode.AppLockedAlert",
+            // App update prompts.
+            @"Update.Title", @"Update.AppVersion", @"Update.UpdateApp", @"Conversation.UpdateTelegram",
+            @"Passport.UpdateRequiredError", @"Conversation.UnsupportedMediaPlaceholder", @"Story.UnsupportedAction",
+            // OS permission requests (this app asking for access).
+            @"Contacts.AccessDeniedError", @"Contacts.PermissionsText",
+            @"AccessDenied.VoiceMicrophone", @"AccessDenied.VideoMicrophone", @"AccessDenied.Camera",
+            @"AccessDenied.PhotosAndVideos", @"AccessDenied.SaveMedia", @"AccessDenied.LocationDenied",
+            @"AccessDenied.LocationDisabled", @"AccessDenied.LocationTracking", @"AccessDenied.CallMicrophone",
+            @"AccessDenied.VideoMessageCamera", @"AccessDenied.VideoMessageMicrophone", @"AccessDenied.LocationAlwaysDenied",
+            @"AccessDenied.Wallpapers", @"AccessDenied.VideoCallCamera", @"AccessDenied.QrCode",
+            @"AccessDenied.QrCamera", @"AccessDenied.LocationWeather", @"AccessDenied.AgeVerificationCamera",
+            @"Attachment.CameraAccessText", @"Story.Camera.AccessPlaceholderTitle",
+            // Watch / widget / share extension self-identity.
+            @"Watch.AppName", @"Widget.GalleryTitle", @"Widget.AuthRequired",
+            @"Watch.Location.Access", @"Watch.Microphone.Access",
+            @"Share.AuthTitle", @"Share.AuthDescription",
+            // Diagnostics and inviting others to this app.
+            @"Login.PhoneGenericEmailSubject", @"Contacts.ShareTelegram", @"InviteText.SingleContact",
+        ]];
+    });
+    return keys;
+}
+
+static NSString * _Nonnull LuminaBrandReplaceWholeWord(NSString * _Nonnull value, NSString * _Nonnull pattern, NSString * _Nonnull replacement) {
+    static NSMutableDictionary<NSString *, NSRegularExpression *> *cache = nil;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        cache = [[NSMutableDictionary alloc] init];
+    });
+    NSRegularExpression *regex = cache[pattern];
+    if (!regex) {
+        regex = [NSRegularExpression regularExpressionWithPattern:pattern options:0 error:nil];
+        if (!regex) {
+            return value;
+        }
+        cache[pattern] = regex;
+    }
+    return [regex stringByReplacingMatchesInString:value options:0 range:NSMakeRange(0, value.length) withTemplate:replacement];
+}
+
+// Returns `value` untouched unless `key` is on the LuminaBrandedKeys() list. Longer/upper
+// forms go first so a run already rewritten by one pattern cannot be partially re-matched
+// by a narrower one afterwards.
+static NSString * _Nonnull LuminaBrandString(NSString * _Nonnull key, NSString * _Nonnull value) {
+    if (![LuminaBrandedKeys() containsObject:key]) {
+        return value;
+    }
+    value = LuminaBrandReplaceWholeWord(value, @"\\\\bTELEGRAM\\\\b", @"LUMINAGRAM");
+    value = LuminaBrandReplaceWholeWord(value, @"\\\\bTelegram\\\\b", @"LuminaGram");
+    value = LuminaBrandReplaceWholeWord(value, @"\\\\btelegram\\\\b", @"luminagram");
+    return value;
+}
+
 static NSString * _Nonnull getSingle(_PresentationStrings * _Nullable strings, NSString * _Nonnull key,
     bool * _Nullable isFound) {
     NSString *result = nil;
@@ -484,7 +569,7 @@ static NSString * _Nonnull getSingle(_PresentationStrings * _Nullable strings, N
             *isFound = true;
         }
     }
-    return result;
+    return LuminaBrandString(key, result);
 }
 
 static NSString * _Nonnull getSingleIndirect(_PresentationStrings * _Nonnull strings, uint32_t keyId) {
