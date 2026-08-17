@@ -51,6 +51,7 @@ private enum ApplicationSpecificSharedDataKeyValues: Int32 {
     case mediaDisplaySettings = 20
     case updateSettings = 21
     case chatSettings = 22
+    case luminaSettings = 23
 }
 
 public struct ApplicationSpecificSharedDataKeys {
@@ -77,6 +78,8 @@ public struct ApplicationSpecificSharedDataKeys {
     public static let mediaDisplaySettings: EngineDataBuffer = applicationSpecificPreferencesKey(ApplicationSpecificSharedDataKeyValues.mediaDisplaySettings.rawValue)
     public static let updateSettings: EngineDataBuffer = applicationSpecificPreferencesKey(ApplicationSpecificSharedDataKeyValues.updateSettings.rawValue)
     public static let chatSettings: EngineDataBuffer = applicationSpecificPreferencesKey(ApplicationSpecificSharedDataKeyValues.chatSettings.rawValue)
+    // LuminaGram: local-only preferences store (LuminaSettings.swift), never synced to Telegram.
+    public static let luminaSettings: EngineDataBuffer = applicationSpecificPreferencesKey(ApplicationSpecificSharedDataKeyValues.luminaSettings.rawValue)
 }
 
 private enum ApplicationSpecificItemCacheCollectionIdValues: Int8 {
