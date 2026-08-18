@@ -21,7 +21,7 @@ import UndoUI
 // translate call, same as LuminaVoiceTranscription's transcribe-then-translate). No voice
 // cloning, no cloud TTS, no entitlement - AVSpeechSynthesisVoice is a generic system voice.
 // Experimental, default OFF (LuminaSettings.reverseVoice).
-public enum LuminaReverseVoiceError {
+public enum LuminaReverseVoiceError: Error {
     case emptyText
     case synthesisFailed
     case encodeFailed

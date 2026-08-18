@@ -197,6 +197,7 @@ public func luminaBackupController(context: AccountContext) -> ViewController {
             }
         })
         pickerHandler = handler
+        _ = pickerHandler // retain-only: read-back to satisfy -warnings-as-errors
         let pickerController: UIDocumentPickerViewController
         if #available(iOS 14.0, *) {
             pickerController = UIDocumentPickerViewController(forOpeningContentTypes: [.data])
