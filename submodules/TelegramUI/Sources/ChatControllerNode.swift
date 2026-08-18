@@ -1650,7 +1650,12 @@ class ChatControllerNode: ASDisplayNode, ASScrollViewDelegate {
                     theme: self.chatPresentationInterfaceState.theme,
                     strings: self.chatPresentationInterfaceState.strings,
                     info: TranslateHeaderPanelComponent.Info(
-                        isPremium: self.chatPresentationInterfaceState.isPremium,
+                        // LuminaGram: translation is free — the translate panel's tap/toggle,
+                        // language picker and close-behaviour are all gated on isPremium; force
+                        // it true so free users get a working, configurable bar (Android parity)
+                        // instead of the Premium upsell. Action-level twin of the visibility fix
+                        // in ChatControllerContentData.swift.
+                        isPremium: true,
                         isActive: translationState.isEnabled,
                         fromLang: translationState.fromLang,
                         toLang: translationState.toLang,
