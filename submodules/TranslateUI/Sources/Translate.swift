@@ -173,20 +173,10 @@ public func normalizeTranslationLanguage(_ code: String) -> String {
 }
 
 public func canTranslateChats(context: AccountContext) -> Bool {
-    let translationConfiguration = TranslationConfiguration.with(appConfiguration: context.currentAppConfiguration.with { $0 })
-    var chatTranslationAvailable = true
-    switch translationConfiguration.auto {
-    case .system:
-        if #available(iOS 18.0, *) {
-        } else {
-            chatTranslationAvailable = false
-        }
-    case .alternative, .disabled:
-        chatTranslationAvailable = false
-    default:
-        break
-    }
-    return chatTranslationAvailable
+    // LuminaGram: whole-chat translation (the top translate bar) is free and always available —
+    // bypass the server translations_auto_enabled gate (translationConfiguration.auto).
+    let _ = context
+    return true
 }
 
 public func canTranslateText(context: AccountContext, text: String, showTranslate: Bool, showTranslateIfTopical: Bool = false, ignoredLanguages: [String]?) -> (canTranslate: Bool, language: String?) {
