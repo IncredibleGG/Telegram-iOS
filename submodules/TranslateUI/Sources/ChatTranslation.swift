@@ -236,9 +236,9 @@ public func chatTranslationState(context: AccountContext, peerId: EnginePeer.Id,
             luminaCurrentSettings(context: context)
         )
         |> mapToSignal { settings, autoTranslateEnabled, luminaSettings in
-            if !settings.translateChats && !autoTranslateEnabled {
-                return .single(nil)
-            }
+            // LuminaGram: chat translation is free and always offered; the persisted
+            // translateChats toggle no longer suppresses the bar (mirrors the forced
+            // showTranslate for the per-message button). Users can still hide it per chat.
 
             var dontTranslateLanguages = Set<String>()
             if let ignoredLanguages = settings.ignoredLanguages {

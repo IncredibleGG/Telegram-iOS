@@ -2193,11 +2193,12 @@ extension ChatControllerImpl {
                         hasAutoTranslate,
                         ApplicationSpecificNotice.translationSuggestion(accountManager: context.sharedContext.accountManager)
                     ) |> mapToSignal { isPremium, isHidden, hasAutoTranslate, counterAndTimestamp -> Signal<ChatPresentationTranslationState?, NoError> in
-                        var maybeSuggestPremium = false
-                        if counterAndTimestamp.0 >= 3 {
-                            maybeSuggestPremium = true
-                        }
-                        if (isPremium || maybeSuggestPremium || hasAutoTranslate) && !isHidden {
+                        // LuminaGram: translation is free — offer the top translate bar to every
+                        // account, not just Premium / auto-translate channels. The downstream
+                        // fromLang / foreign-language checks below still limit it to chats that
+                        // actually contain supported foreign messages, so it never shows spuriously.
+                        let _ = (isPremium, hasAutoTranslate, counterAndTimestamp)
+                        if !isHidden {
                             return chatTranslationState(context: context, peerId: peerId, threadId: chatLocation.threadId)
                             |> map { translationState -> ChatPresentationTranslationState? in
                                 if let translationState, !translationState.fromLang.isEmpty && (translationState.fromLang != baseLanguageCode || translationState.isEnabled) {
