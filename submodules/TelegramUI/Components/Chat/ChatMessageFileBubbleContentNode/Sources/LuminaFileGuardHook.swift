@@ -41,24 +41,24 @@ extension ChatMessageFileBubbleContentNode {
                 return
             }
 
-            var text = "\"\(result.safeName)\" doesn't look like what it claims to be."
+            var text = "\"\(result.safeName)\" " + LuminaL10n.tr("doesn't look like what it claims to be.")
             if let realType = result.realType {
-                text += "\n\nReal type: \(realType)"
+                text += "\n\n" + LuminaL10n.tr("Real type:") + " \(realType)"
             }
             if let claimedType = result.claimedType {
-                text += "\nClaimed as: \(claimedType)"
+                text += "\n" + LuminaL10n.tr("Claimed as:") + " \(claimedType)"
             }
-            text += "\n\nOpening it could run code on your device. Only continue if you trust the sender."
+            text += "\n\n" + LuminaL10n.tr("Opening it could run code on your device. Only continue if you trust the sender.")
 
             let controller = textAlertController(
                 sharedContext: item.context.sharedContext,
-                title: "Suspicious File",
+                title: LuminaL10n.tr("Suspicious File"),
                 text: text,
                 actions: [
-                    TextAlertAction(type: .destructiveAction, title: "Open Anyway", action: {
+                    TextAlertAction(type: .destructiveAction, title: LuminaL10n.tr("Open Anyway"), action: {
                         proceed()
                     }),
-                    TextAlertAction(type: .genericAction, title: "Cancel", action: {}),
+                    TextAlertAction(type: .genericAction, title: LuminaL10n.tr("Cancel"), action: {}),
                 ]
             )
             item.controllerInteraction.presentController(controller, nil)

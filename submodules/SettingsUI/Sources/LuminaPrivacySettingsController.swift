@@ -86,29 +86,29 @@ private enum LuminaPrivacySettingsEntry: ItemListNodeEntry {
         let arguments = arguments as! LuminaPrivacySettingsControllerArguments
         switch self {
         case .disguiseHeader:
-            return ItemListSectionHeaderItem(presentationData: presentationData, text: "PRIVACY & DISGUISE", sectionId: self.section)
+            return ItemListSectionHeaderItem(presentationData: presentationData, text: LuminaL10n.tr("PRIVACY & DISGUISE"), sectionId: self.section)
         case let .hideOwnPhone(value):
-            return ItemListSwitchItem(presentationData: presentationData, systemStyle: .glass, title: "Hide My Phone Number", value: value, sectionId: self.section, style: .blocks, updated: { value in
+            return ItemListSwitchItem(presentationData: presentationData, systemStyle: .glass, title: LuminaL10n.tr("Hide My Phone Number"), value: value, sectionId: self.section, style: .blocks, updated: { value in
                 arguments.updateHideOwnPhone(value)
             })
         case let .stripPhotoMetadata(value):
-            return ItemListSwitchItem(presentationData: presentationData, systemStyle: .glass, title: "Strip Photo Metadata", value: value, sectionId: self.section, style: .blocks, updated: { value in
+            return ItemListSwitchItem(presentationData: presentationData, systemStyle: .glass, title: LuminaL10n.tr("Strip Photo Metadata"), value: value, sectionId: self.section, style: .blocks, updated: { value in
                 arguments.updateStripPhotoMetadata(value)
             })
         case let .showRegistrationDate(value):
-            return ItemListSwitchItem(presentationData: presentationData, systemStyle: .glass, title: "Show Registration Date", value: value, sectionId: self.section, style: .blocks, updated: { value in
+            return ItemListSwitchItem(presentationData: presentationData, systemStyle: .glass, title: LuminaL10n.tr("Show Registration Date"), value: value, sectionId: self.section, style: .blocks, updated: { value in
                 arguments.updateShowRegistrationDate(value)
             })
         case .disguiseFooter:
-            return ItemListTextItem(presentationData: presentationData, text: .plain("These are local display and on-send options. Hiding your phone number and estimating a contact's registration date happen only on this device; photo metadata is stripped before a photo leaves your device."), sectionId: self.section)
+            return ItemListTextItem(presentationData: presentationData, text: .plain(LuminaL10n.tr("These are local display and on-send options. Hiding your phone number and estimating a contact's registration date happen only on this device; photo metadata is stripped before a photo leaves your device.")), sectionId: self.section)
         case .chatLockHeader:
-            return ItemListSectionHeaderItem(presentationData: presentationData, text: "CHAT LOCK", sectionId: self.section)
+            return ItemListSectionHeaderItem(presentationData: presentationData, text: LuminaL10n.tr("CHAT LOCK"), sectionId: self.section)
         case let .chatLockCode(value):
-            return ItemListSingleLineInputItem(presentationData: presentationData, systemStyle: .glass, title: NSAttributedString(string: "Secret Code"), text: value, placeholder: "Fallback code", type: .password, sectionId: self.section, textUpdated: { value in
+            return ItemListSingleLineInputItem(presentationData: presentationData, systemStyle: .glass, title: NSAttributedString(string: LuminaL10n.tr("Secret Code")), text: value, placeholder: LuminaL10n.tr("Fallback code"), type: .password, sectionId: self.section, textUpdated: { value in
                 arguments.updateChatLockCode(value)
             }, action: {})
         case .chatLockFooter:
-            return ItemListTextItem(presentationData: presentationData, text: .plain("Locked chats are unlocked with Face ID / passcode. This optional code is a fallback only. It is stored in this device's Keychain, never in Telegram and never synced. Leave empty to remove it."), sectionId: self.section)
+            return ItemListTextItem(presentationData: presentationData, text: .plain(LuminaL10n.tr("Locked chats are unlocked with Face ID / passcode. This optional code is a fallback only. It is stored in this device's Keychain, never in Telegram and never synced. Leave empty to remove it.")), sectionId: self.section)
         }
     }
 }
@@ -162,7 +162,7 @@ public func luminaPrivacySettingsController(context: AccountContext) -> ViewCont
     |> map { presentationData, sharedData -> (ItemListControllerState, (ItemListNodeState, Any)) in
         let settings = sharedData.entries[ApplicationSpecificSharedDataKeys.luminaSettings]?.get(LuminaSettings.self) ?? LuminaSettings.defaultSettings
 
-        let controllerState = ItemListControllerState(presentationData: ItemListPresentationData(presentationData), title: .text("Privacy"), leftNavigationButton: nil, rightNavigationButton: nil, backNavigationButton: ItemListBackButton(title: presentationData.strings.Common_Back))
+        let controllerState = ItemListControllerState(presentationData: ItemListPresentationData(presentationData), title: .text(LuminaL10n.tr("Privacy")), leftNavigationButton: nil, rightNavigationButton: nil, backNavigationButton: ItemListBackButton(title: presentationData.strings.Common_Back))
         let listState = ItemListNodeState(presentationData: ItemListPresentationData(presentationData), entries: luminaPrivacySettingsControllerEntries(settings: settings), style: .blocks, animateChanges: true)
 
         return (controllerState, (listState, arguments))

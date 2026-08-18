@@ -448,6 +448,7 @@ public final class SharedAccountContextImpl: SharedAccountContext {
                 }
                 if stringsUpdated {
                     updateLegacyLocalization(strings: next.strings)
+                    LuminaL10n.setCurrentLanguage(next.strings.baseLanguageCode) // LuminaGram: keep LuminaGram string localization on the active interface language
                 }
                 if themeUpdated {
                     updateLegacyTheme()
@@ -520,6 +521,10 @@ public final class SharedAccountContextImpl: SharedAccountContext {
         // seconds timestamps, stories-off, phone masking, EXIF strip, chat lock, ...) that has no
         // Signal-friendly call path of its own. Started exactly once here - see LuminaSettingsCache.swift.
         LuminaSettingsCache.shared.start(accountManager: self.accountManager)
+
+        // LuminaGram: seed the LuminaGram string-localization language from the current
+        // presentation data. The presentationData subscription above keeps it updated on change.
+        LuminaL10n.setCurrentLanguage(self.currentPresentationData.with { $0 }.strings.baseLanguageCode)
 
         let immediateExperimentalUISettingsValue = self.immediateExperimentalUISettingsValue
         let _ = immediateExperimentalUISettingsValue.swap(initialPresentationDataAndSettings.experimentalUISettings)

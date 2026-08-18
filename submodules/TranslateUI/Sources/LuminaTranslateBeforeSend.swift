@@ -150,15 +150,15 @@ private func luminaPresentTranslateBeforeSendConfirm(context: AccountContext, pr
         didComplete = true
         completion(choice)
     }
-    let text = "Translation:\n\(translated)\n\nOriginal:\n\(original)"
+    let text = LuminaL10n.tr("Translation:") + "\n\(translated)\n\n" + LuminaL10n.tr("Original:") + "\n\(original)"
     // dismissOnOutsideTap: false — this signal only completes when one of the two actions
     // fires (see luminaTranslateMessagesBeforeSend); an outside-tap dismissal with neither
     // action firing would otherwise hang that message's send indefinitely.
-    let controller = textAlertController(context: context, title: "Send translation?", text: text, actions: [
-        TextAlertAction(type: .genericAction, title: "Send Original", action: {
+    let controller = textAlertController(context: context, title: LuminaL10n.tr("Send translation?"), text: text, actions: [
+        TextAlertAction(type: .genericAction, title: LuminaL10n.tr("Send Original"), action: {
             complete(.sendOriginal)
         }),
-        TextAlertAction(type: .defaultAction, title: "Send Translation", action: {
+        TextAlertAction(type: .defaultAction, title: LuminaL10n.tr("Send Translation"), action: {
             complete(.sendTranslation)
         })
     ], dismissOnOutsideTap: false)

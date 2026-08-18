@@ -22,7 +22,7 @@ public func luminaExplainMessage(context: AccountContext, present: @escaping (Vi
         return
     }
     guard let rawKey = LuminaKeychain.get(LuminaKeychainKey.translateProviderAPIKey(providerId: "llm")), !rawKey.isEmpty else {
-        present(luminaSimpleAlert(context: context, title: "Explain", text: "Add an LLM API key on the Translation settings page to use Explain."))
+        present(luminaSimpleAlert(context: context, title: LuminaL10n.tr("Explain"), text: LuminaL10n.tr("Add an LLM API key on the Translation settings page to use Explain.")))
         return
     }
     let key = rawKey.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -47,7 +47,7 @@ public func luminaExplainMessage(context: AccountContext, present: @escaping (Vi
             + "Keep the whole answer concise and write only the four sections, nothing else."
 
         guard let url = URL(string: base + "/chat/completions") else {
-            present(luminaSimpleAlert(context: context, title: "Explain", text: "Could not reach the configured LLM provider. Check the base URL in Translation settings."))
+            present(luminaSimpleAlert(context: context, title: LuminaL10n.tr("Explain"), text: LuminaL10n.tr("Could not reach the configured LLM provider. Check the base URL in Translation settings.")))
             return
         }
         let payload: [String: Any] = [
@@ -83,14 +83,14 @@ public func luminaExplainMessage(context: AccountContext, present: @escaping (Vi
             return .single(nil)
         }
         |> deliverOnMainQueue).start(next: { explanation in
-            let resultText = explanation ?? "Could not get an explanation. Check your LLM provider settings and try again."
-            present(luminaSimpleAlert(context: context, title: "Explain", text: resultText))
+            let resultText = explanation ?? LuminaL10n.tr("Could not get an explanation. Check your LLM provider settings and try again.")
+            present(luminaSimpleAlert(context: context, title: LuminaL10n.tr("Explain"), text: resultText))
         })
     })
 }
 
 private func luminaSimpleAlert(context: AccountContext, title: String, text: String) -> ViewController {
     return textAlertController(context: context, title: title, text: text, actions: [
-        TextAlertAction(type: .defaultAction, title: "OK", action: {})
+        TextAlertAction(type: .defaultAction, title: LuminaL10n.tr("OK"), action: {})
     ])
 }

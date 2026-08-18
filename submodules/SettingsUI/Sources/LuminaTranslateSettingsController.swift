@@ -44,7 +44,7 @@ public func luminaTranslateSettingsController(context: AccountContext) -> ViewCo
     )
     |> map { presentationData, sharedData -> (ItemListControllerState, (ItemListNodeState, Any)) in
         let settings = sharedData.entries[ApplicationSpecificSharedDataKeys.luminaSettings]?.get(LuminaSettings.self) ?? LuminaSettings.defaultSettings
-        let controllerState = ItemListControllerState(presentationData: ItemListPresentationData(presentationData), title: .text("Translation"), leftNavigationButton: nil, rightNavigationButton: nil, backNavigationButton: ItemListBackButton(title: presentationData.strings.Common_Back))
+        let controllerState = ItemListControllerState(presentationData: ItemListPresentationData(presentationData), title: .text(LuminaL10n.tr("Translation")), leftNavigationButton: nil, rightNavigationButton: nil, backNavigationButton: ItemListBackButton(title: presentationData.strings.Common_Back))
         let listState = ItemListNodeState(presentationData: ItemListPresentationData(presentationData), entries: luminaTranslateSettingsControllerEntries(settings: settings), style: .blocks, animateChanges: false)
         return (controllerState, (listState, arguments))
     }
@@ -180,9 +180,9 @@ private enum LuminaTranslateSettingsEntry: ItemListNodeEntry {
         let arguments = arguments as! LuminaTranslateSettingsControllerArguments
         switch self {
         case .modeHeader:
-            return ItemListSectionHeaderItem(presentationData: presentationData, text: "TRANSLATE MODE", sectionId: self.section)
+            return ItemListSectionHeaderItem(presentationData: presentationData, text: LuminaL10n.tr("TRANSLATE MODE"), sectionId: self.section)
         case let .modeManual(selected):
-            return ItemListCheckboxItem(presentationData: presentationData, systemStyle: .glass, title: "Manual (per-chat toggle)", style: .left, checked: selected, zeroSeparatorInsets: false, sectionId: self.section, action: {
+            return ItemListCheckboxItem(presentationData: presentationData, systemStyle: .glass, title: LuminaL10n.tr("Manual (per-chat toggle)"), style: .left, checked: selected, zeroSeparatorInsets: false, sectionId: self.section, action: {
                 arguments.updateSettings { settings in
                     var settings = settings
                     settings.trMode = "manual"
@@ -190,7 +190,7 @@ private enum LuminaTranslateSettingsEntry: ItemListNodeEntry {
                 }
             })
         case let .modeAllChats(selected):
-            return ItemListCheckboxItem(presentationData: presentationData, systemStyle: .glass, title: "All Chats", style: .left, checked: selected, zeroSeparatorInsets: false, sectionId: self.section, action: {
+            return ItemListCheckboxItem(presentationData: presentationData, systemStyle: .glass, title: LuminaL10n.tr("All Chats"), style: .left, checked: selected, zeroSeparatorInsets: false, sectionId: self.section, action: {
                 arguments.updateSettings { settings in
                     var settings = settings
                     settings.trMode = "allChats"
@@ -198,7 +198,7 @@ private enum LuminaTranslateSettingsEntry: ItemListNodeEntry {
                 }
             })
         case let .scopePrivate(value):
-            return ItemListSwitchItem(presentationData: presentationData, systemStyle: .glass, title: "Private Chats", value: value, sectionId: self.section, style: .blocks, updated: { value in
+            return ItemListSwitchItem(presentationData: presentationData, systemStyle: .glass, title: LuminaL10n.tr("Private Chats"), value: value, sectionId: self.section, style: .blocks, updated: { value in
                 arguments.updateSettings { settings in
                     var settings = settings
                     settings.trScopePrivate = value
@@ -206,7 +206,7 @@ private enum LuminaTranslateSettingsEntry: ItemListNodeEntry {
                 }
             })
         case let .scopeGroup(value):
-            return ItemListSwitchItem(presentationData: presentationData, systemStyle: .glass, title: "Groups & Channels", value: value, sectionId: self.section, style: .blocks, updated: { value in
+            return ItemListSwitchItem(presentationData: presentationData, systemStyle: .glass, title: LuminaL10n.tr("Groups & Channels"), value: value, sectionId: self.section, style: .blocks, updated: { value in
                 arguments.updateSettings { settings in
                     var settings = settings
                     settings.trScopeGroup = value
@@ -215,9 +215,9 @@ private enum LuminaTranslateSettingsEntry: ItemListNodeEntry {
             })
 
         case .languagesHeader:
-            return ItemListSectionHeaderItem(presentationData: presentationData, text: "LANGUAGES", sectionId: self.section)
+            return ItemListSectionHeaderItem(presentationData: presentationData, text: LuminaL10n.tr("LANGUAGES"), sectionId: self.section)
         case let .readLang(value):
-            return ItemListSingleLineInputItem(presentationData: presentationData, systemStyle: .glass, title: NSAttributedString(string: "I read"), text: value, placeholder: "Interface language", type: .regular(capitalization: false, autocorrection: false), sectionId: self.section, textUpdated: { value in
+            return ItemListSingleLineInputItem(presentationData: presentationData, systemStyle: .glass, title: NSAttributedString(string: LuminaL10n.tr("I read"), textColor: presentationData.theme.list.itemPrimaryTextColor), text: value, placeholder: LuminaL10n.tr("Interface language"), type: .regular(capitalization: false, autocorrection: false), spacing: 10.0, sectionId: self.section, textUpdated: { value in
                 arguments.updateSettings { settings in
                     var settings = settings
                     settings.trReadLang = value
@@ -225,7 +225,7 @@ private enum LuminaTranslateSettingsEntry: ItemListNodeEntry {
                 }
             }, action: {})
         case let .sendLang(value):
-            return ItemListSingleLineInputItem(presentationData: presentationData, systemStyle: .glass, title: NSAttributedString(string: "I send"), text: value, placeholder: "auto = recipient's language", type: .regular(capitalization: false, autocorrection: false), sectionId: self.section, textUpdated: { value in
+            return ItemListSingleLineInputItem(presentationData: presentationData, systemStyle: .glass, title: NSAttributedString(string: LuminaL10n.tr("I send"), textColor: presentationData.theme.list.itemPrimaryTextColor), text: value, placeholder: LuminaL10n.tr("auto = recipient's language"), type: .regular(capitalization: false, autocorrection: false), spacing: 10.0, sectionId: self.section, textUpdated: { value in
                 arguments.updateSettings { settings in
                     var settings = settings
                     settings.trSendLang = value
@@ -233,7 +233,7 @@ private enum LuminaTranslateSettingsEntry: ItemListNodeEntry {
                 }
             }, action: {})
         case let .groupSkipMyLanguages(value):
-            return ItemListSwitchItem(presentationData: presentationData, systemStyle: .glass, title: "Only Translate What I Can't Read", value: value, sectionId: self.section, style: .blocks, updated: { value in
+            return ItemListSwitchItem(presentationData: presentationData, systemStyle: .glass, title: LuminaL10n.tr("Only Translate What I Can't Read"), value: value, sectionId: self.section, style: .blocks, updated: { value in
                 arguments.updateSettings { settings in
                     var settings = settings
                     settings.groupSkipMyLanguages = value
@@ -241,7 +241,7 @@ private enum LuminaTranslateSettingsEntry: ItemListNodeEntry {
                 }
             })
         case let .myLanguages(value):
-            return ItemListMultilineInputItem(presentationData: presentationData, systemStyle: .glass, text: value, placeholder: "en, ja, fr — one per line or comma-separated", maxLength: nil, sectionId: self.section, style: .blocks, capitalization: false, autocorrection: false, textUpdated: { value in
+            return ItemListMultilineInputItem(presentationData: presentationData, systemStyle: .glass, text: value, placeholder: LuminaL10n.tr("en, ja, fr — one per line or comma-separated"), maxLength: nil, sectionId: self.section, style: .blocks, capitalization: false, autocorrection: false, textUpdated: { value in
                 arguments.updateSettings { settings in
                     var settings = settings
                     settings.myLanguages = luminaSplitCommaOrNewlineList(value)
@@ -249,12 +249,12 @@ private enum LuminaTranslateSettingsEntry: ItemListNodeEntry {
                 }
             })
         case .languagesFooter:
-            return ItemListTextItem(presentationData: presentationData, text: .plain("Language codes like en, ja, zh, pt-BR. \"I read\" and \"My Languages\" are never auto-translated for you."), sectionId: self.section)
+            return ItemListTextItem(presentationData: presentationData, text: .plain(LuminaL10n.tr("Language codes like en, ja, zh, pt-BR. \"I read\" and \"My Languages\" are never auto-translated for you.")), sectionId: self.section)
 
         case .displayHeader:
-            return ItemListSectionHeaderItem(presentationData: presentationData, text: "INCOMING MESSAGES", sectionId: self.section)
+            return ItemListSectionHeaderItem(presentationData: presentationData, text: LuminaL10n.tr("INCOMING MESSAGES"), sectionId: self.section)
         case let .dualLanguageDisplay(value):
-            return ItemListSwitchItem(presentationData: presentationData, systemStyle: .glass, title: "Show Original + Translation", value: value, sectionId: self.section, style: .blocks, updated: { value in
+            return ItemListSwitchItem(presentationData: presentationData, systemStyle: .glass, title: LuminaL10n.tr("Show Original + Translation"), value: value, sectionId: self.section, style: .blocks, updated: { value in
                 arguments.updateSettings { settings in
                     var settings = settings
                     settings.dualLanguageDisplay = value
@@ -262,7 +262,7 @@ private enum LuminaTranslateSettingsEntry: ItemListNodeEntry {
                 }
             })
         case let .foldOriginalLongMessages(value):
-            return ItemListSwitchItem(presentationData: presentationData, systemStyle: .glass, title: "Fold Long Originals", value: value, sectionId: self.section, style: .blocks, updated: { value in
+            return ItemListSwitchItem(presentationData: presentationData, systemStyle: .glass, title: LuminaL10n.tr("Fold Long Originals"), value: value, sectionId: self.section, style: .blocks, updated: { value in
                 arguments.updateSettings { settings in
                     var settings = settings
                     settings.foldOriginalLongMessages = value
@@ -271,9 +271,9 @@ private enum LuminaTranslateSettingsEntry: ItemListNodeEntry {
             })
 
         case .beforeSendHeader:
-            return ItemListSectionHeaderItem(presentationData: presentationData, text: "OUTGOING MESSAGES", sectionId: self.section)
+            return ItemListSectionHeaderItem(presentationData: presentationData, text: LuminaL10n.tr("OUTGOING MESSAGES"), sectionId: self.section)
         case let .translateBeforeSend(value):
-            return ItemListSwitchItem(presentationData: presentationData, systemStyle: .glass, title: "Translate Before Send", value: value, sectionId: self.section, style: .blocks, updated: { value in
+            return ItemListSwitchItem(presentationData: presentationData, systemStyle: .glass, title: LuminaL10n.tr("Translate Before Send"), value: value, sectionId: self.section, style: .blocks, updated: { value in
                 arguments.updateSettings { settings in
                     var settings = settings
                     settings.translateBeforeSend = value
@@ -281,7 +281,7 @@ private enum LuminaTranslateSettingsEntry: ItemListNodeEntry {
                 }
             })
         case let .translateBeforeSendConfirm(value):
-            return ItemListSwitchItem(presentationData: presentationData, systemStyle: .glass, title: "Confirm Before Sending", value: value, sectionId: self.section, style: .blocks, updated: { value in
+            return ItemListSwitchItem(presentationData: presentationData, systemStyle: .glass, title: LuminaL10n.tr("Confirm Before Sending"), value: value, sectionId: self.section, style: .blocks, updated: { value in
                 arguments.updateSettings { settings in
                     var settings = settings
                     settings.translateBeforeSendConfirm = value
@@ -289,12 +289,12 @@ private enum LuminaTranslateSettingsEntry: ItemListNodeEntry {
                 }
             })
         case .beforeSendFooter:
-            return ItemListTextItem(presentationData: presentationData, text: .plain("Also needs to be turned on per chat: long-press any message in that chat and choose Chat Translation Settings."), sectionId: self.section)
+            return ItemListTextItem(presentationData: presentationData, text: .plain(LuminaL10n.tr("Also needs to be turned on per chat: long-press any message in that chat and choose Chat Translation Settings.")), sectionId: self.section)
 
         case .explainHeader:
-            return ItemListSectionHeaderItem(presentationData: presentationData, text: "EXPLAIN", sectionId: self.section)
+            return ItemListSectionHeaderItem(presentationData: presentationData, text: LuminaL10n.tr("EXPLAIN"), sectionId: self.section)
         case let .explainMessage(value):
-            return ItemListSwitchItem(presentationData: presentationData, systemStyle: .glass, title: "Explain-a-Message", value: value, sectionId: self.section, style: .blocks, updated: { value in
+            return ItemListSwitchItem(presentationData: presentationData, systemStyle: .glass, title: LuminaL10n.tr("Explain-a-Message"), value: value, sectionId: self.section, style: .blocks, updated: { value in
                 arguments.updateSettings { settings in
                     var settings = settings
                     settings.explainMessage = value
@@ -303,7 +303,7 @@ private enum LuminaTranslateSettingsEntry: ItemListNodeEntry {
             })
 
         case .providerHeader:
-            return ItemListSectionHeaderItem(presentationData: presentationData, text: "TRANSLATION PROVIDER", sectionId: self.section)
+            return ItemListSectionHeaderItem(presentationData: presentationData, text: LuminaL10n.tr("TRANSLATION PROVIDER"), sectionId: self.section)
         case let .providerOption(_, id, name, selected):
             return ItemListCheckboxItem(presentationData: presentationData, systemStyle: .glass, title: name, style: .left, checked: selected, zeroSeparatorInsets: false, sectionId: self.section, action: {
                 arguments.updateSettings { settings in
@@ -313,7 +313,7 @@ private enum LuminaTranslateSettingsEntry: ItemListNodeEntry {
                 }
             })
         case let .providerBaseUrl(value):
-            return ItemListSingleLineInputItem(presentationData: presentationData, systemStyle: .glass, title: NSAttributedString(string: "Base URL"), text: value, placeholder: LuminaLLMDefaults.baseUrl, type: .regular(capitalization: false, autocorrection: false), sectionId: self.section, textUpdated: { value in
+            return ItemListSingleLineInputItem(presentationData: presentationData, systemStyle: .glass, title: NSAttributedString(string: LuminaL10n.tr("Base URL"), textColor: presentationData.theme.list.itemPrimaryTextColor), text: value, placeholder: LuminaLLMDefaults.baseUrl, type: .regular(capitalization: false, autocorrection: false), spacing: 10.0, sectionId: self.section, textUpdated: { value in
                 arguments.updateSettings { settings in
                     var settings = settings
                     settings.translateBaseUrl = value
@@ -321,7 +321,7 @@ private enum LuminaTranslateSettingsEntry: ItemListNodeEntry {
                 }
             }, action: {})
         case let .providerModel(value):
-            return ItemListSingleLineInputItem(presentationData: presentationData, systemStyle: .glass, title: NSAttributedString(string: "Model"), text: value, placeholder: LuminaLLMDefaults.model, type: .regular(capitalization: false, autocorrection: false), sectionId: self.section, textUpdated: { value in
+            return ItemListSingleLineInputItem(presentationData: presentationData, systemStyle: .glass, title: NSAttributedString(string: LuminaL10n.tr("Model"), textColor: presentationData.theme.list.itemPrimaryTextColor), text: value, placeholder: LuminaLLMDefaults.model, type: .regular(capitalization: false, autocorrection: false), spacing: 10.0, sectionId: self.section, textUpdated: { value in
                 arguments.updateSettings { settings in
                     var settings = settings
                     settings.translateModel = value
@@ -337,24 +337,24 @@ private enum LuminaTranslateSettingsEntry: ItemListNodeEntry {
                 }
             })
         case let .providerDeepLKey(value):
-            return ItemListSingleLineInputItem(presentationData: presentationData, systemStyle: .glass, title: NSAttributedString(string: "DeepL Key"), text: value, placeholder: "API key", type: .password, sectionId: self.section, textUpdated: { value in
+            return ItemListSingleLineInputItem(presentationData: presentationData, systemStyle: .glass, title: NSAttributedString(string: LuminaL10n.tr("DeepL Key"), textColor: presentationData.theme.list.itemPrimaryTextColor), text: value, placeholder: LuminaL10n.tr("API key"), type: .password, spacing: 10.0, sectionId: self.section, textUpdated: { value in
                 arguments.updateDeepLKey(value)
             }, action: {})
         case let .providerLLMKey(value):
-            return ItemListSingleLineInputItem(presentationData: presentationData, systemStyle: .glass, title: NSAttributedString(string: "LLM Key"), text: value, placeholder: "API key", type: .password, sectionId: self.section, textUpdated: { value in
+            return ItemListSingleLineInputItem(presentationData: presentationData, systemStyle: .glass, title: NSAttributedString(string: LuminaL10n.tr("LLM Key"), textColor: presentationData.theme.list.itemPrimaryTextColor), text: value, placeholder: LuminaL10n.tr("API key"), type: .password, spacing: 10.0, sectionId: self.section, textUpdated: { value in
                 arguments.updateLLMKey(value)
             }, action: {})
         case .providerTest:
-            return ItemListActionItem(presentationData: presentationData, systemStyle: .glass, title: "Test Provider", kind: .generic, alignment: .natural, sectionId: self.section, style: .blocks, action: {
+            return ItemListActionItem(presentationData: presentationData, systemStyle: .glass, title: LuminaL10n.tr("Test Provider"), kind: .generic, alignment: .natural, sectionId: self.section, style: .blocks, action: {
                 arguments.testProvider()
             })
         case .providerFooter:
-            return ItemListTextItem(presentationData: presentationData, text: .plain("DeepL and LLM keys are stored in the device Keychain, never synced to Telegram or LuminaGram. Base URL/Model/Prompt apply to the LLM provider only."), sectionId: self.section)
+            return ItemListTextItem(presentationData: presentationData, text: .plain(LuminaL10n.tr("DeepL and LLM keys are stored in the device Keychain, never synced to Telegram or LuminaGram. Base URL/Model/Prompt apply to the LLM provider only.")), sectionId: self.section)
 
         case .glossaryHeader:
-            return ItemListSectionHeaderItem(presentationData: presentationData, text: "GLOSSARY", sectionId: self.section)
+            return ItemListSectionHeaderItem(presentationData: presentationData, text: LuminaL10n.tr("GLOSSARY"), sectionId: self.section)
         case let .glossaryTerms(value):
-            return ItemListMultilineInputItem(presentationData: presentationData, systemStyle: .glass, text: value, placeholder: "iPhone, Acme Corp — one term per line or comma-separated", maxLength: nil, sectionId: self.section, style: .blocks, capitalization: true, autocorrection: false, textUpdated: { value in
+            return ItemListMultilineInputItem(presentationData: presentationData, systemStyle: .glass, text: value, placeholder: LuminaL10n.tr("iPhone, Acme Corp — one term per line or comma-separated"), maxLength: nil, sectionId: self.section, style: .blocks, capitalization: true, autocorrection: false, textUpdated: { value in
                 arguments.updateSettings { settings in
                     var settings = settings
                     settings.glossaryTerms = luminaSplitCommaOrNewlineList(value)
@@ -362,7 +362,7 @@ private enum LuminaTranslateSettingsEntry: ItemListNodeEntry {
                 }
             })
         case .glossaryFooter:
-            return ItemListTextItem(presentationData: presentationData, text: .plain("These terms are never translated. @usernames and links are always protected automatically."), sectionId: self.section)
+            return ItemListTextItem(presentationData: presentationData, text: .plain(LuminaL10n.tr("These terms are never translated. @usernames and links are always protected automatically.")), sectionId: self.section)
         }
     }
 }
@@ -440,9 +440,9 @@ private func luminaTestCurrentProvider(context: AccountContext) {
         if let result {
             text = "\"Hello, world!\" → \"\(result.text)\""
         } else {
-            text = "The test translation failed. Check the provider's API key and settings."
+            text = LuminaL10n.tr("The test translation failed. Check the provider's API key and settings.")
         }
-        context.sharedContext.presentGlobalController(textAlertController(context: context, title: "Test Provider", text: text, actions: [
+        context.sharedContext.presentGlobalController(textAlertController(context: context, title: LuminaL10n.tr("Test Provider"), text: text, actions: [
             TextAlertAction(type: .defaultAction, title: presentationData.strings.Common_OK, action: {})
         ]), nil)
     })

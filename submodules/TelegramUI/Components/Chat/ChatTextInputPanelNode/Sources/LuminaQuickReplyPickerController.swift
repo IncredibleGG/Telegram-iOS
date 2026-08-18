@@ -52,7 +52,7 @@ private enum LuminaQuickReplyPickerEntry: ItemListNodeEntry {
                 arguments.select(template.text)
             })
         case .empty:
-            return ItemListTextItem(presentationData: presentationData, text: .plain("No templates yet. Add some from LuminaGram Settings > Tools > Quick Replies."), sectionId: self.section)
+            return ItemListTextItem(presentationData: presentationData, text: .plain(LuminaL10n.tr("No templates yet. Add some from LuminaGram Settings > Tools > Quick Replies.")), sectionId: self.section)
         }
     }
 }
@@ -81,7 +81,7 @@ public func luminaQuickReplyPickerController(context: AccountContext, select: @e
             }
         }
 
-        let controllerState = ItemListControllerState(presentationData: ItemListPresentationData(presentationData), title: .text("Quick Reply"), leftNavigationButton: ItemListNavigationButton(content: .text(presentationData.strings.Common_Cancel), style: .regular, enabled: true, action: {
+        let controllerState = ItemListControllerState(presentationData: ItemListPresentationData(presentationData), title: .text(LuminaL10n.tr("Quick Reply")), leftNavigationButton: ItemListNavigationButton(content: .text(presentationData.strings.Common_Cancel), style: .regular, enabled: true, action: {
             dismissImpl?()
         }), rightNavigationButton: nil, backNavigationButton: nil)
         let listState = ItemListNodeState(presentationData: ItemListPresentationData(presentationData), entries: entries, style: .blocks, animateChanges: false)

@@ -103,43 +103,43 @@ private enum LuminaSecuritySettingsEntry: ItemListNodeEntry {
         let arguments = arguments as! LuminaSecuritySettingsControllerArguments
         switch self {
         case .guardsHeader:
-            return ItemListSectionHeaderItem(presentationData: presentationData, text: "ANTI-SCAM GUARDS", sectionId: self.section)
+            return ItemListSectionHeaderItem(presentationData: presentationData, text: LuminaL10n.tr("ANTI-SCAM GUARDS"), sectionId: self.section)
         case let .otpGuard(value):
-            return ItemListSwitchItem(presentationData: presentationData, systemStyle: .glass, title: "Login Code Guard", value: value, sectionId: self.section, style: .blocks, updated: { value in
+            return ItemListSwitchItem(presentationData: presentationData, systemStyle: .glass, title: LuminaL10n.tr("Login Code Guard"), value: value, sectionId: self.section, style: .blocks, updated: { value in
                 arguments.updateOtpGuard(value)
             })
         case let .sessionGuard(value):
-            return ItemListSwitchItem(presentationData: presentationData, systemStyle: .glass, title: "New Login Alerts", value: value, sectionId: self.section, style: .blocks, updated: { value in
+            return ItemListSwitchItem(presentationData: presentationData, systemStyle: .glass, title: LuminaL10n.tr("New Login Alerts"), value: value, sectionId: self.section, style: .blocks, updated: { value in
                 arguments.updateSessionGuard(value)
             })
         case let .cryptoGuard(value):
-            return ItemListSwitchItem(presentationData: presentationData, systemStyle: .glass, title: "Wallet Address Paste Guard", value: value, sectionId: self.section, style: .blocks, updated: { value in
+            return ItemListSwitchItem(presentationData: presentationData, systemStyle: .glass, title: LuminaL10n.tr("Wallet Address Paste Guard"), value: value, sectionId: self.section, style: .blocks, updated: { value in
                 arguments.updateCryptoGuard(value)
             })
         case let .linkSafety(value):
-            return ItemListSwitchItem(presentationData: presentationData, systemStyle: .glass, title: "Link Safety Check", value: value, sectionId: self.section, style: .blocks, updated: { value in
+            return ItemListSwitchItem(presentationData: presentationData, systemStyle: .glass, title: LuminaL10n.tr("Link Safety Check"), value: value, sectionId: self.section, style: .blocks, updated: { value in
                 arguments.updateLinkSafety(value)
             })
         case let .scamKeyword(value):
-            return ItemListSwitchItem(presentationData: presentationData, systemStyle: .glass, title: "Scam Keyword Warning", value: value, sectionId: self.section, style: .blocks, updated: { value in
+            return ItemListSwitchItem(presentationData: presentationData, systemStyle: .glass, title: LuminaL10n.tr("Scam Keyword Warning"), value: value, sectionId: self.section, style: .blocks, updated: { value in
                 arguments.updateScamKeyword(value)
             })
         case let .homoglyph(value):
-            return ItemListSwitchItem(presentationData: presentationData, systemStyle: .glass, title: "Look-Alike Name Warning", value: value, sectionId: self.section, style: .blocks, updated: { value in
+            return ItemListSwitchItem(presentationData: presentationData, systemStyle: .glass, title: LuminaL10n.tr("Look-Alike Name Warning"), value: value, sectionId: self.section, style: .blocks, updated: { value in
                 arguments.updateHomoglyph(value)
             })
         case let .fileGuard(value):
-            return ItemListSwitchItem(presentationData: presentationData, systemStyle: .glass, title: "Disguised File Guard", value: value, sectionId: self.section, style: .blocks, updated: { value in
+            return ItemListSwitchItem(presentationData: presentationData, systemStyle: .glass, title: LuminaL10n.tr("Disguised File Guard"), value: value, sectionId: self.section, style: .blocks, updated: { value in
                 arguments.updateFileGuard(value)
             })
         case .guardsFooter:
-            return ItemListTextItem(presentationData: presentationData, text: .plain("Every guard runs on this device only. Nothing you type, paste or receive is uploaded anywhere to power these checks."), sectionId: self.section)
+            return ItemListTextItem(presentationData: presentationData, text: .plain(LuminaL10n.tr("Every guard runs on this device only. Nothing you type, paste or receive is uploaded anywhere to power these checks.")), sectionId: self.section)
         case .checkup:
-            return ItemListDisclosureItem(presentationData: presentationData, icon: PresentationResourcesSettings.security, title: "Security Checkup", label: "", sectionId: self.section, style: .blocks, action: {
+            return ItemListDisclosureItem(presentationData: presentationData, icon: PresentationResourcesSettings.security, title: LuminaL10n.tr("Security Checkup"), label: "", sectionId: self.section, style: .blocks, action: {
                 arguments.openCheckup()
             })
         case .checkupFooter:
-            return ItemListTextItem(presentationData: presentationData, text: .plain("Read-only status of Two-Step Verification, recovery e-mail, privacy and active sessions, using Telegram's own settings screens."), sectionId: self.section)
+            return ItemListTextItem(presentationData: presentationData, text: .plain(LuminaL10n.tr("Read-only status of Two-Step Verification, recovery e-mail, privacy and active sessions, using Telegram's own settings screens.")), sectionId: self.section)
         }
     }
 }
@@ -226,7 +226,7 @@ public func luminaSecuritySettingsController(context: AccountContext) -> ViewCon
     |> map { presentationData, sharedData -> (ItemListControllerState, (ItemListNodeState, Any)) in
         let settings = sharedData.entries[ApplicationSpecificSharedDataKeys.luminaSettings]?.get(LuminaSettings.self) ?? LuminaSettings.defaultSettings
 
-        let controllerState = ItemListControllerState(presentationData: ItemListPresentationData(presentationData), title: .text("Security"), leftNavigationButton: nil, rightNavigationButton: nil, backNavigationButton: ItemListBackButton(title: presentationData.strings.Common_Back))
+        let controllerState = ItemListControllerState(presentationData: ItemListPresentationData(presentationData), title: .text(LuminaL10n.tr("Security")), leftNavigationButton: nil, rightNavigationButton: nil, backNavigationButton: ItemListBackButton(title: presentationData.strings.Common_Back))
         let listState = ItemListNodeState(presentationData: ItemListPresentationData(presentationData), entries: luminaSecuritySettingsControllerEntries(settings: settings), style: .blocks, animateChanges: true)
 
         return (controllerState, (listState, arguments))

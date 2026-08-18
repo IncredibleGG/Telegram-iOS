@@ -62,9 +62,9 @@ private enum LuminaContactNoteEntry: ItemListNodeEntry {
         let arguments = arguments as! LuminaContactNoteControllerArguments
         switch self {
         case .noteHeader:
-            return ItemListSectionHeaderItem(presentationData: presentationData, text: "PRIVATE NOTE", sectionId: self.section)
+            return ItemListSectionHeaderItem(presentationData: presentationData, text: LuminaL10n.tr("PRIVATE NOTE"), sectionId: self.section)
         case let .note(value):
-            return ItemListMultilineInputItem(presentationData: presentationData, text: value, placeholder: "Only you can see this note", maxLength: nil, sectionId: self.section, style: .blocks, textUpdated: { text in
+            return ItemListMultilineInputItem(presentationData: presentationData, text: value, placeholder: LuminaL10n.tr("Only you can see this note"), maxLength: nil, sectionId: self.section, style: .blocks, textUpdated: { text in
                 arguments.updateState { state in
                     var state = state
                     state.note = text
@@ -72,9 +72,9 @@ private enum LuminaContactNoteEntry: ItemListNodeEntry {
                 }
             })
         case .tagsHeader:
-            return ItemListSectionHeaderItem(presentationData: presentationData, text: "TAGS", sectionId: self.section)
+            return ItemListSectionHeaderItem(presentationData: presentationData, text: LuminaL10n.tr("TAGS"), sectionId: self.section)
         case let .tags(value):
-            return ItemListSingleLineInputItem(presentationData: presentationData, title: NSAttributedString(string: ""), text: value, placeholder: "e.g. work, family", sectionId: self.section, textUpdated: { text in
+            return ItemListSingleLineInputItem(presentationData: presentationData, title: NSAttributedString(string: ""), text: value, placeholder: LuminaL10n.tr("e.g. work, family"), sectionId: self.section, textUpdated: { text in
                 arguments.updateState { state in
                     var state = state
                     state.tags = text
@@ -82,7 +82,7 @@ private enum LuminaContactNoteEntry: ItemListNodeEntry {
                 }
             }, action: {})
         case .tagsFooter:
-            return ItemListTextItem(presentationData: presentationData, text: .plain("Comma-separated. Stored only on this device, never sent to Telegram or included in this person's profile."), sectionId: self.section)
+            return ItemListTextItem(presentationData: presentationData, text: .plain(LuminaL10n.tr("Comma-separated. Stored only on this device, never sent to Telegram or included in this person's profile.")), sectionId: self.section)
         }
     }
 }
@@ -130,7 +130,7 @@ public func luminaContactNoteController(context: AccountContext, peerId: EngineP
         statePromise.get()
     )
     |> map { presentationData, state -> (ItemListControllerState, (ItemListNodeState, Any)) in
-        let rightNavigationButton = ItemListNavigationButton(content: .text("Save"), style: .bold, enabled: true, action: {
+        let rightNavigationButton = ItemListNavigationButton(content: .text(LuminaL10n.tr("Save")), style: .bold, enabled: true, action: {
             let finalState = stateValue.with { $0 }
             let tags = finalState.tags.split(separator: ",").map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }
             let _ = updateLuminaSettingsInteractively(accountManager: context.sharedContext.accountManager, { settings in
@@ -144,7 +144,7 @@ public func luminaContactNoteController(context: AccountContext, peerId: EngineP
             dismissImpl?()
         })
 
-        let controllerState = ItemListControllerState(presentationData: ItemListPresentationData(presentationData), title: .text("Contact Note"), leftNavigationButton: ItemListNavigationButton(content: .text(presentationData.strings.Common_Cancel), style: .regular, enabled: true, action: {
+        let controllerState = ItemListControllerState(presentationData: ItemListPresentationData(presentationData), title: .text(LuminaL10n.tr("Contact Note")), leftNavigationButton: ItemListNavigationButton(content: .text(presentationData.strings.Common_Cancel), style: .regular, enabled: true, action: {
             dismissImpl?()
         }), rightNavigationButton: rightNavigationButton, backNavigationButton: ItemListBackButton(title: presentationData.strings.Common_Back))
         let listState = ItemListNodeState(presentationData: ItemListPresentationData(presentationData), entries: luminaContactNoteControllerEntries(state: state), style: .blocks, animateChanges: false)

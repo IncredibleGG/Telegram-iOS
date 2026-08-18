@@ -49,10 +49,10 @@ public func luminaToolsController(context: AccountContext) -> ViewController {
                     }).start()
                 })
             }
-            presentControllerImpl?(textAlertController(context: context, title: "Sticker Size", text: "Choose how large stickers render in chats.", actions: [
-                makeAction(75, "Small (75%)"),
-                makeAction(100, "Default (100%)"),
-                makeAction(125, "Large (125%)"),
+            presentControllerImpl?(textAlertController(context: context, title: LuminaL10n.tr("Sticker Size"), text: LuminaL10n.tr("Choose how large stickers render in chats."), actions: [
+                makeAction(75, LuminaL10n.tr("Small (75%)")),
+                makeAction(100, LuminaL10n.tr("Default (100%)")),
+                makeAction(125, LuminaL10n.tr("Large (125%)")),
                 TextAlertAction(type: .genericAction, title: presentationData.strings.Common_Cancel, action: {})
             ], actionLayout: .vertical))
         }
@@ -65,7 +65,7 @@ public func luminaToolsController(context: AccountContext) -> ViewController {
     |> map { presentationData, sharedData -> (ItemListControllerState, (ItemListNodeState, Any)) in
         let settings = sharedData.entries[ApplicationSpecificSharedDataKeys.luminaSettings]?.get(LuminaSettings.self) ?? .defaultSettings
 
-        let controllerState = ItemListControllerState(presentationData: ItemListPresentationData(presentationData), title: .text("Tools"), leftNavigationButton: nil, rightNavigationButton: nil, backNavigationButton: ItemListBackButton(title: presentationData.strings.Common_Back))
+        let controllerState = ItemListControllerState(presentationData: ItemListPresentationData(presentationData), title: .text(LuminaL10n.tr("Tools")), leftNavigationButton: nil, rightNavigationButton: nil, backNavigationButton: ItemListBackButton(title: presentationData.strings.Common_Back))
         let listState = ItemListNodeState(presentationData: ItemListPresentationData(presentationData), entries: luminaToolsControllerEntries(settings: settings), style: .blocks, animateChanges: true)
 
         return (controllerState, (listState, arguments))
@@ -171,23 +171,23 @@ private enum LuminaToolsEntry: ItemListNodeEntry {
         let arguments = arguments as! LuminaToolsControllerArguments
         switch self {
         case .screensHeader:
-            return ItemListSectionHeaderItem(presentationData: presentationData, text: "SCREENS", sectionId: self.section)
+            return ItemListSectionHeaderItem(presentationData: presentationData, text: LuminaL10n.tr("SCREENS"), sectionId: self.section)
         case .bookmarks:
-            return ItemListDisclosureItem(presentationData: presentationData, title: "Bookmarks", label: "", sectionId: self.section, style: .blocks, action: {
+            return ItemListDisclosureItem(presentationData: presentationData, title: LuminaL10n.tr("Bookmarks"), label: "", sectionId: self.section, style: .blocks, action: {
                 arguments.pushController(luminaBookmarksController(context: arguments.context))
             })
         case .quickReplies:
-            return ItemListDisclosureItem(presentationData: presentationData, title: "Quick Replies", label: "", sectionId: self.section, style: .blocks, action: {
+            return ItemListDisclosureItem(presentationData: presentationData, title: LuminaL10n.tr("Quick Replies"), label: "", sectionId: self.section, style: .blocks, action: {
                 arguments.pushController(luminaQuickRepliesController(context: arguments.context))
             })
         case .backup:
-            return ItemListDisclosureItem(presentationData: presentationData, title: "Backup", label: "", sectionId: self.section, style: .blocks, action: {
+            return ItemListDisclosureItem(presentationData: presentationData, title: LuminaL10n.tr("Backup"), label: "", sectionId: self.section, style: .blocks, action: {
                 arguments.pushController(luminaBackupController(context: arguments.context))
             })
         case .storiesHeader:
-            return ItemListSectionHeaderItem(presentationData: presentationData, text: "STORIES", sectionId: self.section)
+            return ItemListSectionHeaderItem(presentationData: presentationData, text: LuminaL10n.tr("STORIES"), sectionId: self.section)
         case let .storiesFullyOff(value):
-            return ItemListSwitchItem(presentationData: presentationData, title: "Hide Stories Tray", value: value, sectionId: self.section, style: .blocks, updated: { value in
+            return ItemListSwitchItem(presentationData: presentationData, title: LuminaL10n.tr("Hide Stories Tray"), value: value, sectionId: self.section, style: .blocks, updated: { value in
                 arguments.updateSettings { settings in
                     var settings = settings
                     settings.storiesFullyOff = value
@@ -195,7 +195,7 @@ private enum LuminaToolsEntry: ItemListNodeEntry {
                 }
             })
         case let .storiesHidePostEntry(value, enabled):
-            return ItemListSwitchItem(presentationData: presentationData, title: "Hide My Story Prompt", value: value, enableInteractiveChanges: enabled, enabled: enabled, sectionId: self.section, style: .blocks, updated: { value in
+            return ItemListSwitchItem(presentationData: presentationData, title: LuminaL10n.tr("Hide My Story Prompt"), value: value, enableInteractiveChanges: enabled, enabled: enabled, sectionId: self.section, style: .blocks, updated: { value in
                 arguments.updateSettings { settings in
                     var settings = settings
                     settings.storiesHidePostEntry = value
@@ -203,11 +203,11 @@ private enum LuminaToolsEntry: ItemListNodeEntry {
                 }
             })
         case .storiesFooter:
-            return ItemListTextItem(presentationData: presentationData, text: .plain("Hides the stories strip in chats and the story ring around avatars app-wide. Does not touch anyone's stories on the server."), sectionId: self.section)
+            return ItemListTextItem(presentationData: presentationData, text: .plain(LuminaL10n.tr("Hides the stories strip in chats and the story ring around avatars app-wide. Does not touch anyone's stories on the server.")), sectionId: self.section)
         case .displayHeader:
-            return ItemListSectionHeaderItem(presentationData: presentationData, text: "DISPLAY", sectionId: self.section)
+            return ItemListSectionHeaderItem(presentationData: presentationData, text: LuminaL10n.tr("DISPLAY"), sectionId: self.section)
         case let .unreadDigest(value):
-            return ItemListSwitchItem(presentationData: presentationData, title: "Unread Digest on Return", value: value, sectionId: self.section, style: .blocks, updated: { value in
+            return ItemListSwitchItem(presentationData: presentationData, title: LuminaL10n.tr("Unread Digest on Return"), value: value, sectionId: self.section, style: .blocks, updated: { value in
                 arguments.updateSettings { settings in
                     var settings = settings
                     settings.unreadDigest = value
@@ -215,7 +215,7 @@ private enum LuminaToolsEntry: ItemListNodeEntry {
                 }
             })
         case let .disableNumberRounding(value):
-            return ItemListSwitchItem(presentationData: presentationData, title: "Precise Counts", text: "No 1.2K / 3.4M rounding", value: value, sectionId: self.section, style: .blocks, updated: { value in
+            return ItemListSwitchItem(presentationData: presentationData, title: LuminaL10n.tr("Precise Counts"), text: LuminaL10n.tr("No 1.2K / 3.4M rounding"), value: value, sectionId: self.section, style: .blocks, updated: { value in
                 arguments.updateSettings { settings in
                     var settings = settings
                     settings.disableNumberRounding = value
@@ -223,7 +223,7 @@ private enum LuminaToolsEntry: ItemListNodeEntry {
                 }
             })
         case let .timeWithSeconds(value):
-            return ItemListSwitchItem(presentationData: presentationData, title: "Seconds in Timestamps", value: value, sectionId: self.section, style: .blocks, updated: { value in
+            return ItemListSwitchItem(presentationData: presentationData, title: LuminaL10n.tr("Seconds in Timestamps"), value: value, sectionId: self.section, style: .blocks, updated: { value in
                 arguments.updateSettings { settings in
                     var settings = settings
                     settings.timeWithSeconds = value
@@ -231,11 +231,11 @@ private enum LuminaToolsEntry: ItemListNodeEntry {
                 }
             })
         case let .stickerScale(value):
-            return ItemListDisclosureItem(presentationData: presentationData, title: "Sticker Size", label: "\(value)%", sectionId: self.section, style: .blocks, action: {
+            return ItemListDisclosureItem(presentationData: presentationData, title: LuminaL10n.tr("Sticker Size"), label: "\(value)%", sectionId: self.section, style: .blocks, action: {
                 arguments.pickStickerScale(value)
             })
         case .displayFooter:
-            return ItemListTextItem(presentationData: presentationData, text: .plain("These options and everything else under LuminaGram are stored on this device only."), sectionId: self.section)
+            return ItemListTextItem(presentationData: presentationData, text: .plain(LuminaL10n.tr("These options and everything else under LuminaGram are stored on this device only.")), sectionId: self.section)
         }
     }
 }

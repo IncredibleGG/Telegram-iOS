@@ -71,13 +71,13 @@ extension ChatControllerImpl {
                 self.present(textAlertController(
                     context: self.context,
                     updatedPresentationData: self.updatedPresentationData,
-                    title: "Login Code Detected",
-                    text: "This message looks like it contains your Telegram login code. Telegram staff and real support will never ask you to send it. Send anyway?",
+                    title: LuminaL10n.tr("Login Code Detected"),
+                    text: LuminaL10n.tr("This message looks like it contains your Telegram login code. Telegram staff and real support will never ask you to send it. Send anyway?"),
                     actions: [
-                        TextAlertAction(type: .destructiveAction, title: "Send Anyway", action: {
+                        TextAlertAction(type: .destructiveAction, title: LuminaL10n.tr("Send Anyway"), action: {
                             proceed()
                         }),
-                        TextAlertAction(type: .genericAction, title: "Cancel", action: {}),
+                        TextAlertAction(type: .genericAction, title: LuminaL10n.tr("Cancel"), action: {}),
                     ]
                 ), in: .window(.root))
             })

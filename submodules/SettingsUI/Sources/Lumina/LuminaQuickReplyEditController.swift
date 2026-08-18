@@ -68,9 +68,9 @@ private enum LuminaQuickReplyEditEntry: ItemListNodeEntry {
         let arguments = arguments as! LuminaQuickReplyEditControllerArguments
         switch self {
         case .titleHeader:
-            return ItemListSectionHeaderItem(presentationData: presentationData, text: "SHORTCUT NAME", sectionId: self.section)
+            return ItemListSectionHeaderItem(presentationData: presentationData, text: LuminaL10n.tr("SHORTCUT NAME"), sectionId: self.section)
         case let .title(value):
-            return ItemListSingleLineInputItem(presentationData: presentationData, title: NSAttributedString(string: ""), text: value, placeholder: "e.g. Thanks", sectionId: self.section, textUpdated: { text in
+            return ItemListSingleLineInputItem(presentationData: presentationData, title: NSAttributedString(string: ""), text: value, placeholder: LuminaL10n.tr("e.g. Thanks"), sectionId: self.section, textUpdated: { text in
                 arguments.updateState { state in
                     var state = state
                     state.title = text
@@ -78,9 +78,9 @@ private enum LuminaQuickReplyEditEntry: ItemListNodeEntry {
                 }
             }, action: {})
         case .textHeader:
-            return ItemListSectionHeaderItem(presentationData: presentationData, text: "MESSAGE TEXT", sectionId: self.section)
+            return ItemListSectionHeaderItem(presentationData: presentationData, text: LuminaL10n.tr("MESSAGE TEXT"), sectionId: self.section)
         case let .text(value):
-            return ItemListMultilineInputItem(presentationData: presentationData, text: value, placeholder: "Message text to insert", maxLength: nil, sectionId: self.section, style: .blocks, textUpdated: { text in
+            return ItemListMultilineInputItem(presentationData: presentationData, text: value, placeholder: LuminaL10n.tr("Message text to insert"), maxLength: nil, sectionId: self.section, style: .blocks, textUpdated: { text in
                 arguments.updateState { state in
                     var state = state
                     state.text = text
@@ -88,7 +88,7 @@ private enum LuminaQuickReplyEditEntry: ItemListNodeEntry {
                 }
             })
         case .delete:
-            return ItemListActionItem(presentationData: presentationData, title: "Delete Template", kind: .destructive, alignment: .natural, sectionId: self.section, style: .blocks, action: {
+            return ItemListActionItem(presentationData: presentationData, title: LuminaL10n.tr("Delete Template"), kind: .destructive, alignment: .natural, sectionId: self.section, style: .blocks, action: {
                 arguments.delete?()
             })
         }
@@ -137,7 +137,7 @@ public func luminaQuickReplyEditController(context: AccountContext, template: Lu
     |> map { presentationData, state -> (ItemListControllerState, (ItemListNodeState, Any)) in
         let canSave = !state.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !state.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
 
-        let rightNavigationButton = ItemListNavigationButton(content: .text("Save"), style: .bold, enabled: canSave, action: {
+        let rightNavigationButton = ItemListNavigationButton(content: .text(LuminaL10n.tr("Save")), style: .bold, enabled: canSave, action: {
             let finalState = stateValue.with { $0 }
             let id = template?.id ?? UUID().uuidString
             let saved = LuminaSettings.QuickReplyTemplate(id: id, title: finalState.title.trimmingCharacters(in: .whitespacesAndNewlines), text: finalState.text)
@@ -153,7 +153,7 @@ public func luminaQuickReplyEditController(context: AccountContext, template: Lu
             dismissImpl?()
         })
 
-        let controllerState = ItemListControllerState(presentationData: ItemListPresentationData(presentationData), title: .text(template == nil ? "New Template" : "Edit Template"), leftNavigationButton: ItemListNavigationButton(content: .text(presentationData.strings.Common_Cancel), style: .regular, enabled: true, action: {
+        let controllerState = ItemListControllerState(presentationData: ItemListPresentationData(presentationData), title: .text(template == nil ? LuminaL10n.tr("New Template") : LuminaL10n.tr("Edit Template")), leftNavigationButton: ItemListNavigationButton(content: .text(presentationData.strings.Common_Cancel), style: .regular, enabled: true, action: {
             dismissImpl?()
         }), rightNavigationButton: rightNavigationButton, backNavigationButton: ItemListBackButton(title: presentationData.strings.Common_Back))
         let listState = ItemListNodeState(presentationData: ItemListPresentationData(presentationData), entries: luminaQuickReplyEditControllerEntries(state: state, canDelete: template != nil), style: .blocks, animateChanges: false)

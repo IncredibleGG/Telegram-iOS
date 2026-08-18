@@ -216,7 +216,7 @@ public enum LuminaLLMDefaults {
 
 final class LuminaLLMEngine: LuminaTranslatorEngine {
     let id = "llm"
-    let displayName = "LLM (OpenAI-compatible)"
+    var displayName: String { return LuminaL10n.tr("LLM (OpenAI-compatible)") }
     let needsKey = true
     let needsBaseUrl = true
     let needsModel = true

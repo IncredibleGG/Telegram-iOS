@@ -100,56 +100,56 @@ private enum LuminaSecurityCheckupEntry: ItemListNodeEntry {
         case let .summary(text):
             return ItemListTextItem(presentationData: presentationData, text: .plain(text), sectionId: self.section)
         case .twoStepHeader:
-            return ItemListSectionHeaderItem(presentationData: presentationData, text: "TWO-STEP VERIFICATION", sectionId: self.section)
+            return ItemListSectionHeaderItem(presentationData: presentationData, text: LuminaL10n.tr("TWO-STEP VERIFICATION"), sectionId: self.section)
         case let .twoStepValue(value):
-            return ItemListDisclosureItem(presentationData: presentationData, title: "Two-Step Verification", label: value, sectionId: self.section, style: .blocks, action: {
+            return ItemListDisclosureItem(presentationData: presentationData, title: LuminaL10n.tr("Two-Step Verification"), label: value, sectionId: self.section, style: .blocks, action: {
                 arguments.openPrivacyAndSecurity()
             })
         case let .recoveryEmailValue(value):
-            return ItemListDisclosureItem(presentationData: presentationData, title: "Recovery E-Mail", label: value, sectionId: self.section, style: .blocks, action: {
+            return ItemListDisclosureItem(presentationData: presentationData, title: LuminaL10n.tr("Recovery E-Mail"), label: value, sectionId: self.section, style: .blocks, action: {
                 arguments.openPrivacyAndSecurity()
             })
         case .twoStepFooter:
-            return ItemListTextItem(presentationData: presentationData, text: .plain("A password (plus a recovery e-mail) is the single strongest protection against a stolen login code."), sectionId: self.section)
+            return ItemListTextItem(presentationData: presentationData, text: .plain(LuminaL10n.tr("A password (plus a recovery e-mail) is the single strongest protection against a stolen login code.")), sectionId: self.section)
         case .privacyHeader:
-            return ItemListSectionHeaderItem(presentationData: presentationData, text: "PRIVACY", sectionId: self.section)
+            return ItemListSectionHeaderItem(presentationData: presentationData, text: LuminaL10n.tr("PRIVACY"), sectionId: self.section)
         case let .privacyGroups(value):
-            return ItemListDisclosureItem(presentationData: presentationData, title: "Who Can Add Me to Groups", label: value, sectionId: self.section, style: .blocks, action: {
+            return ItemListDisclosureItem(presentationData: presentationData, title: LuminaL10n.tr("Who Can Add Me to Groups"), label: value, sectionId: self.section, style: .blocks, action: {
                 arguments.openPrivacyAndSecurity()
             })
         case let .privacyCalls(value):
-            return ItemListDisclosureItem(presentationData: presentationData, title: "Who Can Call Me", label: value, sectionId: self.section, style: .blocks, action: {
+            return ItemListDisclosureItem(presentationData: presentationData, title: LuminaL10n.tr("Who Can Call Me"), label: value, sectionId: self.section, style: .blocks, action: {
                 arguments.openPrivacyAndSecurity()
             })
         case let .privacyPhone(value):
-            return ItemListDisclosureItem(presentationData: presentationData, title: "Who Can See My Phone Number", label: value, sectionId: self.section, style: .blocks, action: {
+            return ItemListDisclosureItem(presentationData: presentationData, title: LuminaL10n.tr("Who Can See My Phone Number"), label: value, sectionId: self.section, style: .blocks, action: {
                 arguments.openPrivacyAndSecurity()
             })
         case .privacyFooter:
-            return ItemListTextItem(presentationData: presentationData, text: .plain("Tap any row to open Telegram's own Privacy and Security settings."), sectionId: self.section)
+            return ItemListTextItem(presentationData: presentationData, text: .plain(LuminaL10n.tr("Tap any row to open Telegram's own Privacy and Security settings.")), sectionId: self.section)
         case .sessionsHeader:
-            return ItemListSectionHeaderItem(presentationData: presentationData, text: "ACTIVE SESSIONS", sectionId: self.section)
+            return ItemListSectionHeaderItem(presentationData: presentationData, text: LuminaL10n.tr("ACTIVE SESSIONS"), sectionId: self.section)
         case let .sessionsValue(value):
-            return ItemListDisclosureItem(presentationData: presentationData, title: "Devices Signed In", label: value, sectionId: self.section, style: .blocks, action: {
+            return ItemListDisclosureItem(presentationData: presentationData, title: LuminaL10n.tr("Devices Signed In"), label: value, sectionId: self.section, style: .blocks, action: {
                 arguments.openSessions()
             })
         case .sessionsFooter:
-            return ItemListTextItem(presentationData: presentationData, text: .plain("Review every device signed in to your account and end any you don't recognize."), sectionId: self.section)
+            return ItemListTextItem(presentationData: presentationData, text: .plain(LuminaL10n.tr("Review every device signed in to your account and end any you don't recognize.")), sectionId: self.section)
         }
     }
 }
 
 private func formatSelectivePrivacy(_ settings: SelectivePrivacySettings?) -> String {
     guard let settings else {
-        return "Checking…"
+        return LuminaL10n.tr("Checking…")
     }
     switch settings {
     case .enableEveryone:
-        return "Everybody"
+        return LuminaL10n.tr("Everybody")
     case .enableContacts:
-        return "My Contacts"
+        return LuminaL10n.tr("My Contacts")
     case .disableEveryone:
-        return "Nobody"
+        return LuminaL10n.tr("Nobody")
     }
 }
 
@@ -174,7 +174,7 @@ private func luminaSecurityCheckupControllerEntries(
     entries.append(.privacyFooter)
 
     entries.append(.sessionsHeader)
-    entries.append(.sessionsValue(sessionCount.map { String($0) } ?? "Checking…"))
+    entries.append(.sessionsValue(sessionCount.map { String($0) } ?? LuminaL10n.tr("Checking…")))
     entries.append(.sessionsFooter)
 
     return entries
@@ -182,7 +182,7 @@ private func luminaSecurityCheckupControllerEntries(
 
 private func summaryText(_ configuration: TwoStepVerificationConfiguration?) -> String {
     guard let configuration else {
-        return "Checking your account security…"
+        return LuminaL10n.tr("Checking your account security…")
     }
     var issues = 0
     switch configuration {
@@ -194,32 +194,32 @@ private func summaryText(_ configuration: TwoStepVerificationConfiguration?) -> 
         }
     }
     if issues == 0 {
-        return "Your account security looks good."
+        return LuminaL10n.tr("Your account security looks good.")
     }
     return "\(issues) recommendation\(issues == 1 ? "" : "s") to review below."
 }
 
 private func twoStepValueText(_ configuration: TwoStepVerificationConfiguration?) -> String {
     guard let configuration else {
-        return "Checking…"
+        return LuminaL10n.tr("Checking…")
     }
     switch configuration {
     case .notSet:
-        return "Off"
+        return LuminaL10n.tr("Off")
     case .set:
-        return "On"
+        return LuminaL10n.tr("On")
     }
 }
 
 private func recoveryEmailValueText(_ configuration: TwoStepVerificationConfiguration?) -> String {
     guard let configuration else {
-        return "Checking…"
+        return LuminaL10n.tr("Checking…")
     }
     switch configuration {
     case .notSet:
         return "—"
     case let .set(_, hasRecoveryEmail, _, _, _):
-        return hasRecoveryEmail ? "Set" : "Not Set"
+        return hasRecoveryEmail ? LuminaL10n.tr("Set") : LuminaL10n.tr("Not Set")
     }
 }
 
@@ -256,7 +256,7 @@ public func luminaSecurityCheckupController(context: AccountContext) -> ViewCont
     |> map { presentationData, twoStepConfiguration, privacySettings, sessionsState -> (ItemListControllerState, (ItemListNodeState, Any)) in
         let sessionCount: Int? = sessionsState.isLoadingMore && sessionsState.sessions.isEmpty ? nil : sessionsState.sessions.count
 
-        let controllerState = ItemListControllerState(presentationData: ItemListPresentationData(presentationData), title: .text("Security Checkup"), leftNavigationButton: nil, rightNavigationButton: nil, backNavigationButton: ItemListBackButton(title: presentationData.strings.Common_Back))
+        let controllerState = ItemListControllerState(presentationData: ItemListPresentationData(presentationData), title: .text(LuminaL10n.tr("Security Checkup")), leftNavigationButton: nil, rightNavigationButton: nil, backNavigationButton: ItemListBackButton(title: presentationData.strings.Common_Back))
         let listState = ItemListNodeState(presentationData: ItemListPresentationData(presentationData), entries: luminaSecurityCheckupControllerEntries(
             twoStepConfiguration: twoStepConfiguration,
             privacySettings: privacySettings,

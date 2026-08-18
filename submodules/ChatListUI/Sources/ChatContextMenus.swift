@@ -477,7 +477,7 @@ func chatContextMenuItems(context: AccountContext, peerId: EnginePeer.Id, promoI
                                         f(.default)
                                     } else {
                                         f(.dismissWithoutContent)
-                                        chatListController?.present(textAlertController(context: context, title: nil, text: "Set a chat-lock code in LuminaGram settings before locking a chat.", actions: [TextAlertAction(type: .defaultAction, title: presentationData.strings.Common_OK, action: {})]), in: .window(.root))
+                                        chatListController?.present(textAlertController(context: context, title: nil, text: LuminaL10n.tr("Set a chat-lock code in LuminaGram settings before locking a chat."), actions: [TextAlertAction(type: .defaultAction, title: presentationData.strings.Common_OK, action: {})]), in: .window(.root)) // LuminaGram: localized
                                     }
                                 })))
                             }

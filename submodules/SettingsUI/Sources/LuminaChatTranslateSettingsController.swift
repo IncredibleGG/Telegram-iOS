@@ -66,7 +66,7 @@ public func luminaChatTranslateSettingsController(context: AccountContext, peerI
     )
     |> map { presentationData, sharedData -> (ItemListControllerState, (ItemListNodeState, Any)) in
         let settings = sharedData.entries[ApplicationSpecificSharedDataKeys.luminaSettings]?.get(LuminaSettings.self) ?? LuminaSettings.defaultSettings
-        let controllerState = ItemListControllerState(presentationData: ItemListPresentationData(presentationData), title: .text("Chat Translation Settings"), leftNavigationButton: nil, rightNavigationButton: nil, backNavigationButton: ItemListBackButton(title: presentationData.strings.Common_Back))
+        let controllerState = ItemListControllerState(presentationData: ItemListPresentationData(presentationData), title: .text(LuminaL10n.tr("Chat Translation Settings")), leftNavigationButton: nil, rightNavigationButton: nil, backNavigationButton: ItemListBackButton(title: presentationData.strings.Common_Back))
         let listState = ItemListNodeState(presentationData: ItemListPresentationData(presentationData), entries: luminaChatTranslateSettingsControllerEntries(settings: settings, peerId: peerId, customTextValue: customTextValue.with { $0 }), style: .blocks, animateChanges: false)
         return (controllerState, (listState, arguments))
     }
@@ -136,20 +136,20 @@ private enum LuminaChatTranslateSettingsEntry: ItemListNodeEntry {
         let arguments = arguments as! LuminaChatTranslateSettingsControllerArguments
         switch self {
         case .beforeSendHeader:
-            return ItemListSectionHeaderItem(presentationData: presentationData, text: "TRANSLATE BEFORE SEND", sectionId: self.section)
+            return ItemListSectionHeaderItem(presentationData: presentationData, text: LuminaL10n.tr("TRANSLATE BEFORE SEND"), sectionId: self.section)
         case let .beforeSendEnabled(value):
-            return ItemListSwitchItem(presentationData: presentationData, systemStyle: .glass, title: "Enabled for This Chat", value: value, sectionId: self.section, style: .blocks, updated: { value in
+            return ItemListSwitchItem(presentationData: presentationData, systemStyle: .glass, title: LuminaL10n.tr("Enabled for This Chat"), value: value, sectionId: self.section, style: .blocks, updated: { value in
                 arguments.setBeforeSendEnabled(value)
             })
         case let .sendLang(value):
-            return ItemListSingleLineInputItem(presentationData: presentationData, systemStyle: .glass, title: NSAttributedString(string: "Target"), text: value, placeholder: "auto = recipient's language", type: .regular(capitalization: false, autocorrection: false), sectionId: self.section, textUpdated: { value in
+            return ItemListSingleLineInputItem(presentationData: presentationData, systemStyle: .glass, title: NSAttributedString(string: LuminaL10n.tr("Target")), text: value, placeholder: LuminaL10n.tr("auto = recipient's language"), type: .regular(capitalization: false, autocorrection: false), sectionId: self.section, textUpdated: { value in
                 arguments.setSendLang(value)
             }, action: {})
         case .beforeSendFooter:
-            return ItemListTextItem(presentationData: presentationData, text: .plain("Also needs the global switch on: Settings → LuminaGram → Translation → Translate Before Send."), sectionId: self.section)
+            return ItemListTextItem(presentationData: presentationData, text: .plain(LuminaL10n.tr("Also needs the global switch on: Settings → LuminaGram → Translation → Translate Before Send.")), sectionId: self.section)
 
         case .registerHeader:
-            return ItemListSectionHeaderItem(presentationData: presentationData, text: "TONE FOR THIS CHAT", sectionId: self.section)
+            return ItemListSectionHeaderItem(presentationData: presentationData, text: LuminaL10n.tr("TONE FOR THIS CHAT"), sectionId: self.section)
         case let .registerOption(_, code, name, selected):
             return ItemListCheckboxItem(presentationData: presentationData, systemStyle: .glass, title: name, style: .left, checked: selected, zeroSeparatorInsets: false, sectionId: self.section, action: {
                 if LuminaRegisterCode.isCustom(code) {
@@ -159,13 +159,13 @@ private enum LuminaChatTranslateSettingsEntry: ItemListNodeEntry {
                 }
             })
         case let .registerCustomText(value):
-            return ItemListSingleLineInputItem(presentationData: presentationData, systemStyle: .glass, title: NSAttributedString(), text: value, placeholder: "e.g. \"my landlord\"", type: .regular(capitalization: true, autocorrection: true), sectionId: self.section, textUpdated: { value in
+            return ItemListSingleLineInputItem(presentationData: presentationData, systemStyle: .glass, title: NSAttributedString(), text: value, placeholder: LuminaL10n.tr("e.g. \"my landlord\""), type: .regular(capitalization: true, autocorrection: true), sectionId: self.section, textUpdated: { value in
                 arguments.updateCustomText(value)
             }, action: {
                 arguments.commitCustomText()
             })
         case .registerFooter:
-            return ItemListTextItem(presentationData: presentationData, text: .plain("Only the LLM provider can carry tone. DeepL collapses it onto formal/informal where supported; Google and Telegram ignore it."), sectionId: self.section)
+            return ItemListTextItem(presentationData: presentationData, text: .plain(LuminaL10n.tr("Only the LLM provider can carry tone. DeepL collapses it onto formal/informal where supported; Google and Telegram ignore it.")), sectionId: self.section)
         }
     }
 }
@@ -182,12 +182,12 @@ private func luminaChatTranslateSettingsControllerEntries(settings: LuminaSettin
 
     let stored = LuminaRegister.get(settings: settings, peerId: peerId)
     entries.append(.registerHeader)
-    entries.append(.registerOption(index: 0, code: LuminaRegisterCode.none, name: "None", selected: stored == LuminaRegisterCode.none))
+    entries.append(.registerOption(index: 0, code: LuminaRegisterCode.none, name: LuminaL10n.tr("None"), selected: stored == LuminaRegisterCode.none))
     for (index, code) in LuminaRegisterCode.presets.enumerated() {
         entries.append(.registerOption(index: index + 1, code: code, name: LuminaRegisterCode.displayName(code), selected: stored == code))
     }
     let isCustom = LuminaRegisterCode.isCustom(stored)
-    entries.append(.registerOption(index: LuminaRegisterCode.presets.count + 1, code: LuminaRegisterCode.customPrefix, name: "Custom", selected: isCustom))
+    entries.append(.registerOption(index: LuminaRegisterCode.presets.count + 1, code: LuminaRegisterCode.customPrefix, name: LuminaL10n.tr("Custom"), selected: isCustom))
     if isCustom {
         entries.append(.registerCustomText(customTextValue ?? LuminaRegisterCode.customText(stored)))
     }

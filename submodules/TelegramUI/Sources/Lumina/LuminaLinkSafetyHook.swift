@@ -66,14 +66,14 @@ extension ChatControllerImpl {
             self.present(textAlertController(
                 context: self.context,
                 updatedPresentationData: self.updatedPresentationData,
-                title: "Check This Link",
+                title: LuminaL10n.tr("Check This Link"),
                 text: text,
                 actions: [
-                    TextAlertAction(type: .defaultAction, title: "Open", action: {
+                    TextAlertAction(type: .defaultAction, title: LuminaL10n.tr("Open"), action: {
                         ChatControllerImpl.luminaApprovedLinkSafetyUrl = url
                         proceed()
                     }),
-                    TextAlertAction(type: .genericAction, title: "Cancel", action: {}),
+                    TextAlertAction(type: .genericAction, title: LuminaL10n.tr("Cancel"), action: {}),
                 ]
             ), in: .window(.root))
         })

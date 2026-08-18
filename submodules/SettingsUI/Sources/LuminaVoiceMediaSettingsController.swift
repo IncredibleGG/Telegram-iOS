@@ -127,53 +127,53 @@ private enum LuminaVoiceMediaEntry: ItemListNodeEntry {
         let arguments = arguments as! LuminaVoiceMediaSettingsControllerArguments
         switch self {
         case .voiceHeader:
-            return ItemListSectionHeaderItem(presentationData: presentationData, text: "VOICE-TO-TEXT", sectionId: self.section)
+            return ItemListSectionHeaderItem(presentationData: presentationData, text: LuminaL10n.tr("VOICE-TO-TEXT"), sectionId: self.section)
         case let .sttAutoPipeline(value):
-            return ItemListSwitchItem(presentationData: presentationData, title: "Auto-transcribe in translated chats", value: value, sectionId: self.section, style: .blocks, updated: { value in
+            return ItemListSwitchItem(presentationData: presentationData, title: LuminaL10n.tr("Auto-transcribe in translated chats"), value: value, sectionId: self.section, style: .blocks, updated: { value in
                 arguments.updateSttAutoPipeline(value)
             })
         case let .autoTranslateTranscript(value):
-            return ItemListSwitchItem(presentationData: presentationData, title: "Translate transcript automatically", value: value, sectionId: self.section, style: .blocks, updated: { value in
+            return ItemListSwitchItem(presentationData: presentationData, title: LuminaL10n.tr("Translate transcript automatically"), value: value, sectionId: self.section, style: .blocks, updated: { value in
                 arguments.updateAutoTranslateTranscript(value)
             })
         case .voiceFooter:
-            return ItemListTextItem(presentationData: presentationData, text: .plain("Transcribe a voice message from its context menu. Runs fully on-device with Apple's Speech framework - never sent to a server. \"Auto-transcribe\" also runs this automatically for incoming voice notes in chats you already have translation on for."), sectionId: self.section)
+            return ItemListTextItem(presentationData: presentationData, text: .plain(LuminaL10n.tr("Transcribe a voice message from its context menu. Runs fully on-device with Apple's Speech framework - never sent to a server. \"Auto-transcribe\" also runs this automatically for incoming voice notes in chats you already have translation on for.")), sectionId: self.section)
         case .reverseVoiceHeader:
-            return ItemListSectionHeaderItem(presentationData: presentationData, text: "REVERSE VOICE (EXPERIMENTAL)", sectionId: self.section)
+            return ItemListSectionHeaderItem(presentationData: presentationData, text: LuminaL10n.tr("REVERSE VOICE (EXPERIMENTAL)"), sectionId: self.section)
         case let .reverseVoice(value):
-            return ItemListSwitchItem(presentationData: presentationData, title: "Enable reverse voice", value: value, sectionId: self.section, style: .blocks, updated: { value in
+            return ItemListSwitchItem(presentationData: presentationData, title: LuminaL10n.tr("Enable reverse voice"), value: value, sectionId: self.section, style: .blocks, updated: { value in
                 arguments.updateReverseVoice(value)
             })
         case let .reverseVoiceCompose(enabled):
-            return ItemListDisclosureItem(presentationData: presentationData, title: "Send a Reverse Voice Message", enabled: enabled, label: "", sectionId: self.section, style: .blocks, disclosureStyle: .arrow, action: enabled ? {
+            return ItemListDisclosureItem(presentationData: presentationData, title: LuminaL10n.tr("Send a Reverse Voice Message"), enabled: enabled, label: "", sectionId: self.section, style: .blocks, disclosureStyle: .arrow, action: enabled ? {
                 arguments.openReverseVoiceComposer()
             } : nil)
         case .reverseVoiceFooter:
-            return ItemListTextItem(presentationData: presentationData, text: .plain("Type a message, speak it on-device with the system voice, and send it as a real voice message. No cloud text-to-speech, no voice cloning. Off by default."), sectionId: self.section)
+            return ItemListTextItem(presentationData: presentationData, text: .plain(LuminaL10n.tr("Type a message, speak it on-device with the system voice, and send it as a real voice message. No cloud text-to-speech, no voice cloning. Off by default.")), sectionId: self.section)
         case .ocrHeader:
-            return ItemListSectionHeaderItem(presentationData: presentationData, text: "IMAGE TEXT", sectionId: self.section)
+            return ItemListSectionHeaderItem(presentationData: presentationData, text: LuminaL10n.tr("IMAGE TEXT"), sectionId: self.section)
         case let .ocrTranslate(value):
-            return ItemListSwitchItem(presentationData: presentationData, title: "Show \"Translate Image\" action", value: value, sectionId: self.section, style: .blocks, updated: { value in
+            return ItemListSwitchItem(presentationData: presentationData, title: LuminaL10n.tr("Show \"Translate Image\" action"), value: value, sectionId: self.section, style: .blocks, updated: { value in
                 arguments.updateOcrTranslate(value)
             })
         case .ocrFooter:
-            return ItemListTextItem(presentationData: presentationData, text: .plain("Uses Telegram's existing on-device Vision text recognition to translate text found in photos and screenshots, from the image viewer's menu."), sectionId: self.section)
+            return ItemListTextItem(presentationData: presentationData, text: .plain(LuminaL10n.tr("Uses Telegram's existing on-device Vision text recognition to translate text found in photos and screenshots, from the image viewer's menu.")), sectionId: self.section)
         case .mediaHeader:
-            return ItemListSectionHeaderItem(presentationData: presentationData, text: "MEDIA", sectionId: self.section)
+            return ItemListSectionHeaderItem(presentationData: presentationData, text: LuminaL10n.tr("MEDIA"), sectionId: self.section)
         case let .keepOriginalFilename(value):
-            return ItemListSwitchItem(presentationData: presentationData, title: "Keep original filename on save", value: value, sectionId: self.section, style: .blocks, updated: { value in
+            return ItemListSwitchItem(presentationData: presentationData, title: LuminaL10n.tr("Keep original filename on save"), value: value, sectionId: self.section, style: .blocks, updated: { value in
                 arguments.updateKeepOriginalFilename(value)
             })
         case let .autoPauseBackgroundVideo(value):
-            return ItemListSwitchItem(presentationData: presentationData, title: "Auto-pause video in background", value: value, sectionId: self.section, style: .blocks, updated: { value in
+            return ItemListSwitchItem(presentationData: presentationData, title: LuminaL10n.tr("Auto-pause video in background"), value: value, sectionId: self.section, style: .blocks, updated: { value in
                 arguments.updateAutoPauseBackgroundVideo(value)
             })
         case let .saveMediaToLuminaAlbum(value):
-            return ItemListSwitchItem(presentationData: presentationData, title: "Save to \"LuminaGram\" album", value: value, sectionId: self.section, style: .blocks, updated: { value in
+            return ItemListSwitchItem(presentationData: presentationData, title: LuminaL10n.tr("Save to \"LuminaGram\" album"), value: value, sectionId: self.section, style: .blocks, updated: { value in
                 arguments.updateSaveMediaToLuminaAlbum(value)
             })
         case .mediaFooter:
-            return ItemListTextItem(presentationData: presentationData, text: .plain("Applies to media saved through auto-save. Photos/videos are also added to a separate \"LuminaGram\" album alongside your camera roll when enabled."), sectionId: self.section)
+            return ItemListTextItem(presentationData: presentationData, text: .plain(LuminaL10n.tr("Applies to media saved through auto-save. Photos/videos are also added to a separate \"LuminaGram\" album alongside your camera roll when enabled.")), sectionId: self.section)
         }
     }
 }
@@ -273,7 +273,7 @@ public func luminaVoiceMediaSettingsController(context: AccountContext) -> ViewC
     |> deliverOnMainQueue
     |> map { presentationData, sharedData -> (ItemListControllerState, (ItemListNodeState, Any)) in
         let settings = sharedData.entries[ApplicationSpecificSharedDataKeys.luminaSettings]?.get(LuminaSettings.self) ?? .defaultSettings
-        let controllerState = ItemListControllerState(presentationData: ItemListPresentationData(presentationData), title: .text("Voice & Media"), leftNavigationButton: nil, rightNavigationButton: nil, backNavigationButton: ItemListBackButton(title: presentationData.strings.Common_Back))
+        let controllerState = ItemListControllerState(presentationData: ItemListPresentationData(presentationData), title: .text(LuminaL10n.tr("Voice & Media")), leftNavigationButton: nil, rightNavigationButton: nil, backNavigationButton: ItemListBackButton(title: presentationData.strings.Common_Back))
         let listState = ItemListNodeState(presentationData: ItemListPresentationData(presentationData), entries: luminaVoiceMediaSettingsControllerEntries(settings: settings), style: .blocks, animateChanges: true)
         return (controllerState, (listState, arguments))
     }

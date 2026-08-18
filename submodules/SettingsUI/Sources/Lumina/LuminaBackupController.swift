@@ -93,23 +93,23 @@ private enum LuminaBackupEntry: ItemListNodeEntry {
         let arguments = arguments as! LuminaBackupControllerArguments
         switch self {
         case .passphraseHeader:
-            return ItemListSectionHeaderItem(presentationData: presentationData, text: "BACKUP PASSPHRASE", sectionId: self.section)
+            return ItemListSectionHeaderItem(presentationData: presentationData, text: LuminaL10n.tr("BACKUP PASSPHRASE"), sectionId: self.section)
         case let .passphrase(value):
-            return ItemListSingleLineInputItem(presentationData: presentationData, title: NSAttributedString(string: ""), text: value, placeholder: "Passphrase", type: .password, sectionId: self.section, textUpdated: { text in
+            return ItemListSingleLineInputItem(presentationData: presentationData, title: NSAttributedString(string: ""), text: value, placeholder: LuminaL10n.tr("Passphrase"), type: .password, sectionId: self.section, textUpdated: { text in
                 arguments.updatePassphrase(text)
             }, action: {})
         case .passphraseFooter:
-            return ItemListTextItem(presentationData: presentationData, text: .plain("Used to encrypt (export) or decrypt (import) the backup file. Not stored anywhere - re-enter it each time. If you lose it, the backup cannot be recovered."), sectionId: self.section)
+            return ItemListTextItem(presentationData: presentationData, text: .plain(LuminaL10n.tr("Used to encrypt (export) or decrypt (import) the backup file. Not stored anywhere - re-enter it each time. If you lose it, the backup cannot be recovered.")), sectionId: self.section)
         case .export:
-            return ItemListActionItem(presentationData: presentationData, title: "Export Backup", kind: .generic, alignment: .natural, sectionId: self.section, style: .blocks, action: {
+            return ItemListActionItem(presentationData: presentationData, title: LuminaL10n.tr("Export Backup"), kind: .generic, alignment: .natural, sectionId: self.section, style: .blocks, action: {
                 arguments.exportBackup()
             })
         case .importAction:
-            return ItemListActionItem(presentationData: presentationData, title: "Import Backup", kind: .generic, alignment: .natural, sectionId: self.section, style: .blocks, action: {
+            return ItemListActionItem(presentationData: presentationData, title: LuminaL10n.tr("Import Backup"), kind: .generic, alignment: .natural, sectionId: self.section, style: .blocks, action: {
                 arguments.importBackup()
             })
         case .actionsFooter:
-            return ItemListTextItem(presentationData: presentationData, text: .plain("Backs up quick-reply templates, bookmarks, contact notes and every other LuminaGram setting on this device. Importing replaces all current LuminaGram settings on this device."), sectionId: self.section)
+            return ItemListTextItem(presentationData: presentationData, text: .plain(LuminaL10n.tr("Backs up quick-reply templates, bookmarks, contact notes and every other LuminaGram setting on this device. Importing replaces all current LuminaGram settings on this device.")), sectionId: self.section)
         }
     }
 }
@@ -152,7 +152,7 @@ public func luminaBackupController(context: AccountContext) -> ViewController {
     }, exportBackup: {
         let passphrase = stateValue.with { $0.passphrase }
         guard !passphrase.isEmpty else {
-            presentError("Enter a passphrase first.")
+            presentError(LuminaL10n.tr("Enter a passphrase first."))
             return
         }
         let _ = (context.sharedContext.accountManager.sharedData(keys: [ApplicationSpecificSharedDataKeys.luminaSettings])
@@ -166,13 +166,13 @@ public func luminaBackupController(context: AccountContext) -> ViewController {
                 let activityController = UIActivityViewController(activityItems: [fileUrl], applicationActivities: nil)
                 context.sharedContext.applicationBindings.presentNativeController(activityController)
             } catch {
-                presentError("Could not create the backup file.")
+                presentError(LuminaL10n.tr("Could not create the backup file."))
             }
         })
     }, importBackup: {
         let passphrase = stateValue.with { $0.passphrase }
         guard !passphrase.isEmpty else {
-            presentError("Enter the backup's passphrase first.")
+            presentError(LuminaL10n.tr("Enter the backup's passphrase first."))
             return
         }
         let handler = LuminaBackupDocumentPickerHandler(completion: { url in
@@ -191,9 +191,9 @@ public func luminaBackupController(context: AccountContext) -> ViewController {
                 let _ = updateLuminaSettingsInteractively(accountManager: context.sharedContext.accountManager, { _ in
                     return settings
                 }).start()
-                presentError("Backup restored.")
+                presentError(LuminaL10n.tr("Backup restored."))
             } catch {
-                presentError("Could not restore the backup. Check the passphrase and try again.")
+                presentError(LuminaL10n.tr("Could not restore the backup. Check the passphrase and try again."))
             }
         })
         pickerHandler = handler
@@ -213,7 +213,7 @@ public func luminaBackupController(context: AccountContext) -> ViewController {
         statePromise.get()
     )
     |> map { presentationData, state -> (ItemListControllerState, (ItemListNodeState, Any)) in
-        let controllerState = ItemListControllerState(presentationData: ItemListPresentationData(presentationData), title: .text("Backup"), leftNavigationButton: nil, rightNavigationButton: nil, backNavigationButton: ItemListBackButton(title: presentationData.strings.Common_Back))
+        let controllerState = ItemListControllerState(presentationData: ItemListPresentationData(presentationData), title: .text(LuminaL10n.tr("Backup")), leftNavigationButton: nil, rightNavigationButton: nil, backNavigationButton: ItemListBackButton(title: presentationData.strings.Common_Back))
         let listState = ItemListNodeState(presentationData: ItemListPresentationData(presentationData), entries: luminaBackupControllerEntries(state: state), style: .blocks, animateChanges: false)
 
         return (controllerState, (listState, arguments))

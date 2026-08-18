@@ -58,11 +58,11 @@ private enum LuminaBookmarksEntry: ItemListNodeEntry {
         switch self {
         case let .bookmark(_, bookmark):
             let dateLabel = stringForMediumDate(timestamp: bookmark.timestamp, strings: presentationData.strings, dateTimeFormat: presentationData.dateTimeFormat)
-            return ItemListDisclosureItem(presentationData: presentationData, title: bookmark.snippet.isEmpty ? "Message" : bookmark.snippet, label: dateLabel, sectionId: self.section, style: .blocks, action: {
+            return ItemListDisclosureItem(presentationData: presentationData, title: bookmark.snippet.isEmpty ? LuminaL10n.tr("Message") : bookmark.snippet, label: dateLabel, sectionId: self.section, style: .blocks, action: {
                 arguments.selectBookmark(bookmark)
             })
         case .empty:
-            return ItemListTextItem(presentationData: presentationData, text: .plain("No bookmarks yet. Add one from a message's context menu (\u{201C}Bookmark\u{201D})."), sectionId: self.section)
+            return ItemListTextItem(presentationData: presentationData, text: .plain(LuminaL10n.tr("No bookmarks yet. Add one from a message's context menu (\u{201C}Bookmark\u{201D}).")), sectionId: self.section)
         }
     }
 }
@@ -72,7 +72,7 @@ public func luminaBookmarksController(context: AccountContext) -> ViewController
 
     let arguments = LuminaBookmarksControllerArguments(context: context, selectBookmark: { bookmark in
         let presentationData = context.sharedContext.currentPresentationData.with { $0 }
-        presentControllerImpl?(textAlertController(context: context, title: nil, text: bookmark.snippet.isEmpty ? "Delete this bookmark?" : bookmark.snippet, actions: [
+        presentControllerImpl?(textAlertController(context: context, title: nil, text: bookmark.snippet.isEmpty ? LuminaL10n.tr("Delete this bookmark?") : bookmark.snippet, actions: [
             TextAlertAction(type: .destructiveAction, title: presentationData.strings.Common_Delete, action: {
                 let _ = updateLuminaSettingsInteractively(accountManager: context.sharedContext.accountManager, { settings in
                     var settings = settings
@@ -100,7 +100,7 @@ public func luminaBookmarksController(context: AccountContext) -> ViewController
             }
         }
 
-        let controllerState = ItemListControllerState(presentationData: ItemListPresentationData(presentationData), title: .text("Bookmarks"), leftNavigationButton: nil, rightNavigationButton: nil, backNavigationButton: ItemListBackButton(title: presentationData.strings.Common_Back))
+        let controllerState = ItemListControllerState(presentationData: ItemListPresentationData(presentationData), title: .text(LuminaL10n.tr("Bookmarks")), leftNavigationButton: nil, rightNavigationButton: nil, backNavigationButton: ItemListBackButton(title: presentationData.strings.Common_Back))
         let listState = ItemListNodeState(presentationData: ItemListPresentationData(presentationData), entries: entries, style: .blocks, animateChanges: true)
 
         return (controllerState, (listState, arguments))

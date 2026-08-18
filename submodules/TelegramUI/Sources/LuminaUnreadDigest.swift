@@ -59,7 +59,7 @@ public func luminaMaybeShowUnreadDigest(sharedContext: SharedAccountContext) {
             return
         }
         let presentationData = sharedContext.currentPresentationData.with { $0 }
-        let text = totalUnread == 1 ? "1 unread while you were away" : "\(totalUnread) unread while you were away"
+        let text = totalUnread == 1 ? LuminaL10n.tr("1 unread while you were away") : "\(totalUnread) " + LuminaL10n.tr("unread while you were away")
         sharedContext.mainWindow?.present(UndoOverlayController(presentationData: presentationData, content: .info(title: nil, text: text, timeout: nil, customUndoText: nil), elevatedLayout: false, animateInAsReplacement: false, action: { _ in return false }), on: .root, blockInteraction: false, completion: {})
     })
 }

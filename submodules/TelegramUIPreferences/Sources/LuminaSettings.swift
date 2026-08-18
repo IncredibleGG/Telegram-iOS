@@ -198,7 +198,7 @@ public struct LuminaSettings: Codable, Equatable {
             foldOriginalLongMessages: true,
             groupSkipMyLanguages: true,
             myLanguages: [],
-            translateBeforeSend: false,
+            translateBeforeSend: true,
             translateBeforeSendConfirm: true,
             trSendEnabledDialog: [],
             trSendLangDialog: [],

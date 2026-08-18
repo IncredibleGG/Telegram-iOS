@@ -62,7 +62,7 @@ public enum LuminaVoiceTranscription {
             return
         }
 
-        presentInfo("Transcribing…", displayUndo: displayUndo)
+        presentInfo(LuminaL10n.tr("Transcribing…"), displayUndo: displayUndo)
 
         SFSpeechRecognizer.requestAuthorization { status in
             DispatchQueue.main.async {
@@ -242,17 +242,17 @@ public enum LuminaVoiceTranscription {
         let text: String
         switch reason {
         case .noAudio:
-            text = "Voice message isn't downloaded yet."
+            text = LuminaL10n.tr("Voice message isn't downloaded yet.")
         case .authorizationDenied:
-            text = "Speech recognition permission is required. Enable it in Settings."
+            text = LuminaL10n.tr("Speech recognition permission is required. Enable it in Settings.")
         case .onDeviceUnavailable:
-            text = "On-device transcription isn't available for this language."
+            text = LuminaL10n.tr("On-device transcription isn't available for this language.")
         case .decodeFailed:
-            text = "Couldn't read this voice message."
+            text = LuminaL10n.tr("Couldn't read this voice message.")
         case .emptyResult:
-            text = "No speech was recognized."
+            text = LuminaL10n.tr("No speech was recognized.")
         case .recognitionFailed:
-            text = "Transcription failed."
+            text = LuminaL10n.tr("Transcription failed.")
         }
         presentInfo(text, displayUndo: displayUndo)
     }

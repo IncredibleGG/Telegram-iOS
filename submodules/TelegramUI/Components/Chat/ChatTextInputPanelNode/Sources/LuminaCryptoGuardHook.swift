@@ -41,13 +41,13 @@ extension ChatTextInputPanelNode {
 
             let controller = textAlertController(
                 context: context,
-                title: "Verify Wallet Address",
-                text: "Clipboard-hijacking malware can silently swap a copied address for a scammer's. Check every character before you paste:\n\n\(candidate)",
+                title: LuminaL10n.tr("Verify Wallet Address"),
+                text: LuminaL10n.tr("Clipboard-hijacking malware can silently swap a copied address for a scammer's. Check every character before you paste:") + "\n\n\(candidate)",
                 actions: [
-                    TextAlertAction(type: .defaultAction, title: "Paste", action: { [weak self] in
+                    TextAlertAction(type: .defaultAction, title: LuminaL10n.tr("Paste"), action: { [weak self] in
                         self?.luminaInsertPastedPlainText(candidate)
                     }),
-                    TextAlertAction(type: .genericAction, title: "Cancel", action: {}),
+                    TextAlertAction(type: .genericAction, title: LuminaL10n.tr("Cancel"), action: {}),
                 ]
             )
             self.interfaceInteraction?.presentController(controller, nil)

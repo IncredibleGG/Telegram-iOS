@@ -60,17 +60,17 @@ private enum LuminaQuickRepliesEntry: ItemListNodeEntry {
         let arguments = arguments as! LuminaQuickRepliesControllerArguments
         switch self {
         case .header:
-            return ItemListSectionHeaderItem(presentationData: presentationData, text: "TEMPLATES", sectionId: self.section)
+            return ItemListSectionHeaderItem(presentationData: presentationData, text: LuminaL10n.tr("TEMPLATES"), sectionId: self.section)
         case let .template(_, template):
             return ItemListDisclosureItem(presentationData: presentationData, title: template.title, label: template.text.replacingOccurrences(of: "\n", with: " "), sectionId: self.section, style: .blocks, action: {
                 arguments.pushController(luminaQuickReplyEditController(context: arguments.context, template: template))
             })
         case .add:
-            return ItemListActionItem(presentationData: presentationData, title: "Add Template", kind: .generic, alignment: .natural, sectionId: self.section, style: .blocks, action: {
+            return ItemListActionItem(presentationData: presentationData, title: LuminaL10n.tr("Add Template"), kind: .generic, alignment: .natural, sectionId: self.section, style: .blocks, action: {
                 arguments.pushController(luminaQuickReplyEditController(context: arguments.context, template: nil))
             })
         case .footer:
-            return ItemListTextItem(presentationData: presentationData, text: .plain("Insert a template while composing a message from the Quick Reply option in the text field's selection menu."), sectionId: self.section)
+            return ItemListTextItem(presentationData: presentationData, text: .plain(LuminaL10n.tr("Insert a template while composing a message from the Quick Reply option in the text field's selection menu.")), sectionId: self.section)
         }
     }
 }
@@ -99,7 +99,7 @@ public func luminaQuickRepliesController(context: AccountContext) -> ViewControl
     |> map { presentationData, sharedData -> (ItemListControllerState, (ItemListNodeState, Any)) in
         let settings = sharedData.entries[ApplicationSpecificSharedDataKeys.luminaSettings]?.get(LuminaSettings.self) ?? .defaultSettings
 
-        let controllerState = ItemListControllerState(presentationData: ItemListPresentationData(presentationData), title: .text("Quick Replies"), leftNavigationButton: nil, rightNavigationButton: nil, backNavigationButton: ItemListBackButton(title: presentationData.strings.Common_Back))
+        let controllerState = ItemListControllerState(presentationData: ItemListPresentationData(presentationData), title: .text(LuminaL10n.tr("Quick Replies")), leftNavigationButton: nil, rightNavigationButton: nil, backNavigationButton: ItemListBackButton(title: presentationData.strings.Common_Back))
         let listState = ItemListNodeState(presentationData: ItemListPresentationData(presentationData), entries: luminaQuickRepliesControllerEntries(templates: settings.quickReplyTemplates), style: .blocks, animateChanges: true)
 
         return (controllerState, (listState, arguments))

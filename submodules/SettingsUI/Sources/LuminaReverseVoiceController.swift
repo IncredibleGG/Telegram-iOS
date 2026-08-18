@@ -84,23 +84,23 @@ private enum LuminaReverseVoiceEntry: ItemListNodeEntry {
         let arguments = arguments as! LuminaReverseVoiceControllerArguments
         switch self {
         case .textHeader:
-            return ItemListSectionHeaderItem(presentationData: presentationData, text: "MESSAGE", sectionId: self.section)
+            return ItemListSectionHeaderItem(presentationData: presentationData, text: LuminaL10n.tr("MESSAGE"), sectionId: self.section)
         case let .text(value):
-            return ItemListMultilineInputItem(presentationData: presentationData, text: value, placeholder: "Type the message to speak…", maxLength: nil, sectionId: self.section, style: .blocks, textUpdated: { text in
+            return ItemListMultilineInputItem(presentationData: presentationData, text: value, placeholder: LuminaL10n.tr("Type the message to speak…"), maxLength: nil, sectionId: self.section, style: .blocks, textUpdated: { text in
                 arguments.updateText(text)
             })
         case .textFooter:
-            return ItemListTextItem(presentationData: presentationData, text: .plain("Spoken on-device with AVSpeechSynthesizer and sent as a real voice message. No cloud TTS, no voice cloning."), sectionId: self.section)
+            return ItemListTextItem(presentationData: presentationData, text: .plain(LuminaL10n.tr("Spoken on-device with AVSpeechSynthesizer and sent as a real voice message. No cloud TTS, no voice cloning.")), sectionId: self.section)
         case .languageHeader:
-            return ItemListSectionHeaderItem(presentationData: presentationData, text: "VOICE LANGUAGE", sectionId: self.section)
+            return ItemListSectionHeaderItem(presentationData: presentationData, text: LuminaL10n.tr("VOICE LANGUAGE"), sectionId: self.section)
         case let .language(value):
-            return ItemListSingleLineInputItem(presentationData: presentationData, title: NSAttributedString(string: ""), text: value, placeholder: "e.g. en-US, zh-CN (leave empty to auto-detect)", type: .regular(capitalization: false, autocorrection: false), sectionId: self.section, textUpdated: { text in
+            return ItemListSingleLineInputItem(presentationData: presentationData, title: NSAttributedString(string: ""), text: value, placeholder: LuminaL10n.tr("e.g. en-US, zh-CN (leave empty to auto-detect)"), type: .regular(capitalization: false, autocorrection: false), sectionId: self.section, textUpdated: { text in
                 arguments.updateLanguageCode(text)
             }, action: {})
         case .languageFooter:
-            return ItemListTextItem(presentationData: presentationData, text: .plain("BCP-47 language/voice code understood by AVSpeechSynthesisVoice."), sectionId: self.section)
+            return ItemListTextItem(presentationData: presentationData, text: .plain(LuminaL10n.tr("BCP-47 language/voice code understood by AVSpeechSynthesisVoice.")), sectionId: self.section)
         case let .send(enabled):
-            return ItemListActionItem(presentationData: presentationData, title: "Send as Voice Message", kind: enabled ? .generic : .disabled, alignment: .center, sectionId: self.section, style: .blocks, action: {
+            return ItemListActionItem(presentationData: presentationData, title: LuminaL10n.tr("Send as Voice Message"), kind: enabled ? .generic : .disabled, alignment: .center, sectionId: self.section, style: .blocks, action: {
                 arguments.send()
             })
         }
@@ -163,10 +163,10 @@ public func luminaReverseVoiceController(context: AccountContext, peerId: Engine
             switch result {
             case .success:
                 updateState { _ in LuminaReverseVoiceState(text: "", languageCode: languageCode, isSending: false) }
-                presentUndoImpl?(.info(title: nil, text: "Voice message sent.", timeout: nil, customUndoText: nil))
+                presentUndoImpl?(.info(title: nil, text: LuminaL10n.tr("Voice message sent."), timeout: nil, customUndoText: nil))
                 dismissImpl?()
             case .failure:
-                presentUndoImpl?(.info(title: nil, text: "Couldn't create the voice message.", timeout: nil, customUndoText: nil))
+                presentUndoImpl?(.info(title: nil, text: LuminaL10n.tr("Couldn't create the voice message."), timeout: nil, customUndoText: nil))
             }
         })
     })
@@ -177,7 +177,7 @@ public func luminaReverseVoiceController(context: AccountContext, peerId: Engine
     )
     |> deliverOnMainQueue
     |> map { presentationData, state -> (ItemListControllerState, (ItemListNodeState, Any)) in
-        let controllerState = ItemListControllerState(presentationData: ItemListPresentationData(presentationData), title: .text("Reverse Voice"), leftNavigationButton: ItemListNavigationButton(content: .text(presentationData.strings.Common_Cancel), style: .regular, enabled: true, action: {
+        let controllerState = ItemListControllerState(presentationData: ItemListPresentationData(presentationData), title: .text(LuminaL10n.tr("Reverse Voice")), leftNavigationButton: ItemListNavigationButton(content: .text(presentationData.strings.Common_Cancel), style: .regular, enabled: true, action: {
             dismissImpl?()
         }), rightNavigationButton: nil, backNavigationButton: ItemListBackButton(title: presentationData.strings.Common_Back))
         let listState = ItemListNodeState(presentationData: ItemListPresentationData(presentationData), entries: luminaReverseVoiceControllerEntries(state: state), style: .blocks, animateChanges: true)

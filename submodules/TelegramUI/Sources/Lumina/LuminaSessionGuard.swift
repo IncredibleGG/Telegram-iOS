@@ -124,10 +124,10 @@ public enum LuminaSessionGuard {
         let session = queue[index]
         let controller = textAlertController(
             sharedContext: context.sharedContext,
-            title: "New device signed in",
+            title: LuminaL10n.tr("New device signed in"),
             text: alertMessage(for: session),
             actions: [
-                TextAlertAction(type: .destructiveAction, title: "Not me — Terminate", action: {
+                TextAlertAction(type: .destructiveAction, title: LuminaL10n.tr("Not me — Terminate"), action: {
                     let _ = context.engine.privacy.terminateAnotherSession(id: session.hash).start(error: { _ in
                         showNext(context: context, queue: queue, index: index + 1, present: present)
                     }, completed: {
@@ -135,7 +135,7 @@ public enum LuminaSessionGuard {
                         showNext(context: context, queue: queue, index: index + 1, present: present)
                     })
                 }),
-                TextAlertAction(type: .genericAction, title: "That was me", action: {
+                TextAlertAction(type: .genericAction, title: LuminaL10n.tr("That was me"), action: {
                     rememberSession(context: context, hash: session.hash)
                     showNext(context: context, queue: queue, index: index + 1, present: present)
                 }),
@@ -179,36 +179,36 @@ public enum LuminaSessionGuard {
     private static func showTwoStepNudge(context: AccountContext, present: @escaping (ViewController) -> Void) {
         let controller = textAlertController(
             sharedContext: context.sharedContext,
-            title: "Session terminated",
-            text: "Turning on Two-Step Verification stops a repeat — a stolen login code alone won't be enough to sign in again.",
+            title: LuminaL10n.tr("Session terminated"),
+            text: LuminaL10n.tr("Turning on Two-Step Verification stops a repeat — a stolen login code alone won't be enough to sign in again."),
             actions: [
-                TextAlertAction(type: .defaultAction, title: "Security Settings", action: {
+                TextAlertAction(type: .defaultAction, title: LuminaL10n.tr("Security Settings"), action: {
                     present(context.sharedContext.makePrivacyAndSecurityController(context: context))
                 }),
-                TextAlertAction(type: .genericAction, title: "Later", action: {}),
+                TextAlertAction(type: .genericAction, title: LuminaL10n.tr("Later"), action: {}),
             ]
         )
         present(controller)
     }
 
     private static func alertMessage(for session: RecentAccountSession) -> String {
-        var lines: [String] = ["A new device just signed in to your account."]
+        var lines: [String] = [LuminaL10n.tr("A new device just signed in to your account.")]
         let device = [session.deviceModel, [session.platform, session.systemVersion].filter { !$0.isEmpty }.joined(separator: " ")]
             .filter { !$0.isEmpty }
             .joined(separator: " · ")
         if !device.isEmpty {
-            lines.append("Device: \(device)")
+            lines.append(LuminaL10n.tr("Device:") + " \(device)")
         }
         let app = [session.appName, session.appVersion].filter { !$0.isEmpty }.joined(separator: " ")
         if !app.isEmpty {
-            lines.append("App: \(app)")
+            lines.append(LuminaL10n.tr("App:") + " \(app)")
         }
         if !session.ip.isEmpty {
-            lines.append("IP: \(session.ip)")
+            lines.append(LuminaL10n.tr("IP:") + " \(session.ip)")
         }
         let location = [session.country, session.region].filter { !$0.isEmpty }.joined(separator: ", ")
         if !location.isEmpty {
-            lines.append("Location: \(location)")
+            lines.append(LuminaL10n.tr("Location:") + " \(location)")
         }
         return lines.joined(separator: "\n")
     }

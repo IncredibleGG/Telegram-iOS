@@ -68,23 +68,23 @@ public enum LuminaRegisterCode {
     public static func displayName(_ stored: String) -> String {
         if isCustom(stored) {
             let text = customText(stored)
-            return text.isEmpty ? "Custom" : text
+            return text.isEmpty ? LuminaL10n.tr("Custom") : text
         }
         switch stored {
         case client:
-            return "Client"
+            return LuminaL10n.tr("Client")
         case colleague:
-            return "Colleague"
+            return LuminaL10n.tr("Colleague")
         case friend:
-            return "Friend"
+            return LuminaL10n.tr("Friend")
         case family:
-            return "Family"
+            return LuminaL10n.tr("Family")
         case elder:
-            return "Elder"
+            return LuminaL10n.tr("Elder")
         case romance:
-            return "Romantic interest"
+            return LuminaL10n.tr("Romantic interest")
         default:
-            return "None"
+            return LuminaL10n.tr("None")
         }
     }
 }

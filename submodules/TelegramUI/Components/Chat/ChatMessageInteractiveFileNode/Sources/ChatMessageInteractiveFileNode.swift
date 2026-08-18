@@ -696,7 +696,16 @@ public final class ChatMessageInteractiveFileNode: ASDisplayNode {
                         if voice {
                             isVoice = true
                             let durationString = stringForDuration(audioDuration)
-                            candidateDescriptionString = NSAttributedString(string: durationString, font: durationFont, textColor: messageTheme.fileDurationColor)
+                            // LuminaGram: voice-to-text discoverability. Append a small "譯" marker to
+                            // the voice-message duration line so users know the note can be transcribed
+                            // on-device via the message context menu (LuminaVoiceTranscription), even
+                            // when the premium transcribe button is hidden. Reuses descriptionNode's
+                            // existing layout/theming; skipped for view-once notes (not transcribable).
+                            let luminaDescription = NSMutableAttributedString(attributedString: NSAttributedString(string: durationString, font: durationFont, textColor: messageTheme.fileDurationColor))
+                            if arguments.message.minAutoremoveOrClearTimeout != viewOnceTimeout {
+                                luminaDescription.append(NSAttributedString(string: " 譯", font: durationFont, textColor: messageTheme.mediaActiveControlColor))
+                            }
+                            candidateDescriptionString = luminaDescription
                             if let waveform = waveform {
                                 audioWaveform = AudioWaveform(bitstream: waveform, bitsPerSample: 5)
                             }

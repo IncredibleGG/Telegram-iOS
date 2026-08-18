@@ -103,29 +103,29 @@ private enum LuminaGramSettingsEntry: ItemListNodeEntry {
         let arguments = arguments as! LuminaGramSettingsControllerArguments
         switch self {
         case .featuresHeader:
-            return ItemListSectionHeaderItem(presentationData: presentationData, text: "FEATURES", sectionId: self.section)
+            return ItemListSectionHeaderItem(presentationData: presentationData, text: LuminaL10n.tr("FEATURES"), sectionId: self.section)
         case .translation:
-            return ItemListDisclosureItem(presentationData: presentationData, icon: PresentationResourcesSettings.autoTranslate, title: "Translation", label: "", sectionId: self.section, style: .blocks, action: {
+            return ItemListDisclosureItem(presentationData: presentationData, icon: PresentationResourcesSettings.autoTranslate, title: LuminaL10n.tr("Translation"), label: "", sectionId: self.section, style: .blocks, action: {
                 arguments.pushController(luminaTranslateSettingsController(context: arguments.context))
             })
         case .voice:
-            return ItemListDisclosureItem(presentationData: presentationData, icon: PresentationResourcesSettings.language, title: "Voice & Media", label: "", sectionId: self.section, style: .blocks, action: {
+            return ItemListDisclosureItem(presentationData: presentationData, icon: PresentationResourcesSettings.language, title: LuminaL10n.tr("Voice & Media"), label: "", sectionId: self.section, style: .blocks, action: {
                 arguments.pushController(luminaVoiceMediaSettingsController(context: arguments.context))
             })
         case .security:
-            return ItemListDisclosureItem(presentationData: presentationData, icon: PresentationResourcesSettings.security, title: "Security", label: "", sectionId: self.section, style: .blocks, action: {
+            return ItemListDisclosureItem(presentationData: presentationData, icon: PresentationResourcesSettings.security, title: LuminaL10n.tr("Security"), label: "", sectionId: self.section, style: .blocks, action: {
                 arguments.pushController(luminaSecuritySettingsController(context: arguments.context))
             })
         case .privacy:
-            return ItemListDisclosureItem(presentationData: presentationData, icon: PresentationResourcesSettings.lockOrange, title: "Privacy", label: "", sectionId: self.section, style: .blocks, action: {
+            return ItemListDisclosureItem(presentationData: presentationData, icon: PresentationResourcesSettings.lockOrange, title: LuminaL10n.tr("Privacy"), label: "", sectionId: self.section, style: .blocks, action: {
                 arguments.pushController(luminaPrivacySettingsController(context: arguments.context))
             })
         case .tools:
-            return ItemListDisclosureItem(presentationData: presentationData, icon: PresentationResourcesSettings.aiTools, title: "Tools", label: "", sectionId: self.section, style: .blocks, action: {
+            return ItemListDisclosureItem(presentationData: presentationData, icon: PresentationResourcesSettings.aiTools, title: LuminaL10n.tr("Tools"), label: "", sectionId: self.section, style: .blocks, action: {
                 arguments.pushController(luminaToolsController(context: arguments.context))
             })
         case .storedLocallyFooter:
-            return ItemListTextItem(presentationData: presentationData, text: .plain("LuminaGram options are stored on this device only and are never synced to Telegram."), sectionId: self.section)
+            return ItemListTextItem(presentationData: presentationData, text: .plain(LuminaL10n.tr("LuminaGram options are stored on this device only and are never synced to Telegram.")), sectionId: self.section)
         }
     }
 }
