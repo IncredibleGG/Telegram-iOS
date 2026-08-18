@@ -436,7 +436,7 @@ final class LocalizationListControllerNode: ViewControllerTracingNode {
         }
         
         let translationConfiguration = TranslationConfiguration.with(appConfiguration: context.currentAppConfiguration.with { $0 })
-        var translateButtonAvailable = false
+        var translateButtonAvailable = true // LuminaGram: translation is free/always available
         var chatTranslationAvailable = false
         
         switch translationConfiguration.manual {

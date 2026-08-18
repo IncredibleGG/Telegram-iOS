@@ -194,20 +194,9 @@ public func canTranslateText(context: AccountContext, text: String, showTranslat
         return (false, nil)
     }
 
-    let translationConfiguration = TranslationConfiguration.with(appConfiguration: context.currentAppConfiguration.with { $0 })
-    var translateButtonAvailable = false
-    switch translationConfiguration.manual {
-    case .enabled, .alternative:
-        translateButtonAvailable = true
-    case .system:
-        if #available(iOS 18.0, *) {
-            translateButtonAvailable = true
-        }
-    default:
-        break
-    }
-    
-    let showTranslate = showTranslate && translateButtonAvailable
+    // LuminaGram: translation is free and always available — bypass the server's
+    // translations_manual_enabled gate so the translate button shows for everyone.
+    let _ = context
         
     if #available(iOS 12.0, *) {
         if context.sharedContext.immediateExperimentalUISettings.disableLanguageRecognition {
