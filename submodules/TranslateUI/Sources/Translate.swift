@@ -190,12 +190,13 @@ public func canTranslateChats(context: AccountContext) -> Bool {
 }
 
 public func canTranslateText(context: AccountContext, text: String, showTranslate: Bool, showTranslateIfTopical: Bool = false, ignoredLanguages: [String]?) -> (canTranslate: Bool, language: String?) {
-    guard showTranslate || showTranslateIfTopical, text.count > 0 else {
+    guard text.count > 0 else {
         return (false, nil)
     }
 
-    // LuminaGram: translation is free and always available — bypass the server's
-    // translations_manual_enabled gate so the translate button shows for everyone.
+    // LuminaGram: translation is free and always ON — force the gate regardless of the user's
+    // persisted Show-Translate setting AND the server's translations_manual_enabled app-config.
+    let showTranslate = true
     let _ = context
         
     if #available(iOS 12.0, *) {
