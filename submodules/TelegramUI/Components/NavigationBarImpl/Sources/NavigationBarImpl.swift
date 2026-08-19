@@ -7,6 +7,11 @@ import AsyncDisplayKit
 import EdgeEffect
 import ComponentDisplayAdapters
 
+// LuminaGram: marker matched by the glass navigation bar to host the chat translate toggle in its own
+// separate glass capsule (see updateRightButton / updateLuminaTranslateButton). Kept in sync with the
+// string set in luminaTranslateNavigationButtonForChatInterfaceState (ChatInterfaceStateNavigationButtons.swift).
+private let luminaTranslateNavigationButtonIdentifier = "LuminaGramTranslateNavigationButton"
+
 public final class NavigationBarImpl: ASDisplayNode, NavigationBar {
     public static var defaultSecondaryContentHeight: CGFloat {
         return 38.0
@@ -256,6 +261,9 @@ public final class NavigationBarImpl: ASDisplayNode, NavigationBar {
                 titleView.accessibilityFrame = UIAccessibility.convertToScreenCoordinates(titleView.bounds, in: titleView)
                 accessibilityElements.append(titleView)
             }
+            if self.luminaTranslateButtonNodeImpl.supernode != nil {
+                addAccessibilityChildren(of: self.luminaTranslateButtonNodeImpl, container: self, to: &accessibilityElements)
+            }
             if self.rightButtonNodeImpl.supernode != nil {
                 addAccessibilityChildren(of: self.rightButtonNodeImpl, container: self, to: &accessibilityElements)
             }
@@ -504,6 +512,23 @@ public final class NavigationBarImpl: ASDisplayNode, NavigationBar {
                 items = [rightBarButtonItem]
             }
             
+            // LuminaGram: in glass mode, split the chat translate toggle out of the shared right group so it
+            // lives in its own capsule to the left of the avatar. It is identified by a dedicated
+            // accessibilityIdentifier; in non-glass mode nothing is pulled out and behavior is unchanged.
+            var luminaTranslateItems: [UIBarButtonItem] = []
+            if case .glass = self.presentationData.theme.style {
+                var remainingItems: [UIBarButtonItem] = []
+                for barButtonItem in items {
+                    if barButtonItem.accessibilityIdentifier == luminaTranslateNavigationButtonIdentifier {
+                        luminaTranslateItems.append(barButtonItem)
+                    } else {
+                        remainingItems.append(barButtonItem)
+                    }
+                }
+                items = remainingItems
+            }
+            self.updateLuminaTranslateButton(items: luminaTranslateItems, animated: animated)
+
             self.rightButtonNodeUpdated = true
             
             if !items.isEmpty {
@@ -534,6 +559,7 @@ public final class NavigationBarImpl: ASDisplayNode, NavigationBar {
                 self.rightButtonNodeImpl.updateItems([], animated: false)
             }
         } else {
+            self.updateLuminaTranslateButton(items: [], animated: animated)
             if animated, self.rightButtonNodeImpl.view.superview != nil {
                 if let snapshotView = self.rightButtonNodeImpl.view.snapshotContentTree() {
                     snapshotView.frame = self.rightButtonNodeImpl.frame
@@ -550,10 +576,44 @@ public final class NavigationBarImpl: ASDisplayNode, NavigationBar {
         self.updateAccessibilityElements()
     }
 
+    // LuminaGram: manages the standalone translate-toggle node that lives in its own glass capsule. Mirrors
+    // updateRightButton for a single logical button; only ever receives items in glass mode.
+    private func updateLuminaTranslateButton(items: [UIBarButtonItem], animated: Bool) {
+        self.luminaTranslateButtonNodeUpdated = true
+        if !items.isEmpty {
+            if self.luminaTranslateButtonNodeImpl.isEmpty {
+                self.luminaTranslateButtonNodeImpl.updateItems(items, animated: false)
+            } else {
+                self.luminaTranslateButtonNodeImpl.updateItems([], animated: animated)
+                self.luminaTranslateButtonNodeImpl.updateItems(items, animated: animated)
+            }
+            if self.luminaTranslateButtonNodeImpl.view.superview == nil {
+                if let luminaTranslateButtonsBackgroundView = self.luminaTranslateButtonsBackgroundView {
+                    luminaTranslateButtonsBackgroundView.container.addSubview(self.luminaTranslateButtonNodeImpl.view)
+                } else {
+                    self.buttonsContainerNode.view.addSubview(self.luminaTranslateButtonNodeImpl.view)
+                }
+            }
+        } else {
+            if animated, self.luminaTranslateButtonNodeImpl.view.superview != nil {
+                if let snapshotView = self.luminaTranslateButtonNodeImpl.view.snapshotContentTree() {
+                    snapshotView.frame = self.luminaTranslateButtonNodeImpl.frame
+                    self.luminaTranslateButtonNodeImpl.view.superview?.insertSubview(snapshotView, aboveSubview: self.luminaTranslateButtonNodeImpl.view)
+                    snapshotView.layer.animateAlpha(from: 1.0, to: 0.0, duration: 0.15, removeOnCompletion: false, completion: { [weak snapshotView] _ in
+                        snapshotView?.removeFromSuperview()
+                    })
+                }
+            }
+            self.luminaTranslateButtonNodeImpl.view.removeFromSuperview()
+            self.luminaTranslateButtonNodeImpl.updateItems([], animated: false)
+        }
+    }
+
     public let backgroundNode: NavigationBackgroundNode
     
     private var leftButtonsBackgroundView: (background: GlassContextExtractableContainer, container: UIView)?
     private var rightButtonsBackgroundView: (background: GlassContextExtractableContainer, container: UIView)?
+    private var luminaTranslateButtonsBackgroundView: (background: GlassContextExtractableContainer, container: UIView)?
     
     private let backButtonNodeImpl: NavigationButtonNodeImpl
     public var backButtonNode: NavigationButtonNode {
@@ -570,6 +630,8 @@ public final class NavigationBarImpl: ASDisplayNode, NavigationBar {
         return self.rightButtonNodeImpl
     }
     private var rightButtonNodeUpdated: Bool = false
+    private let luminaTranslateButtonNodeImpl: NavigationButtonNodeImpl
+    private var luminaTranslateButtonNodeUpdated: Bool = false
     public let additionalContentNode: SparseNode
 
     public func reattachAdditionalContentNode() {
@@ -620,6 +682,7 @@ public final class NavigationBarImpl: ASDisplayNode, NavigationBar {
         self.backButtonArrow.isUserInteractionEnabled = false
         self.leftButtonNodeImpl = NavigationButtonNodeImpl(isGlass: presentationData.theme.style == .glass)
         self.rightButtonNodeImpl = NavigationButtonNodeImpl(isGlass: presentationData.theme.style == .glass)
+        self.luminaTranslateButtonNodeImpl = NavigationButtonNodeImpl(isGlass: presentationData.theme.style == .glass)
         if case .glass = presentationData.theme.style {
         } else {
             self.rightButtonNodeImpl.hitTestSlop = UIEdgeInsets(top: -4.0, left: -4.0, bottom: -4.0, right: -10.0)
@@ -673,6 +736,11 @@ public final class NavigationBarImpl: ASDisplayNode, NavigationBar {
             rightButtonsBackgroundView.background.contentView.addSubview(rightButtonsBackgroundView.container)
             self.rightButtonsBackgroundView = rightButtonsBackgroundView
             backgroundContainer.contentView.addSubview(rightButtonsBackgroundView.background)
+
+            let luminaTranslateButtonsBackgroundView: (background: GlassContextExtractableContainer, container: UIView) = (GlassContextExtractableContainer(), UIView())
+            luminaTranslateButtonsBackgroundView.background.contentView.addSubview(luminaTranslateButtonsBackgroundView.container)
+            self.luminaTranslateButtonsBackgroundView = luminaTranslateButtonsBackgroundView
+            backgroundContainer.contentView.addSubview(luminaTranslateButtonsBackgroundView.background)
         } else {
             self.addSubnode(self.backgroundNode)
             self.view.addSubview(self.customOverBackgroundContentView)
@@ -730,17 +798,39 @@ public final class NavigationBarImpl: ASDisplayNode, NavigationBar {
         }
         
         self.rightButtonNodeImpl.pressed = { [weak self] index in
-            if let item = self?.item {
-                if let rightBarButtonItems = item.rightBarButtonItems, !rightBarButtonItems.isEmpty {
-                    if index < rightBarButtonItems.count {
-                        rightBarButtonItems[index].performActionOnTarget()
-                    }
-                } else if let rightBarButtonItem = item.rightBarButtonItem {
-                    rightBarButtonItem.performActionOnTarget()
+            guard let self, let item = self.item else {
+                return
+            }
+            if let rightBarButtonItems = item.rightBarButtonItems, !rightBarButtonItems.isEmpty {
+                // LuminaGram: in glass mode the translate toggle lives in its own node, so map the tap index
+                // against the right group with the translate item excluded (keeps non-glass behavior intact).
+                var effectiveItems = rightBarButtonItems
+                if case .glass = self.presentationData.theme.style {
+                    effectiveItems = rightBarButtonItems.filter { $0.accessibilityIdentifier != luminaTranslateNavigationButtonIdentifier }
                 }
+                if index < effectiveItems.count {
+                    effectiveItems[index].performActionOnTarget()
+                }
+            } else if let rightBarButtonItem = item.rightBarButtonItem {
+                rightBarButtonItem.performActionOnTarget()
             }
         }
         self.rightButtonNodeImpl.requestUpdate = { [weak self] in
+            guard let self else {
+                return
+            }
+            self.requestLayout()
+        }
+        self.luminaTranslateButtonNodeImpl.pressed = { [weak self] index in
+            guard let self, let item = self.item else {
+                return
+            }
+            let luminaTranslateItems = (item.rightBarButtonItems ?? []).filter { $0.accessibilityIdentifier == luminaTranslateNavigationButtonIdentifier }
+            if index < luminaTranslateItems.count {
+                luminaTranslateItems[index].performActionOnTarget()
+            }
+        }
+        self.luminaTranslateButtonNodeImpl.requestUpdate = { [weak self] in
             guard let self else {
                 return
             }
@@ -1062,6 +1152,79 @@ public final class NavigationBarImpl: ASDisplayNode, NavigationBar {
             }
         }
         
+        if let luminaTranslateButtonsBackgroundView = self.luminaTranslateButtonsBackgroundView {
+            var luminaTranslateButtonsWidth: CGFloat = 0.0
+            if self.luminaTranslateButtonNodeImpl.view.superview != nil {
+                switch self.luminaTranslateButtonNodeImpl.commonContentType {
+                case .accent:
+                    self.luminaTranslateButtonNodeImpl.color = self.presentationData.theme.accentForegroundColor
+                    self.luminaTranslateButtonNodeImpl.disabledColor = self.presentationData.theme.accentForegroundColor.withMultipliedAlpha(0.5)
+                case .accentDisabled:
+                    self.luminaTranslateButtonNodeImpl.color = self.presentationData.theme.accentForegroundColor
+                    self.luminaTranslateButtonNodeImpl.disabledColor = self.presentationData.theme.accentForegroundColor.withMultipliedAlpha(0.5)
+                case .generic:
+                    self.luminaTranslateButtonNodeImpl.color = self.presentationData.theme.buttonColor
+                    self.luminaTranslateButtonNodeImpl.disabledColor = self.presentationData.theme.disabledButtonColor
+                }
+
+                let luminaTranslateButtonSize = self.luminaTranslateButtonNodeImpl.updateLayout(constrainedSize: CGSize(width: size.width, height: 44.0), isLandscape: isLandscape, isLeftAligned: false)
+                if !self.luminaTranslateButtonNodeImpl.isEmpty {
+                    luminaTranslateButtonsWidth += luminaTranslateButtonSize.width
+                }
+                self.luminaTranslateButtonNodeImpl.alpha = 1.0
+
+                var luminaTranslateButtonTransition = transition
+                if self.luminaTranslateButtonNodeImpl.frame.width.isZero || self.luminaTranslateButtonNodeUpdated {
+                    luminaTranslateButtonTransition = .immediate
+                }
+                luminaTranslateButtonTransition.updateFrame(node: self.luminaTranslateButtonNodeImpl, frame: CGRect(origin: CGPoint(x: 0.0, y: floor((44.0 - luminaTranslateButtonSize.height) / 2.0)), size: luminaTranslateButtonSize))
+            }
+            self.luminaTranslateButtonNodeUpdated = false
+
+            if luminaTranslateButtonsWidth != 0.0 {
+                // LuminaGram: dedicated glass capsule for the translate toggle, positioned just left of the
+                // right (avatar) capsule with a fixed gap. Mirrors the right-capsule sizing/clipping exactly.
+                let luminaTranslateButtonsGap: CGFloat = 8.0
+                let rightGroupMinX: CGFloat = rightButtonsWidth != 0.0 ? (size.width - rightInset - 16.0 - rightButtonsWidth) : (size.width - rightInset - 16.0)
+                let luminaTranslateButtonsBackgroundFrame = CGRect(origin: CGPoint(x: rightGroupMinX - luminaTranslateButtonsGap - luminaTranslateButtonsWidth, y: contentVerticalOrigin + floor((nominalHeight - 44.0) * 0.5)), size: CGSize(width: luminaTranslateButtonsWidth, height: 44.0))
+
+                rightTitleInset += luminaTranslateButtonsGap + luminaTranslateButtonsWidth
+
+                var luminaTranslateButtonsBackgroundTransition = ComponentTransition(transition)
+                if luminaTranslateButtonsBackgroundView.background.isHidden {
+                    luminaTranslateButtonsBackgroundTransition = .immediate
+                }
+                luminaTranslateButtonsBackgroundView.container.layer.cornerRadius = 44.0 * 0.5
+
+                luminaTranslateButtonsBackgroundTransition.setFrame(view: luminaTranslateButtonsBackgroundView.background, frame: luminaTranslateButtonsBackgroundFrame)
+
+                if luminaTranslateButtonsBackgroundView.container.bounds.size != luminaTranslateButtonsBackgroundFrame.size {
+                    luminaTranslateButtonsBackgroundView.container.clipsToBounds = true
+                    let luminaTranslateButtonsBackgroundViewContainer = luminaTranslateButtonsBackgroundView.container
+                    luminaTranslateButtonsBackgroundTransition.setFrame(view: luminaTranslateButtonsBackgroundView.container, frame: CGRect(origin: CGPoint(), size: luminaTranslateButtonsBackgroundFrame.size), completion: { [weak luminaTranslateButtonsBackgroundViewContainer] flag in
+                        if flag, let luminaTranslateButtonsBackgroundViewContainer {
+                            luminaTranslateButtonsBackgroundViewContainer.clipsToBounds = false
+                        }
+                    })
+                }
+
+                var luminaTranslateButtonsColor: GlassBackgroundView.TintColor = .init(kind: self.presentationData.theme.glassStyle == .clear ? .clear : .panel)
+                switch self.luminaTranslateButtonNodeImpl.commonContentType {
+                case .accent:
+                    luminaTranslateButtonsColor = .init(kind: .custom(style: self.presentationData.theme.glassStyle == .clear ? .clear : .default, color: self.presentationData.theme.accentButtonColor))
+                case .accentDisabled:
+                    luminaTranslateButtonsColor = .init(kind: .custom(style: self.presentationData.theme.glassStyle == .clear ? .clear : .default, color: self.presentationData.theme.accentDisabledButtonColor))
+                case .generic:
+                    break
+                }
+
+                luminaTranslateButtonsBackgroundView.background.isHidden = false
+                luminaTranslateButtonsBackgroundView.background.update(size: luminaTranslateButtonsBackgroundFrame.size, cornerRadius: luminaTranslateButtonsBackgroundFrame.height * 0.5, isDark: self.presentationData.theme.overallDarkAppearance, tintColor: luminaTranslateButtonsColor, isInteractive: true, transition: luminaTranslateButtonsBackgroundTransition)
+            } else {
+                luminaTranslateButtonsBackgroundView.background.isHidden = true
+            }
+        }
+
         if (leftTitleInset == leftInset) != (rightTitleInset == rightInset) {
             if rightTitleInset == rightInset {
                 rightTitleInset = max(rightInset, 16.0)
@@ -1144,6 +1307,9 @@ public final class NavigationBarImpl: ASDisplayNode, NavigationBar {
     public func navigationButtonContextContainer(sourceView: UIView) -> ContextExtractableContainer? {
         if let leftButtonsBackgroundView = self.leftButtonsBackgroundView, sourceView.isDescendant(of: leftButtonsBackgroundView.background) {
             return leftButtonsBackgroundView.background
+        }
+        if let luminaTranslateButtonsBackgroundView = self.luminaTranslateButtonsBackgroundView, sourceView.isDescendant(of: luminaTranslateButtonsBackgroundView.background) {
+            return luminaTranslateButtonsBackgroundView.background
         }
         if let rightButtonsBackgroundView = self.rightButtonsBackgroundView, sourceView.isDescendant(of: rightButtonsBackgroundView.background) {
             return rightButtonsBackgroundView.background

@@ -333,5 +333,8 @@ func luminaTranslateNavigationButtonForChatInterfaceState(context: AccountContex
         : PresentationResourcesRootController.navigationCompactTranslateIcon(presentationInterfaceState.theme)
     let buttonItem = UIBarButtonItem(image: icon, style: .plain, target: target, action: selector)
     buttonItem.accessibilityLabel = isActive ? strings.Conversation_Translation_ShowOriginal : strings.Localization_TranslateEntireChat
+    // LuminaGram: mark this item so the glass navigation bar hosts it in its own separate capsule to the
+    // left of the avatar capsule. Must match luminaTranslateNavigationButtonIdentifier in NavigationBarImpl.swift.
+    buttonItem.accessibilityIdentifier = "LuminaGramTranslateNavigationButton"
     return ChatNavigationButton(action: .luminaToggleTranslation(isActive: isActive), buttonItem: buttonItem)
 }
