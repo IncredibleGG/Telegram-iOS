@@ -205,7 +205,7 @@ public struct LuminaSettings: Codable, Equatable {
             trRegisterDialog: [],
             explainMessage: true,
             glossaryTerms: [],
-            translateEngine: "google",
+            translateEngine: "google_web",
             translateBaseUrl: "",
             translateModel: "",
             translatePrompt: "",

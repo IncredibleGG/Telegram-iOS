@@ -25,7 +25,11 @@ public enum LuminaTranslatorRegistry {
     }
 
     public static func byId(_ id: String?) -> LuminaTranslatorEngine {
-        if let id, let found = self.engines.first(where: { $0.id == id }) {
+        // "google" is the historical spelling of the keyless web engine id
+        // ("google_web"); map it so a profile that stored the old value resolves to
+        // the real engine instead of silently falling back to engines[0] (Telegram).
+        let resolvedId = (id == "google") ? "google_web" : id
+        if let resolvedId, let found = self.engines.first(where: { $0.id == resolvedId }) {
             return found
         }
         return self.engines[0]
