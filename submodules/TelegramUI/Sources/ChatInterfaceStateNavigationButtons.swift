@@ -282,5 +282,61 @@ func secondaryRightNavigationButtonForChatInterfaceState(context: AccountContext
         }
     }
     
+    // LuminaGram: persistent translate toggle in the chat header (mirrors the Android client).
+    if let translateButton = luminaTranslateNavigationButton(context: context, presentationInterfaceState: presentationInterfaceState, strings: strings, currentButton: currentButton, target: target, selector: selector) {
+        return translateButton
+    }
+    
     return nil
+}
+
+// LuminaGram: builds the always-present header translate toggle for normal 1:1 / group / channel
+// chats. Visibility errs toward showing whenever the chat can contain translatable messages; the
+// tap reuses the existing chat-translation toggle (see ChatControllerNavigationButtonAction).
+func luminaTranslateNavigationButton(context: AccountContext, presentationInterfaceState: ChatPresentationInterfaceState, strings: PresentationStrings, currentButton: ChatNavigationButton?, target: Any?, selector: Selector?) -> ChatNavigationButton? {
+    // Only the standard chat surface, never previewing / inline / overlay.
+    guard case .standard(.default) = presentationInterfaceState.mode else {
+        return nil
+    }
+    // Only a real conversation: not scheduled / pinned / message-options / custom contents.
+    guard presentationInterfaceState.subject == nil else {
+        return nil
+    }
+    // Only a peer conversation (1:1 or group/channel); skip reply threads.
+    guard case let .peer(peerId) = presentationInterfaceState.chatLocation else {
+        return nil
+    }
+    // Not Saved Messages, service / verification chats, or inaccessible peers.
+    if peerId == context.account.peerId {
+        return nil
+    }
+    if peerId.isRepliesOrVerificationCodes {
+        return nil
+    }
+    if presentationInterfaceState.isNotAccessible {
+        return nil
+    }
+    // Only peer types that carry translatable messages (skip secret chats).
+    guard let peer = presentationInterfaceState.renderedPeer?.peer else {
+        return nil
+    }
+    switch peer {
+    case is TelegramUser, is TelegramGroup, is TelegramChannel:
+        break
+    default:
+        return nil
+    }
+    
+    let isActive = presentationInterfaceState.translationState?.isEnabled ?? false
+    
+    if case let .luminaToggleTranslation(currentActive) = currentButton?.action, currentActive == isActive {
+        return currentButton
+    }
+    
+    let icon = isActive
+        ? PresentationResourcesRootController.navigationCompactTranslateActiveIcon(presentationInterfaceState.theme)
+        : PresentationResourcesRootController.navigationCompactTranslateIcon(presentationInterfaceState.theme)
+    let buttonItem = UIBarButtonItem(image: icon, style: .plain, target: target, action: selector)
+    buttonItem.accessibilityLabel = isActive ? strings.Conversation_Translation_ShowOriginal : strings.Localization_TranslateEntireChat
+    return ChatNavigationButton(action: .luminaToggleTranslation(isActive: isActive), buttonItem: buttonItem)
 }

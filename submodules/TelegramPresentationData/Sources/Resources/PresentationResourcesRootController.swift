@@ -80,6 +80,18 @@ public struct PresentationResourcesRootController {
         })
     }
     
+    public static func navigationCompactTranslateIcon(_ theme: PresentationTheme) -> UIImage? {
+        return theme.image(PresentationResourceKey.navigationCompactTranslateIcon.rawValue, { theme in
+            return generateTintedImage(image: UIImage(bundleImageName: "Chat/Title Panels/Translate"), color: theme.chat.inputPanel.panelControlColor)
+        })
+    }
+    
+    public static func navigationCompactTranslateActiveIcon(_ theme: PresentationTheme) -> UIImage? {
+        return theme.image(PresentationResourceKey.navigationCompactTranslateActiveIcon.rawValue, { theme in
+            return generateTintedImage(image: UIImage(bundleImageName: "Chat/Title Panels/Translate"), color: theme.rootController.navigationBar.accentTextColor)
+        })
+    }
+    
     public static func navigationCompactTagsSearchIcon(_ theme: PresentationTheme) -> UIImage? {
         return theme.image(PresentationResourceKey.navigationCompactTagsSearchIcon.rawValue, { theme in
             return generateTintedImage(image: UIImage(bundleImageName: "Chat/NavigationSearchTagsIcon"), color: theme.chat.inputPanel.panelControlColor)

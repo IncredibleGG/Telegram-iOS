@@ -381,6 +381,10 @@ public enum PresentationResourceKey: Int32 {
     case messageButtonsPostReject
     case messageButtonsPostApprove
     case messageButtonsPostEdit
+
+    // LuminaGram: persistent header translate toggle icons (inactive / active tint).
+    case navigationCompactTranslateIcon
+    case navigationCompactTranslateActiveIcon
 }
 
 public enum ChatExpiredStoryIndicatorType: Hashable {

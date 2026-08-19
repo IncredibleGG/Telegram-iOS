@@ -714,6 +714,9 @@ extension ChatControllerImpl {
             }
         case .edit:
             self.editChat()
+        case let .luminaToggleTranslation(isActive):
+            // LuminaGram: reuse the existing chat-translation toggle (same path as the translate bar).
+            self.interfaceInteraction?.toggleTranslation(isActive ? .original : .translated)
         }
     }
 }
