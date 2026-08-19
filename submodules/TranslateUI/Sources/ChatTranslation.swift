@@ -2,6 +2,7 @@ import Foundation
 import NaturalLanguage
 import SwiftSignalKit
 import TelegramCore
+import Postbox
 import AccountContext
 import TelegramUIPreferences
 
@@ -191,19 +192,72 @@ public func translateMessageIds(context: AccountContext, messageIds: [EngineMess
             }
         }
         
-        let translationConfiguration = TranslationConfiguration.with(appConfiguration: context.currentAppConfiguration.with { $0 })
-        var enableLocalIfPossible = false
-        switch translationConfiguration.auto {
-        case .system:
-            if #available(iOS 18.0, *) {
-                enableLocalIfPossible = true
+        // LuminaGram: also collect the plain text of each message to translate, so the
+        // custom-engine path can translate it itself instead of calling Telegram's RPC.
+        var messageTextsToTranslate: [(EngineMessage.Id, String)] = []
+        for id in messageIdsToTranslate {
+            if let message = transaction.getMessage(id), !message.text.isEmpty {
+                messageTextsToTranslate.append((id, message.text))
             }
-        default:
-            break
         }
-        return context.engine.messages.translateMessages(messageIds: messageIdsToTranslate, fromLang: fromLang, toLang: toLang, enableLocalIfPossible: enableLocalIfPossible)
-        |> `catch` { _ -> Signal<Never, NoError> in
-            return .complete()
+
+        return luminaCurrentSettings(context: context)
+        |> mapToSignal { settings -> Signal<Never, NoError> in
+            // LuminaGram: honour the user's chosen translation engine on the read path.
+            // "telegram" keeps Telegram's own RPC (with its premium behaviour); any other
+            // engine translates each message itself and writes a local TranslationMessageAttribute,
+            // so the free translate bar no longer depends on Telegram's Cocoon backend.
+            if settings.translateEngine == "telegram" {
+                let translationConfiguration = TranslationConfiguration.with(appConfiguration: context.currentAppConfiguration.with { $0 })
+                var enableLocalIfPossible = false
+                switch translationConfiguration.auto {
+                case .system:
+                    if #available(iOS 18.0, *) {
+                        enableLocalIfPossible = true
+                    }
+                default:
+                    break
+                }
+                return context.engine.messages.translateMessages(messageIds: messageIdsToTranslate, fromLang: fromLang, toLang: toLang, enableLocalIfPossible: enableLocalIfPossible)
+                |> `catch` { _ -> Signal<Never, NoError> in
+                    return .complete()
+                }
+            } else {
+                if messageTextsToTranslate.isEmpty {
+                    return .complete()
+                }
+                let peerId = messageTextsToTranslate.first?.0.peerId
+                return LuminaTranslatorRegistry.current(context: context)
+                |> mapToSignal { engine -> Signal<Never, NoError> in
+                    let signals: [Signal<(EngineMessage.Id, String)?, NoError>] = messageTextsToTranslate.map { item -> Signal<(EngineMessage.Id, String)?, NoError> in
+                        return engine.translate(text: item.1, toLang: toLang, peerId: peerId, context: context)
+                        |> map { result -> (EngineMessage.Id, String)? in
+                            return (item.0, result.text)
+                        }
+                        |> `catch` { _ -> Signal<(EngineMessage.Id, String)?, NoError> in
+                            return .single(nil)
+                        }
+                    }
+                    return combineLatest(signals)
+                    |> mapToSignal { pairs -> Signal<Never, NoError> in
+                        return context.account.postbox.transaction { transaction -> Void in
+                            for pair in pairs {
+                                guard let (id, text) = pair, !text.isEmpty else {
+                                    continue
+                                }
+                                let updatedAttribute = TranslationMessageAttribute(text: text, entities: [], toLang: toLang)
+                                transaction.updateMessage(id, update: { currentMessage in
+                                    let storeForwardInfo = currentMessage.forwardInfo.flatMap(StoreMessageForwardInfo.init)
+                                    var attributes = currentMessage.attributes.filter { !($0 is TranslationMessageAttribute) }
+                                    attributes.append(updatedAttribute)
+                                    return .update(StoreMessage(id: currentMessage.id, customStableId: nil, globallyUniqueId: currentMessage.globallyUniqueId, groupingKey: currentMessage.groupingKey, threadId: currentMessage.threadId, timestamp: currentMessage.timestamp, flags: StoreMessageFlags(currentMessage.flags), tags: currentMessage.tags, globalTags: currentMessage.globalTags, localTags: currentMessage.localTags, forwardInfo: storeForwardInfo, authorId: currentMessage.author?.id, text: currentMessage.text, attributes: attributes, media: currentMessage.media))
+                                })
+                            }
+                        }
+                        |> ignoreValues
+                    }
+                }
+            }
         }
     } |> switchToLatest
 }
