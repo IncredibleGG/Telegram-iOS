@@ -715,8 +715,11 @@ extension ChatControllerImpl {
         case .edit:
             self.editChat()
         case let .luminaToggleTranslation(isActive):
-            // LuminaGram: reuse the existing chat-translation toggle (same path as the translate bar).
-            self.interfaceInteraction?.toggleTranslation(isActive ? .original : .translated)
+            // LuminaGram: seed-and-enable so the always-present header button works even before
+            // the language scanner has cached a translation state (the stock toggle no-ops on nil).
+            if let peerId = self.chatLocation.peerId {
+                let _ = luminaSetChatTranslationEnabled(context: self.context, peerId: peerId, threadId: self.chatLocation.threadId, enabled: !isActive).startStandalone()
+            }
         }
     }
 }

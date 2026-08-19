@@ -135,6 +135,25 @@ public func updateChatTranslationStateInteractively(engine: TelegramEngine, peer
     }
 }
 
+// LuminaGram: force-enable/disable chat translation from the always-present header button.
+// updateChatTranslationStateInteractively no-ops when no ChatTranslationState is cached yet --
+// the normal case before the language scanner has run -- which made the header button look dead.
+// Resolve chatTranslationState first (it runs detection and caches a state when the chat has
+// foreign content), skip its spurious initial nil, then write the enabled flag directly. If nothing
+// translatable turns up within a short window, complete without changing anything.
+public func luminaSetChatTranslationEnabled(context: AccountContext, peerId: EnginePeer.Id, threadId: Int64?, enabled: Bool) -> Signal<Never, NoError> {
+    return chatTranslationState(context: context, peerId: peerId, threadId: threadId)
+    |> filter { $0 != nil }
+    |> take(1)
+    |> timeout(3.0, queue: Queue.mainQueue(), alternate: .single(nil as ChatTranslationState?))
+    |> mapToSignal { state -> Signal<Never, NoError> in
+        guard let state else {
+            return .complete()
+        }
+        return updateChatTranslationState(engine: context.engine, peerId: peerId, threadId: threadId, state: state.withIsEnabled(enabled))
+    }
+}
+
 
 @available(iOS 12.0, *)
 private let languageRecognizer = NLLanguageRecognizer()
