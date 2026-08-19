@@ -715,10 +715,28 @@ extension ChatControllerImpl {
         case .edit:
             self.editChat()
         case let .luminaToggleTranslation(isActive):
-            // LuminaGram: seed-and-enable so the always-present header button works even before
-            // the language scanner has cached a translation state (the stock toggle no-ops on nil).
+            // LuminaGram: the header translate capsule opens a small menu (the iOS twin of
+            // Android's LuminaChatLanguageMenu) instead of silently toggling the whole chat --
+            // one row for their incoming messages, one for translating mine before sending, and a
+            // row into the full per-chat translate settings. See LuminaChatLanguageMenu.swift.
             if let peerId = self.chatLocation.peerId {
-                let _ = luminaSetChatTranslationEnabled(context: self.context, peerId: peerId, threadId: self.chatLocation.threadId, enabled: !isActive).startStandalone()
+                luminaPresentChatLanguageMenu(
+                    context: self.context,
+                    peerId: peerId,
+                    threadId: self.chatLocation.threadId,
+                    incomingEnabled: isActive,
+                    incomingToLang: self.presentationInterfaceState.translationState?.toLang,
+                    presentationData: self.presentationData,
+                    dismissInput: { [weak self] in
+                        self?.chatDisplayNode.dismissInput()
+                    },
+                    present: { [weak self] controller in
+                        self?.present(controller, in: .window(.root))
+                    },
+                    push: { [weak self] controller in
+                        self?.effectiveNavigationController?.pushViewController(controller)
+                    }
+                )
             }
         }
     }
