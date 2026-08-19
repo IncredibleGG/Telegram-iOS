@@ -45,7 +45,29 @@ extension ChatControllerImpl {
             self.secondaryRightNavigationButton = nil
         }
 
+        // LuminaGram: resolve the persistent header translate toggle into its own slot so it stays an
+        // independent, extensible element (never folded into the avatar or the secondary button). It is
+        // dispatched through its own selector (ChatControllerImpl.luminaTranslateNavigationButtonAction).
+        if let button = luminaTranslateNavigationButtonForChatInterfaceState(context: self.context, presentationInterfaceState: presentationInterfaceState, strings: presentationInterfaceState.strings, currentButton: self.luminaTranslateNavigationButton, target: self, selector: #selector(self.luminaTranslateNavigationButtonAction)) {
+            if self.luminaTranslateNavigationButton != button {
+                if let currentButton = self.luminaTranslateNavigationButton?.action, currentButton == button.action {
+                    buttonsAnimated = false
+                }
+                self.luminaTranslateNavigationButton = button
+            }
+        } else if let _ = self.luminaTranslateNavigationButton {
+            self.luminaTranslateNavigationButton = nil
+        }
+
         var rightBarButtons: [UIBarButtonItem] = []
+        // LuminaGram: this custom navigation bar lays rightBarButtonItems out left-to-right in array
+        // order, so index 0 is the LEFTMOST item (see NavigationButtonNodeImpl.updateLayout in the
+        // NavigationBarImpl module) - the opposite of stock UIKit. Prepending the plain translate item
+        // makes it the leftmost button and keeps the avatar custom node last, mirroring the working
+        // Saved Messages layout ([search, more]) so both the translate tap and the avatar tap fire.
+        if let luminaTranslateNavigationButton = self.luminaTranslateNavigationButton {
+            rightBarButtons.append(luminaTranslateNavigationButton.buttonItem)
+        }
         if let rightNavigationButton = self.rightNavigationButton {
             rightBarButtons.append(rightNavigationButton.buttonItem)
         }

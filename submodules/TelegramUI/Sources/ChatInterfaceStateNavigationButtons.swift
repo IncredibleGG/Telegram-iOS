@@ -282,18 +282,13 @@ func secondaryRightNavigationButtonForChatInterfaceState(context: AccountContext
         }
     }
     
-    // LuminaGram: persistent translate toggle in the chat header (mirrors the Android client).
-    if let translateButton = luminaTranslateNavigationButton(context: context, presentationInterfaceState: presentationInterfaceState, strings: strings, currentButton: currentButton, target: target, selector: selector) {
-        return translateButton
-    }
-    
     return nil
 }
 
 // LuminaGram: builds the always-present header translate toggle for normal 1:1 / group / channel
 // chats. Visibility errs toward showing whenever the chat can contain translatable messages; the
 // tap reuses the existing chat-translation toggle (see ChatControllerNavigationButtonAction).
-func luminaTranslateNavigationButton(context: AccountContext, presentationInterfaceState: ChatPresentationInterfaceState, strings: PresentationStrings, currentButton: ChatNavigationButton?, target: Any?, selector: Selector?) -> ChatNavigationButton? {
+func luminaTranslateNavigationButtonForChatInterfaceState(context: AccountContext, presentationInterfaceState: ChatPresentationInterfaceState, strings: PresentationStrings, currentButton: ChatNavigationButton?, target: Any?, selector: Selector?) -> ChatNavigationButton? {
     // Only the standard chat surface, never previewing / inline / overlay.
     guard case .standard(.default) = presentationInterfaceState.mode else {
         return nil

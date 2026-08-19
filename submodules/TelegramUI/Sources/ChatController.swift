@@ -300,6 +300,8 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
     var leftNavigationButton: ChatNavigationButton?
     var rightNavigationButton: ChatNavigationButton?
     var secondaryRightNavigationButton: ChatNavigationButton?
+    // LuminaGram: independent, extensible header slot rendered to the LEFT of the avatar / info button.
+    var luminaTranslateNavigationButton: ChatNavigationButton?
     var chatInfoNavigationButton: ChatNavigationButton?
     
     var moreBarButton: MoreHeaderButton
@@ -8425,6 +8427,14 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
     
     @objc func secondaryRightNavigationButtonAction() {
         if let button = self.secondaryRightNavigationButton {
+            self.navigationButtonAction(button.action)
+        }
+    }
+
+    // LuminaGram: the persistent header translate toggle owns its own action so it stays an
+    // independent element and can be moved / extended without touching the avatar or secondary button.
+    @objc func luminaTranslateNavigationButtonAction() {
+        if let button = self.luminaTranslateNavigationButton {
             self.navigationButtonAction(button.action)
         }
     }
