@@ -2165,7 +2165,11 @@ public final class ChatHistoryListNodeImpl: ASDisplayNode, ChatHistoryNode, Chat
                 )
                 
                 var translateToLanguage: (fromLang: String, toLang: String)?
-                if let translationState, (isPremium || autoTranslate)  && translationState.isEnabled {
+                // LuminaGram: translation is free -- drop the isPremium/autoTranslate gate so the
+                // actual message translation fires whenever the (LuminaGram-controlled) state is
+                // enabled, matching the freed translate bar/button. The downstream engine + toLang
+                // still decide what/whether to translate.
+                if let translationState, translationState.isEnabled {
                     var languageCode = translationState.toLang ?? chatPresentationData.strings.baseLanguageCode
                     let rawSuffix = "-raw"
                     if languageCode.hasSuffix(rawSuffix) {
