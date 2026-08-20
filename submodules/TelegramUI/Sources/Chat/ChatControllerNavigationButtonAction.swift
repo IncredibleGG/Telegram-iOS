@@ -90,6 +90,7 @@ import ChatScheduleTimeController
 import ICloudResources
 import StoryContainerScreen
 import MoreHeaderButton
+import NavigationBarImpl
 import VolumeButtons
 import ChatAvatarNavigationNode
 import ChatContextQuery
@@ -720,6 +721,8 @@ extension ChatControllerImpl {
             // one row for their incoming messages, one for translating mine before sending, and a
             // row into the full per-chat translate settings. See LuminaChatLanguageMenu.swift.
             if let peerId = self.chatLocation.peerId {
+                self.chatDisplayNode.dismissInput()
+                let luminaTranslateAnchorView = (self.navigationBar as? NavigationBarImpl)?.luminaTranslateButtonContextSourceView
                 luminaPresentChatLanguageMenu(
                     context: self.context,
                     peerId: peerId,
@@ -727,14 +730,13 @@ extension ChatControllerImpl {
                     incomingEnabled: isActive,
                     incomingToLang: self.presentationInterfaceState.translationState?.toLang,
                     presentationData: self.presentationData,
-                    dismissInput: { [weak self] in
-                        self?.chatDisplayNode.dismissInput()
+                    sourceView: luminaTranslateAnchorView,
+                    controller: self,
+                    presentInGlobalOverlay: { [weak self] controller in
+                        self?.presentInGlobalOverlay(controller)
                     },
                     present: { [weak self] controller in
                         self?.present(controller, in: .window(.root))
-                    },
-                    push: { [weak self] controller in
-                        self?.effectiveNavigationController?.pushViewController(controller)
                     }
                 )
             }

@@ -1317,6 +1317,20 @@ public final class NavigationBarImpl: ASDisplayNode, NavigationBar {
         return nil
     }
     
+    // LuminaGram: the anchor view for the header translate capsule's context menu (the three-
+    // row language/register menu in LuminaChatLanguageMenu.swift). Returns the glass capsule
+    // background when the translate button is on screen, so the menu hangs off the capsule the
+    // way the more-button menu hangs off its button; nil when the button is not shown.
+    public var luminaTranslateButtonContextSourceView: UIView? {
+        guard self.luminaTranslateButtonNodeImpl.view.superview != nil else {
+            return nil
+        }
+        if let luminaTranslateButtonsBackgroundView = self.luminaTranslateButtonsBackgroundView {
+            return luminaTranslateButtonsBackgroundView.background
+        }
+        return self.luminaTranslateButtonNodeImpl.view
+    }
+
     public var intrinsicCanTransitionInline: Bool = true
     
     public var passthroughTouches = true

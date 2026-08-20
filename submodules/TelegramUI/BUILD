@@ -511,6 +511,7 @@ swift_library(
         "//submodules/TelegramUI/Components/MediaPlaybackHeaderPanelComponent",
         "//submodules/TelegramUI/Components/LiveLocationHeaderPanelComponent",
         "//submodules/TelegramUI/Components/TranslateHeaderPanelComponent",
+        "//submodules/TelegramUI/Components/TranslationLanguagesContextMenuContent",
         "//submodules/TelegramUI/Components/AdPanelHeaderPanelComponent",
         "//submodules/TelegramUI/Components/MessageFeeHeaderPanelComponent",
         "//submodules/TelegramUI/Components/LegacyChatHeaderPanelComponent",
