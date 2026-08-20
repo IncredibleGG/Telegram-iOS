@@ -154,6 +154,41 @@ public func luminaSetChatTranslationEnabled(context: AccountContext, peerId: Eng
     }
 }
 
+// LuminaGram: set the incoming chat-translation target language from an EXPLICIT user pick
+// (the header menu). Unlike luminaSetChatTranslationEnabled, this does NOT depend on the
+// language scanner -- it writes a ChatTranslationState directly, so picking a language works
+// even in chats with too little/own-language content to auto-detect. baseLang is computed the
+// same way chatTranslationState does so its freshness check keeps the written state; fromLang
+// is left empty (the engine auto-detects the source per message) and is not an ignored language,
+// so chatTranslationState returns the state rather than dropping it. toLang == nil disables.
+public func luminaSetIncomingTranslationLanguage(context: AccountContext, peerId: EnginePeer.Id, threadId: Int64?, toLang: String?) -> Signal<Never, NoError> {
+    var baseLang = context.sharedContext.currentPresentationData.with { $0 }.strings.baseLanguageCode
+    let rawSuffix = "-raw"
+    if baseLang.hasSuffix(rawSuffix) {
+        baseLang = String(baseLang.dropLast(rawSuffix.count))
+    }
+    let resolvedBaseLang = baseLang
+    return cachedChatTranslationState(engine: context.engine, peerId: peerId, threadId: threadId)
+    |> take(1)
+    |> mapToSignal { current -> Signal<Never, NoError> in
+        let now = Int32(CFAbsoluteTimeGetCurrent() + kCFAbsoluteTimeIntervalSince1970)
+        if let toLang, !toLang.isEmpty, toLang != "off" {
+            let state = ChatTranslationState(
+                baseLang: resolvedBaseLang,
+                fromLang: current?.fromLang ?? "",
+                timestamp: now,
+                toLang: toLang,
+                isEnabled: true
+            )
+            return updateChatTranslationState(engine: context.engine, peerId: peerId, threadId: threadId, state: state)
+        } else if let current {
+            return updateChatTranslationState(engine: context.engine, peerId: peerId, threadId: threadId, state: current.withIsEnabled(false))
+        } else {
+            return .complete()
+        }
+    }
+}
+
 
 @available(iOS 12.0, *)
 private let languageRecognizer = NLLanguageRecognizer()

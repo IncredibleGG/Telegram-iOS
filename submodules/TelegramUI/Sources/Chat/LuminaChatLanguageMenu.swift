@@ -154,20 +154,11 @@ func luminaPresentChatLanguageMenu(
 
         // ---- apply, per direction ------------------------------------------------------
         func applyIncoming(_ code: String) {
-            if code == "off" {
-                // Disabling incoming chat-translation (mirrors Android showIncomingPicker off).
-                let _ = luminaSetChatTranslationEnabled(context: context, peerId: peerId, threadId: threadId, enabled: false).startStandalone()
-            } else {
-                // Seed-and-enable first (luminaSetChatTranslationEnabled resolves and caches a
-                // ChatTranslationState even before the language scanner has run), then write the
-                // target language onto the now-cached state -- the interactive updater no-ops
-                // when nothing is cached yet.
-                let signal = luminaSetChatTranslationEnabled(context: context, peerId: peerId, threadId: threadId, enabled: true)
-                |> then(updateChatTranslationStateInteractively(engine: context.engine, peerId: peerId, threadId: threadId, { state in
-                    return state?.withToLang(code).withIsEnabled(true)
-                }))
-                let _ = signal.startStandalone()
-            }
+            // Write the chat-translation state directly from the explicit pick, so it works
+            // even in chats the language scanner cannot detect (short / own-language). "off"
+            // disables; any language enables with that target.
+            let target: String? = (code == "off") ? nil : code
+            let _ = luminaSetIncomingTranslationLanguage(context: context, peerId: peerId, threadId: threadId, toLang: target).startStandalone()
         }
 
         func applyOutgoing(_ code: String) {
