@@ -33,6 +33,7 @@ swift_library(
         "//submodules/TelegramUI/Components/Chat/ChatMessageBubbleContentNode",
         "//submodules/TelegramUI/Components/Chat/ShimmeringLinkNode",
         "//submodules/TelegramUI/Components/Chat/ChatMessageItemCommon",
+        "//submodules/TranslateUI", # LuminaGram: outgoing translate-before-send dual (luminaOriginalText)
         "//submodules/TelegramUI/Components/Chat/MessageQuoteComponent",
         "//submodules/TelegramUI/Components/TextLoadingEffect",
         "//submodules/TelegramUI/Components/ChatControllerInteraction",

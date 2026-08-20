@@ -165,9 +165,23 @@ public enum LuminaVoiceTranscription {
                 guard let targetLang, !targetLang.isEmpty else {
                     return
                 }
-                let _ = (context.engine.messages.translate(text: trimmed, toLang: targetLang)
-                |> deliverOnMainQueue).start(next: { result in
-                    guard let (translated, _) = result else {
+                // LuminaGram: translate the transcript through the FREE engine registry
+                // (default google_web, keyless) — the stock context.engine.messages.translate hits
+                // the premium messages.translateText RPC and returns .premiumRequired for free users,
+                // so the transcript was never translated. Same path chat translation uses.
+                let peerId = message.id.peerId
+                let _ = (LuminaTranslatorRegistry.current(context: context)
+                |> mapToSignal { engine -> Signal<String?, NoError> in
+                    return engine.translate(text: trimmed, toLang: targetLang, peerId: peerId, context: context)
+                    |> map { result -> String? in
+                        return result.text
+                    }
+                    |> `catch` { _ -> Signal<String?, NoError> in
+                        return .single(nil)
+                    }
+                }
+                |> deliverOnMainQueue).start(next: { translated in
+                    guard let translated else {
                         return
                     }
                     let translatedTrimmed = translated.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -178,8 +192,6 @@ public enum LuminaVoiceTranscription {
                     // the transcription slot is a plain String, so a styled sub-line can't survive
                     // persistence - a blank line separates transcript from translation instead.
                     writeTranscript(context: context, messageId: message.id, text: trimmed + "\n\n" + translatedTrimmed)
-                }, error: { _ in
-                    // Fail-safe: the plain transcript is already on screen.
                 })
             })
         })

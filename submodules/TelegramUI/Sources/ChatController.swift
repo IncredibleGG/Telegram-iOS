@@ -4815,6 +4815,15 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
                         return true
                 }), in: .current)
             }
+        }, requestLocalVoiceTranscription: { [weak self] message in
+            guard let strongSelf = self else {
+                return
+            }
+            // LuminaGram: free, on-device voice-to-text (Apple Speech) + auto-translate, invoked
+            // from the Swiftgram-style transcribe button via the ChatControllerInteraction hook.
+            LuminaVoiceTranscription.transcribe(context: strongSelf.context, message: message._asMessage(), displayUndo: { [weak strongSelf] content in
+                strongSelf?.controllerInteraction?.displayUndo(content)
+            })
         }, isAnimatingMessage: { [weak self] stableId in
             guard let strongSelf = self else {
                 return false

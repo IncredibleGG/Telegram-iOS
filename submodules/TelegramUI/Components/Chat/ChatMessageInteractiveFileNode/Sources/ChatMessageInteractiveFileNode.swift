@@ -360,6 +360,18 @@ public final class ChatMessageInteractiveFileNode: ASDisplayNode {
         let premiumConfiguration = PremiumConfiguration.with(appConfiguration: arguments.context.currentAppConfiguration.with { $0 })
         
         let transcriptionText = self.forcedAudioTranscriptionText ?? transcribedText(message: EngineMessage(message))
+        // LuminaGram: a fresh voice-to-text goes to the free, on-device LuminaVoiceTranscription
+        // (Apple Speech, no server RPC, no premium/trial gate) + its auto-translate step, instead
+        // of the stock paywall/server path below. Only for a not-yet-transcribed message; expand/
+        // collapse of an already-transcribed one keeps the stock path. LuminaVoiceTranscription is
+        // in the top-level TelegramUI module (unreachable here) so it is invoked via the
+        // requestLocalVoiceTranscription hook on ChatControllerInteraction.
+        if transcriptionText == nil, case .collapsed = self.audioTranscriptionState {
+            self.audioTranscriptionState = .inProgress
+            self.requestUpdateLayout(true)
+            arguments.controllerInteraction.requestLocalVoiceTranscription(EngineMessage(message))
+            return
+        }
         if transcriptionText == nil && !arguments.associatedData.alwaysDisplayTranscribeButton.providedByGroupBoost {
             if premiumConfiguration.audioTransciptionTrialCount > 0 {
                 if !arguments.associatedData.isPremium {
@@ -779,6 +791,9 @@ public final class ChatMessageInteractiveFileNode: ASDisplayNode {
                 if Namespaces.Message.allNonRegular.contains(arguments.message.id.namespace) {
                     displayTranscribe = false
                 } else if arguments.message.id.peerId.namespace != Namespaces.Peer.SecretChat && !isViewOnceMessage && !arguments.presentationData.isPreview {
+                    // LuminaGram: voice-to-text is free + on-device — always show the transcribe
+                    // button (Swiftgram-style), not only for premium / trial / boost.
+                    displayTranscribe = true
                     let premiumConfiguration = PremiumConfiguration.with(appConfiguration: arguments.context.currentAppConfiguration.with { $0 })
                     if arguments.associatedData.isPremium || arguments.associatedData.alwaysDisplayTranscribeButton.providedByGroupBoost {
                         displayTranscribe = true

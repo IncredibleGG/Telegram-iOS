@@ -279,6 +279,7 @@ public final class ChatControllerInteraction: ChatControllerInteractionProtocol 
     public let editMessageMedia: (EngineMessage.Id, Bool) -> Void
     public let copyText: (String) -> Void
     public let displayUndo: (UndoOverlayContent) -> Void
+    public let requestLocalVoiceTranscription: (EngineMessage) -> Void // LuminaGram: free on-device voice-to-text hook
     public let isAnimatingMessage: (UInt32) -> Bool
     public let getMessageTransitionNode: () -> ChatMessageTransitionProtocol?
     public let updateChoosingSticker: (Bool) -> Void
@@ -464,6 +465,7 @@ public final class ChatControllerInteraction: ChatControllerInteractionProtocol 
         editMessageMedia: @escaping (EngineMessage.Id, Bool) -> Void,
         copyText: @escaping (String) -> Void,
         displayUndo: @escaping (UndoOverlayContent) -> Void,
+        requestLocalVoiceTranscription: @escaping (EngineMessage) -> Void = { _ in },
         isAnimatingMessage: @escaping (UInt32) -> Bool,
         getMessageTransitionNode: @escaping () -> ChatMessageTransitionProtocol?,
         updateChoosingSticker: @escaping (Bool) -> Void,
@@ -598,6 +600,7 @@ public final class ChatControllerInteraction: ChatControllerInteractionProtocol 
         self.editMessageMedia = editMessageMedia
         self.copyText = copyText
         self.displayUndo = displayUndo
+        self.requestLocalVoiceTranscription = requestLocalVoiceTranscription
         self.isAnimatingMessage = isAnimatingMessage
         self.getMessageTransitionNode = getMessageTransitionNode
         self.updateChoosingSticker = updateChoosingSticker

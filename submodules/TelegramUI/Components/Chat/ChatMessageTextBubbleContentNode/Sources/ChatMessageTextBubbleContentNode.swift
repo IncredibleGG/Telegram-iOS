@@ -28,6 +28,7 @@ import InteractiveTextComponent
 import ShimmeringMask
 import StreamingTextReveal
 import TelegramUIPreferences // LuminaGram: dual-language display
+import TranslateUI // LuminaGram: outgoing translate-before-send original (luminaOriginalText)
 
 private final class CachedChatMessageText {
     let text: String
@@ -453,6 +454,15 @@ public class ChatMessageTextBubbleContentNode: ChatMessageBubbleContentNode {
                                 }
                             }
                         }
+                    } else if !incoming, !item.message.text.isEmpty, let luminaOriginal = luminaOriginalText(for: item.message), !luminaOriginal.isEmpty, luminaOriginal != rawText {
+                        // LuminaGram: outgoing translate-before-send dual display — the sent bubble
+                        // text IS the translation; the pre-send original is stashed (persistently) by
+                        // correlationId. Show original + translation in the sender's own bubble,
+                        // matching Android. Wire unchanged (recipient still gets the translation only).
+                        let luminaSettings = LuminaSettingsCache.shared.current()
+                        let composed = LuminaDualLanguageText.compose(original: luminaOriginal, originalEntities: [], translated: rawText, translatedEntities: messageEntities ?? [], fold: luminaSettings.foldOriginalLongMessages)
+                        rawText = composed.text
+                        messageEntities = composed.entities
                     }
                 }
                 
