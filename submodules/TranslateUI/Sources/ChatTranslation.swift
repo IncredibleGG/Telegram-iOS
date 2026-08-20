@@ -173,18 +173,22 @@ public func luminaSetIncomingTranslationLanguage(context: AccountContext, peerId
     |> mapToSignal { current -> Signal<Never, NoError> in
         let now = Int32(CFAbsoluteTimeGetCurrent() + kCFAbsoluteTimeIntervalSince1970)
         if let toLang, !toLang.isEmpty, toLang != "off" {
+            // fromLang must be NON-EMPTY (ChatControllerContentData drops empty-fromLang states) and
+            // the state is explicitly enabled, so chatTranslationState honours it even when the source
+            // language is on the Do-Not-Translate list. The engine auto-detects the real source, so a
+            // placeholder here does not affect the translation.
+            let existing = (current?.fromLang).flatMap { $0.isEmpty ? nil : $0 }
             let state = ChatTranslationState(
                 baseLang: resolvedBaseLang,
-                fromLang: current?.fromLang ?? "",
+                fromLang: existing ?? "auto",
                 timestamp: now,
                 toLang: toLang,
                 isEnabled: true
             )
             return updateChatTranslationState(engine: context.engine, peerId: peerId, threadId: threadId, state: state)
-        } else if let current {
-            return updateChatTranslationState(engine: context.engine, peerId: peerId, threadId: threadId, state: current.withIsEnabled(false))
         } else {
-            return .complete()
+            // Disable: remove the cached state entirely so nothing keeps translating.
+            return updateChatTranslationState(engine: context.engine, peerId: peerId, threadId: threadId, state: nil)
         }
     }
 }
@@ -365,7 +369,9 @@ public func chatTranslationState(context: AccountContext, peerId: EnginePeer.Id,
             |> mapToSignal { cached in
                 let currentTime = Int32(CFAbsoluteTimeGetCurrent() + kCFAbsoluteTimeIntervalSince1970)
                 if let cached, let timestamp = cached.timestamp, cached.baseLang == baseLang && currentTime - timestamp < 60 * 60 {
-                    if !dontTranslateLanguages.contains(cached.fromLang) {
+                    // LuminaGram: an explicitly enabled state (a header-menu pick) is honoured even if
+                    // its source language is on the Do-Not-Translate list -- the user asked for it.
+                    if cached.isEnabled || !dontTranslateLanguages.contains(cached.fromLang) {
                         return .single(cached)
                     } else {
                         return .single(nil)
