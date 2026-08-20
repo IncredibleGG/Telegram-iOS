@@ -15,7 +15,6 @@ import Markdown
 import PlainButtonComponent
 import TextFieldComponent
 
-private let languageRecognizer = NLLanguageRecognizer()
 
 enum LocalizedLanguageNameKind {
     case neutral
@@ -339,9 +338,7 @@ final class TextProcessingTranslateContentComponent: Component {
                     plainText = instantPage.plainText
                 }
 
-                languageRecognizer.processString(plainText)
-                let hypotheses = languageRecognizer.languageHypotheses(withMaximum: 3)
-                languageRecognizer.reset()
+                let hypotheses = luminaDetectLanguageHypotheses(plainText, maximum: 3)
                         
                 let filteredLanguages = hypotheses.sorted(by: { $0.value > $1.value })
                 if let first = filteredLanguages.first {

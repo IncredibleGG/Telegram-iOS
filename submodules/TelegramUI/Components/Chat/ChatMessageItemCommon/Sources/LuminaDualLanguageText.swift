@@ -49,10 +49,14 @@ public enum LuminaDualLanguageText {
         var entities: [MessageTextEntity] = originalWasFolded ? [] : originalEntities
 
         let separator = "\n\n"
-        let translationStart = originalPart.count + separator.count
         let text = originalPart + separator + translated
+        // MessageTextEntity.range is UTF-16 code units (NSString length) everywhere in this codebase
+        // (stringWithAppliedEntities maps range straight onto an NSRange over the NSString; API
+        // entities carry UTF-16 offset/length). Character count drifts left on emoji / non-BMP, so
+        // compute the translation's start + ranges in UTF-16, not Swift Character count.
+        let translationStart = ((originalPart + separator) as NSString).length
 
-        entities.append(MessageTextEntity(range: translationStart ..< (translationStart + translated.count), type: .Italic))
+        entities.append(MessageTextEntity(range: translationStart ..< (translationStart + (translated as NSString).length), type: .Italic))
         // Re-offset the translation's own entities (links, mentions, bold, …) so they still
         // land correctly inside the combined string.
         for entity in translatedEntities {

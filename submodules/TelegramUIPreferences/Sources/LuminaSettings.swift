@@ -194,7 +194,7 @@ public struct LuminaSettings: Codable, Equatable {
             trSendLang: "auto",
             trScopePrivate: true,
             trScopeGroup: true,
-            dualLanguageDisplay: false,
+            dualLanguageDisplay: true,
             foldOriginalLongMessages: true,
             groupSkipMyLanguages: true,
             myLanguages: [],

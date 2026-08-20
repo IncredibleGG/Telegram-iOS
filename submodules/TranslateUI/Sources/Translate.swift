@@ -142,6 +142,23 @@ public var popularTranslationLanguages = [
 @available(iOS 12.0, *)
 private let languageRecognizer = NLLanguageRecognizer()
 
+// LuminaGram: NLLanguageRecognizer and the process-wide CoreNLP/Espresso model it drives are NOT
+// thread-safe. Telegram shares one recognizer and calls it from concurrent queues; once whole-chat
+// translation runs for every account, concurrent detections corrupt the shared model heap
+// (EXC_BAD_ACCESS / a double-free in CoreNLP::MontrealModel::clear). Route ALL language detection
+// through this one lock + recognizer so the model is never touched concurrently.
+private let luminaLanguageRecognitionLock = NSLock()
+
+@available(iOS 12.0, *)
+public func luminaDetectLanguageHypotheses(_ text: String, maximum: Int) -> [NLLanguage: Double] {
+    luminaLanguageRecognitionLock.lock()
+    defer { luminaLanguageRecognitionLock.unlock() }
+    languageRecognizer.processString(text)
+    let hypotheses = languageRecognizer.languageHypotheses(withMaximum: maximum)
+    languageRecognizer.reset()
+    return hypotheses
+}
+
 public func effectiveIgnoredTranslationLanguages(context: AccountContext, ignoredLanguages: [String]?) -> Set<String> {
     var baseLang = context.sharedContext.currentPresentationData.with { $0 }.strings.baseLanguageCode
     let rawSuffix = "-raw"
@@ -197,9 +214,7 @@ public func canTranslateText(context: AccountContext, text: String, showTranslat
         let dontTranslateLanguages = effectiveIgnoredTranslationLanguages(context: context, ignoredLanguages: ignoredLanguages)
         
         let text = String(text.prefix(64))
-        languageRecognizer.processString(text)
-        let hypotheses = languageRecognizer.languageHypotheses(withMaximum: 3)
-        languageRecognizer.reset()
+        let hypotheses = luminaDetectLanguageHypotheses(text, maximum: 3)
         
         var supportedTranslationLanguages = supportedTranslationLanguages
         if !showTranslate && showTranslateIfTopical {
@@ -425,17 +440,12 @@ func alternativeTranslateText(text: String, fromLang: String?, toLang: String) -
             if let fromLang {
                 effectiveFromLang = fromLang
             } else {
-                languageRecognizer.processString(text)
-                let hypotheses = languageRecognizer.languageHypotheses(withMaximum: 3)
-                languageRecognizer.reset()
-                
-                let filteredLanguages = hypotheses.filter { supportedTranslationLanguages.contains(normalizeTranslationLanguage($0.key.rawValue)) }.sorted(by: { $0.value > $1.value })
-                if let language = filteredLanguages.first {
-                    let languageCode = normalizeTranslationLanguage(language.key.rawValue)
-                    effectiveFromLang = languageCode
-                } else {
-                    effectiveFromLang = "en"
-                }
+                // LuminaGram: let Google auto-detect the source (sl=auto) rather than run the
+                // per-message, non-thread-safe NLLanguageRecognizer here. When whole-chat
+                // translation fans out N concurrent message translations, that detection raced on
+                // the shared CoreNLP model and crashed the app (EXC_BAD_ACCESS / double-free).
+                // Google's own detection is also more accurate for short strings.
+                effectiveFromLang = "auto"
             }
             
             var uri = "https://translate.goo"

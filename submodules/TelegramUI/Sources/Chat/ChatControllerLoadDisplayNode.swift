@@ -1107,7 +1107,16 @@ extension ChatControllerImpl {
                             shouldOpenScheduledMessages = true
                         }
                         
-                        signal = enqueueMessages(account: strongSelf.context.account, peerId: peerId, messages: transformedMessages)
+                        // LuminaGram: translate-before-send on the LIVE typed-text path. The stock hook sits only
+                        // in ChatController.sendMessages, which typed sends bypass, so 己方 (outgoing)
+                        // translation never ran. No-op (.single(messages)) unless the feature + this
+                        // dialog are both enabled. Mirrors ChatController.swift:9051.
+                        signal = luminaTranslateMessagesBeforeSend(context: strongSelf.context, peerId: peerId, present: { [weak self] c in
+                            self?.present(c, in: .window(.root))
+                        }, messages: transformedMessages)
+                        |> mapToSignal { translatedMessages in
+                            return enqueueMessages(account: strongSelf.context.account, peerId: peerId, messages: translatedMessages)
+                        }
                     }
                     
                     let _ = (signal

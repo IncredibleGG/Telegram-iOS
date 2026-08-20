@@ -86,5 +86,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: LuminaGram-iOS-unsigned
-          path: /Users/Shared/telegram-ios/build/artifacts/Telegram.ipa
+          path: |
+            /Users/Shared/telegram-ios/build/artifacts/Telegram.ipa
+            /Users/Shared/telegram-ios/build/artifacts/Telegram.DSYMs.zip
           if-no-files-found: error

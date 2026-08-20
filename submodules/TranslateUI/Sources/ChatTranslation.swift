@@ -194,8 +194,6 @@ public func luminaSetIncomingTranslationLanguage(context: AccountContext, peerId
 }
 
 
-@available(iOS 12.0, *)
-private let languageRecognizer = NLLanguageRecognizer()
 
 public func translateMessageIds(context: AccountContext, messageIds: [EngineMessage.Id], fromLang: String?, toLang: String) -> Signal<Never, NoError> {
     return context.account.postbox.transaction { transaction -> Signal<Never, NoError> in
@@ -429,9 +427,7 @@ public func chatTranslationState(context: AccountContext, peerId: EnginePeer.Id,
                                             continue
                                         }
                                         
-                                        languageRecognizer.processString(text)
-                                        let hypotheses = languageRecognizer.languageHypotheses(withMaximum: 4)
-                                        languageRecognizer.reset()
+                                        let hypotheses = luminaDetectLanguageHypotheses(text, maximum: 4)
                                         
                                         let filteredLanguages = hypotheses.filter { supportedTranslationLanguages.contains(normalizeTranslationLanguage($0.key.rawValue)) }.sorted(by: { $0.value > $1.value })
                                         if let language = filteredLanguages.first {
