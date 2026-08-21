@@ -98,14 +98,14 @@ public func luminaTranslateMessagesBeforeSend(context: AccountContext, peerId: E
                             return .single(message)
                         }
                         let resolvedCorrelationId = correlationId ?? Int64.random(in: 1...Int64.max)
-                        // LuminaGram (己方): always send the ORIGINAL and the TRANSLATION together in
-                        // the message body (original above, translation below) - no "send original vs
-                        // translation" prompt. Both the recipient and the sender see both halves; the
-                        // original travels inside the message, so no local stash / Show-Original is
-                        // needed on this path. This path is plain-text-only (luminaShouldTranslateBeforeSend
-                        // rejects entity-bearing messages), so a plain concatenation is safe.
-                        let dualText = text + "\n\n" + result.text
-                        let translatedMessage = EnqueueMessage.message(text: dualText, attributes: attributes, inlineStickers: inlineStickers, mediaReference: mediaReference, threadId: threadId, replyToMessageId: replyToMessageId, replyToStoryId: replyToStoryId, localGroupingKey: localGroupingKey, correlationId: resolvedCorrelationId, bubbleUpEmojiOrStickersets: bubbleUpEmojiOrStickersets)
+                        // LuminaGram (己方): send ONLY the translation to the recipient (对方 sees the
+                        // clean translation, never the original). Stash the pre-send original locally,
+                        // keyed by correlationId (round-tripped onto the message's
+                        // OutgoingMessageInfoAttribute), so the SENDER's OWN bubble renders
+                        // original+translation - see the !incoming branch in ChatMessageTextBubbleContentNode.
+                        // No "send original vs translation" prompt.
+                        let translatedMessage = EnqueueMessage.message(text: result.text, attributes: attributes, inlineStickers: inlineStickers, mediaReference: mediaReference, threadId: threadId, replyToMessageId: replyToMessageId, replyToStoryId: replyToStoryId, localGroupingKey: localGroupingKey, correlationId: resolvedCorrelationId, bubbleUpEmojiOrStickersets: bubbleUpEmojiOrStickersets)
+                        LuminaTranslateBeforeSendStore.remember(correlationId: resolvedCorrelationId, original: text)
                         return .single(translatedMessage)
                     }
                 }

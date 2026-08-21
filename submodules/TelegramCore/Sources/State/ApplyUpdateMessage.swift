@@ -247,6 +247,15 @@ func applyUpdateMessage(postbox: Postbox, stateManager: AccountStateManager, mes
             if let apiMessage = apiMessage, let apiMessagePeerId = apiMessage.peerId, let updatedMessage = StoreMessage(apiMessage: apiMessage, accountPeerId: accountPeerId, peerIsForum: transaction.getPeer(apiMessagePeerId)?.isForumOrMonoForum ?? false, namespace: namespace) {
                 media = updatedMessage.media
                 attributes = updatedMessage.attributes
+                // LuminaGram: the server-confirmed message replaces attributes wholesale, dropping
+                // the local OutgoingMessageInfoAttribute the pending message carried (which the
+                // updateShortSentMessage path below preserves). Carry it over here too so features
+                // keyed on its correlationId survive confirmation in groups/channels - e.g. the
+                // translate-before-send sender-side dual display, which looks the original up by
+                // correlationId. Consistent with the short-sent path's attribute retention.
+                if !attributes.contains(where: { $0 is OutgoingMessageInfoAttribute }), let outgoingInfo = currentMessage.attributes.first(where: { $0 is OutgoingMessageInfoAttribute }) as? OutgoingMessageInfoAttribute {
+                    attributes.append(outgoingInfo)
+                }
                 text = updatedMessage.text
                 forwardInfo = updatedMessage.forwardInfo
                 threadId = updatedMessage.threadId
