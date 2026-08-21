@@ -760,9 +760,12 @@ public final class SharedAccountContextImpl: SharedAccountContext {
                             account.resetStateManagement()
                             // LuminaGram: start per-account translation-settings roaming (encrypted
                             // hidden carrier in Saved Messages).
-                            let luminaSync = LuminaTranslationSyncController(context: context)
-                            luminaSync.start()
-                            self.luminaSyncDisposables.set(ActionDisposable { luminaSync.stop() }, forKey: account.id)
+                            // LuminaGram: translation-settings roaming SHELVED (per user) — auto-sync
+                            // disabled; settings stay per-device. Controller code kept dormant for a
+                            // future v2. Re-enable by uncommenting the three lines below.
+                            // let luminaSync = LuminaTranslationSyncController(context: context)
+                            // luminaSync.start()
+                            // self.luminaSyncDisposables.set(ActionDisposable { luminaSync.stop() }, forKey: account.id)
                             hadUpdates = true
                         }
                     } else {
