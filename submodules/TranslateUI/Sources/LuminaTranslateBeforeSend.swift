@@ -6,6 +6,7 @@ import Postbox
 import AccountContext
 import TelegramUIPreferences
 import PresentationDataUtils
+import OverlayStatusController
 
 // LuminaGram — per-chat translate-before-send (iOS twin of Android's ChatActivityEnterView
 // translate-before-send hook + LuminaTBS.java, and desktop's lumina_translate_send.{h,cpp}).
@@ -109,7 +110,28 @@ public func luminaTranslateMessagesBeforeSend(context: AccountContext, peerId: E
                         return .single(translatedMessage)
                     }
                 }
+                // LuminaGram: brief "translating" spinner so a send with translate-before-send does
+                // not feel janky during the ~0.3-1s translate round-trip. The 0.15s delay means fast
+                // or cached translates never flash it; placed here (after all gates) so it appears
+                // ONLY when translation actually runs, and auto-dismisses when the work finishes.
+                let presentationData = context.sharedContext.currentPresentationData.with { $0 }
+                let progressDisposable = (Signal<Never, NoError> { _ in
+                    let controller = OverlayStatusController(theme: presentationData.theme, type: .loading(cancelled: nil))
+                    present(controller)
+                    return ActionDisposable { [weak controller] in
+                        Queue.mainQueue().async {
+                            controller?.dismiss()
+                        }
+                    }
+                }
+                |> runOn(Queue.mainQueue())
+                |> delay(0.15, queue: Queue.mainQueue())).startStrict()
                 return combineLatest(signals)
+                |> afterDisposed {
+                    Queue.mainQueue().async {
+                        progressDisposable.dispose()
+                    }
+                }
             }
         }
     }

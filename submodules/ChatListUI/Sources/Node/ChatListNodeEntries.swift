@@ -703,6 +703,11 @@ func chatListNodeEntriesForView(view: EngineChatList, state: ChatListNodeState, 
             continue loop
         }
         var updatedMessages = entry.messages
+        // LuminaGram: never surface the hidden translation-sync carrier as the Saved Messages
+        // last-message preview. Self peer only + exact marker.
+        if let peerId = peerId, peerId == accountPeerId {
+            updatedMessages = updatedMessages.filter { !LuminaTranslationSync.isCarrier($0.text) }
+        }
         var updatedCombinedReadState = entry.readCounters
         if let peerId = peerId, state.pendingClearHistoryPeerIds.contains(ChatListNodeState.ItemId(peerId: peerId, threadId: threadId)) {
             updatedMessages = []

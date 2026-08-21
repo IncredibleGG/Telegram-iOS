@@ -30,6 +30,7 @@ swift_library(
         "//submodules/Components/MultilineTextWithEntitiesComponent:MultilineTextWithEntitiesComponent",
         "//submodules/Components/BundleIconComponent:BundleIconComponent",
         "//submodules/UndoUI:UndoUI",
+        "//submodules/OverlayStatusController:OverlayStatusController",
         "//submodules/ActivityIndicator:ActivityIndicator",
         "//submodules/ShimmerEffect:ShimmerEffect",
         "//submodules/Components/ResizableSheetComponent",

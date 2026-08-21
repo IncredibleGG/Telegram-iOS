@@ -170,16 +170,12 @@ public enum LuminaVoiceTranscription {
                 // the premium messages.translateText RPC and returns .premiumRequired for free users,
                 // so the transcript was never translated. Same path chat translation uses.
                 let peerId = message.id.peerId
-                let _ = (LuminaTranslatorRegistry.current(context: context)
-                |> mapToSignal { engine -> Signal<String?, NoError> in
-                    return engine.translate(text: trimmed, toLang: targetLang, peerId: peerId, context: context)
-                    |> map { result -> String? in
-                        return result.text
-                    }
-                    |> `catch` { _ -> Signal<String?, NoError> in
-                        return .single(nil)
-                    }
-                }
+                // LuminaGram: the keyless google_web (GTX) endpoint fails transiently (network
+                // blips, HTTP 429, an occasional empty/echoed body). Chat translation hides this by
+                // being re-driven by chatTranslationState and retried on the next emission; deliver()
+                // fires once, so without a retry a single blip is a permanent, visible miss for that
+                // transcript. Retry a few times with backoff, treating an empty body as retryable.
+                let _ = (translateTranscriptWithRetry(text: trimmed, toLang: targetLang, peerId: peerId, context: context, attemptsLeft: 3)
                 |> deliverOnMainQueue).start(next: { translated in
                     guard let translated else {
                         return
@@ -195,6 +191,38 @@ public enum LuminaVoiceTranscription {
                 })
             })
         })
+    }
+
+    // LuminaGram: retry the free google_web (GTX) translation on transient failure, mirroring the
+    // recovery that chat translation gets for free via its re-driven subscription.
+    private static func translateTranscriptWithRetry(text: String, toLang: String, peerId: EnginePeer.Id, context: AccountContext, attemptsLeft: Int) -> Signal<String?, NoError> {
+        let attempt: Signal<String?, LuminaTranslateError> = LuminaTranslatorRegistry.current(context: context)
+        |> castError(LuminaTranslateError.self)
+        |> mapToSignal { engine -> Signal<LuminaTranslationResult, LuminaTranslateError> in
+            return engine.translate(text: text, toLang: toLang, peerId: peerId, context: context)
+        }
+        |> mapToSignal { result -> Signal<String?, LuminaTranslateError> in
+            let trimmedResult = result.text.trimmingCharacters(in: .whitespacesAndNewlines)
+            return trimmedResult.isEmpty ? .fail(.network("empty")) : .single(result.text)
+        }
+        return attempt
+        |> `catch` { error -> Signal<String?, NoError> in
+            guard attemptsLeft > 0 else {
+                return .single(nil)
+            }
+            let backoff: Double
+            switch error {
+            case .noKey:
+                return .single(nil)
+            case .rateLimited:
+                backoff = 1.5
+            case .network:
+                backoff = 0.6
+            }
+            return Signal<String?, NoError>.complete()
+            |> delay(backoff, queue: Queue.concurrentDefaultQueue())
+            |> then(translateTranscriptWithRetry(text: text, toLang: toLang, peerId: peerId, context: context, attemptsLeft: attemptsLeft - 1))
+        }
     }
 
     private static func writeTranscript(context: AccountContext, messageId: MessageId, text: String) {
@@ -214,16 +242,18 @@ public enum LuminaVoiceTranscription {
 
     private static func resolveReadingLanguage(context: AccountContext, peerId: EnginePeer.Id, settings: LuminaSettings, completion: @escaping (String?) -> Void) {
         if !settings.trReadLang.isEmpty {
-            completion(settings.trReadLang)
+            completion(normalizeTranslationLanguage(settings.trReadLang))
             return
         }
         let _ = (chatTranslationState(context: context, peerId: peerId, threadId: nil)
         |> take(1)
         |> deliverOnMainQueue).start(next: { state in
             if let state, state.isEnabled, let toLang = state.toLang, !toLang.isEmpty {
-                completion(toLang)
+                completion(normalizeTranslationLanguage(toLang))
+            } else if let code = Locale.current.languageCode, !code.isEmpty {
+                completion(normalizeTranslationLanguage(code))
             } else {
-                completion(Locale.current.languageCode)
+                completion(nil)
             }
         })
     }
