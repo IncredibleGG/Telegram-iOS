@@ -155,8 +155,9 @@ public final class LuminaTranslationSyncController {
         UserDefaults.standard.set(Int(payload.ts), forKey: self.tsKey)
         self.lastSyncedBody = payload.body
         let body = payload.body
+        let platform = payload.platform
         let _ = updateLuminaSettingsInteractively(accountManager: self.context.sharedContext.accountManager) { current in
-            return LuminaTranslationSync.apply(body, to: current)
+            return LuminaTranslationSync.apply(body, to: current, platform: platform)
         }.start()
     }
 

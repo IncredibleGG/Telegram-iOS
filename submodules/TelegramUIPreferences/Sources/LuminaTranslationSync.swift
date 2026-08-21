@@ -39,6 +39,7 @@ public enum LuminaTranslationSync {
         public var ts: Int64
         public var dev: String
         public var body: Body
+        public var platform: String
     }
 
     public struct Body: Codable, Equatable {
@@ -121,7 +122,7 @@ public enum LuminaTranslationSync {
         )
     }
 
-    public static func apply(_ body: Body, to current: LuminaSettings) -> LuminaSettings {
+    public static func apply(_ body: Body, to current: LuminaSettings, platform: String) -> LuminaSettings {
         var s = current
         s.trMode = body.trMode
         s.trReadLang = body.trReadLang
@@ -134,17 +135,22 @@ public enum LuminaTranslationSync {
         s.myLanguages = body.myLanguages
         s.translateBeforeSend = body.translateBeforeSend
         s.translateBeforeSendConfirm = body.translateBeforeSendConfirm
-        s.trSendEnabledDialog = body.trSendEnabledDialog.compactMap { key, value in
-            guard let pid = Int64(key) else { return nil }
-            return LuminaSettings.DialogBoolValue(peerId: pid, value: value)
-        }
-        s.trSendLangDialog = body.trSendLangDialog.compactMap { key, value in
-            guard let pid = Int64(key) else { return nil }
-            return LuminaSettings.DialogTextValue(peerId: pid, value: value)
-        }
-        s.trRegisterDialog = body.trRegisterDialog.compactMap { key, value in
-            guard let pid = Int64(key) else { return nil }
-            return LuminaSettings.DialogTextValue(peerId: pid, value: value)
+        // Per-chat maps roam WITHIN a platform only (peer-id encodings differ across platforms);
+        // applying another platform's per-dialog entries would write dead ids AND clobber this
+        // device's own. Global settings above still roam everywhere.
+        if platform == "ios" {
+            s.trSendEnabledDialog = body.trSendEnabledDialog.compactMap { key, value in
+                guard let pid = Int64(key) else { return nil }
+                return LuminaSettings.DialogBoolValue(peerId: pid, value: value)
+            }
+            s.trSendLangDialog = body.trSendLangDialog.compactMap { key, value in
+                guard let pid = Int64(key) else { return nil }
+                return LuminaSettings.DialogTextValue(peerId: pid, value: value)
+            }
+            s.trRegisterDialog = body.trRegisterDialog.compactMap { key, value in
+                guard let pid = Int64(key) else { return nil }
+                return LuminaSettings.DialogTextValue(peerId: pid, value: value)
+            }
         }
         s.explainMessage = body.explainMessage
         s.glossaryTerms = body.glossaryTerms
@@ -185,7 +191,7 @@ public enum LuminaTranslationSync {
             let sealed = try AES.GCM.SealedBox(combined: combined)
             let json = try AES.GCM.open(sealed, using: key)
             let envelope = try JSONDecoder().decode(Envelope.self, from: json)
-            return Payload(ts: envelope.ts, dev: envelope.dev, body: envelope.settings)
+            return Payload(ts: envelope.ts, dev: envelope.dev, body: envelope.settings, platform: envelope.platform)
         } catch {
             throw SyncError.corrupt
         }
