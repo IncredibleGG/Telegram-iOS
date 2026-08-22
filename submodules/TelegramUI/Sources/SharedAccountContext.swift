@@ -178,7 +178,6 @@ public final class SharedAccountContextImpl: SharedAccountContext {
         return self.activeAccountsPromise.get()
     }
     private let managedAccountDisposables = DisposableDict<AccountRecordId>()
-    private let luminaSyncDisposables = DisposableDict<AccountRecordId>() // LuminaGram: per-account translation-settings roaming
     private let activeAccountsWithInfoPromise = Promise<(primary: AccountRecordId?, accounts: [AccountWithInfo])>()
     public var activeAccountsWithInfo: Signal<(primary: AccountRecordId?, accounts: [AccountWithInfo]), NoError> {
         return self.activeAccountsWithInfoPromise.get()
@@ -758,14 +757,6 @@ public final class SharedAccountContextImpl: SharedAccountContext {
                             
                             self.managedAccountDisposables.set(self.updateAccountBackupData(account: account).start(), forKey: account.id)
                             account.resetStateManagement()
-                            // LuminaGram: start per-account translation-settings roaming (encrypted
-                            // hidden carrier in Saved Messages).
-                            // LuminaGram: translation-settings roaming SHELVED (per user) — auto-sync
-                            // disabled; settings stay per-device. Controller code kept dormant for a
-                            // future v2. Re-enable by uncommenting the three lines below.
-                            // let luminaSync = LuminaTranslationSyncController(context: context)
-                            // luminaSync.start()
-                            // self.luminaSyncDisposables.set(ActionDisposable { luminaSync.stop() }, forKey: account.id)
                             hadUpdates = true
                         }
                     } else {
@@ -787,7 +778,6 @@ public final class SharedAccountContextImpl: SharedAccountContext {
                     if let index = self.activeAccountsValue?.accounts.firstIndex(where: { $0.0 == id }) {
                         self.activeAccountsValue?.accounts.remove(at: index)
                         self.managedAccountDisposables.set(nil, forKey: id)
-                        self.luminaSyncDisposables.set(nil, forKey: id)
                     }
                 }
                 var primary: AccountContext?

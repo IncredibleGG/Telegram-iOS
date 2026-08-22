@@ -154,11 +154,6 @@ func chatHistoryEntriesForView(
         if pendingRemovedMessages.contains(message.id) {
             continue
         }
-        // LuminaGram: hide the encrypted translation-settings roaming carrier from the user's
-        // own Saved Messages history. Self peer only + exact invisible marker; fails closed.
-        if location.peerId == context.account.peerId, LuminaTranslationSync.isCarrier(message.text) {
-            continue loop
-        }
         
         if case let .replyThread(replyThreadMessage) = location, replyThreadMessage.isForumPost {
             for media in message.media {
