@@ -139,7 +139,7 @@ func infoItems(
         // parameter in from the caller, which already has a presentationData-style signal
         // available to extend.
         if !isMyProfile, LuminaHomoglyph.containsSuspiciousChars(EnginePeer(user).compactDisplayTitle) {
-            items[.unofficial]!.append(PeerInfoScreenInfoItem(id: 1, title: "", text: .plain("This name mixes look-alike characters from different alphabets — a common trick used to impersonate someone. Verify who you're talking to before trusting this contact."), style: .compact, linkAction: nil))
+            items[.unofficial]!.append(PeerInfoScreenInfoItem(id: 1, title: "", text: .plain(LuminaL10n.tr("This name mixes look-alike characters from different alphabets — a common trick used to impersonate someone. Verify who you're talking to before trusting this contact.")), style: .compact, linkAction: nil))
         }
         
         if !callMessages.isEmpty {
@@ -225,7 +225,7 @@ func infoItems(
                 registrationText = "~" + stringForMonth(strings: presentationData.strings, month: month, ofYear: year)
             }
             if let registrationText {
-                items[currentPeerInfoSection]!.append(PeerInfoScreenLabeledValueItem(id: ItemRegistrationDate, label: "Registration", text: registrationText, textColor: .primary, action: nil, requestLayout: { animated in
+                items[currentPeerInfoSection]!.append(PeerInfoScreenLabeledValueItem(id: ItemRegistrationDate, label: LuminaL10n.tr("Registration"), text: registrationText, textColor: .primary, action: nil, requestLayout: { animated in
                     interaction.requestLayout(animated)
                 }))
             }
@@ -238,7 +238,7 @@ func infoItems(
         items[currentPeerInfoSection]!.append(PeerInfoScreenLabeledValueItem(id: ItemLuminaUserId, label: "ID", text: luminaUserIdText, textColor: .accent, action: { _, _ in
             UIPasteboard.general.string = luminaUserIdText
             if let controller = interaction.getController() {
-                controller.present(UndoOverlayController(presentationData: presentationData, content: .copy(text: "ID copied"), elevatedLayout: false, animateInAsReplacement: false, action: { _ in return false }), in: .current)
+                controller.present(UndoOverlayController(presentationData: presentationData, content: .copy(text: LuminaL10n.tr("ID copied")), elevatedLayout: false, animateInAsReplacement: false, action: { _ in return false }), in: .current)
             }
         }, requestLayout: { animated in
             interaction.requestLayout(animated)
@@ -250,7 +250,7 @@ func infoItems(
         // (ItemNote / cachedData.note). Only shown on other people's profiles, not your own.
         if !isMyProfile {
             let luminaContactNote = LuminaSettingsCache.shared.current().contactNotes.first(where: { $0.peerId == user.id.toInt64() })
-            items[currentPeerInfoSection]!.append(PeerInfoScreenLabeledValueItem(id: ItemLuminaContactNote, label: "Note", text: luminaContactNote?.note.isEmpty == false ? luminaContactNote!.note : "Add a private note", textColor: .primary, textBehavior: .multiLine(maxLines: 3, enabledEntities: []), action: { _, _ in
+            items[currentPeerInfoSection]!.append(PeerInfoScreenLabeledValueItem(id: ItemLuminaContactNote, label: LuminaL10n.tr("Note"), text: luminaContactNote?.note.isEmpty == false ? luminaContactNote!.note : LuminaL10n.tr("Add a private note"), textColor: .primary, textBehavior: .multiLine(maxLines: 3, enabledEntities: []), action: { _, _ in
                 interaction.getController()?.push(luminaContactNoteController(context: context, peerId: user.id))
             }, requestLayout: { animated in
                 interaction.requestLayout(animated)

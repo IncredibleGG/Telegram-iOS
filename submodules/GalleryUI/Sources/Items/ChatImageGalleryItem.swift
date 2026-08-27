@@ -6,6 +6,7 @@ import SwiftSignalKit
 import Postbox
 import TelegramCore
 import TelegramPresentationData
+import TelegramUIPreferences
 import AccountContext
 import RadialStatusNode
 import PhotoResources
@@ -781,7 +782,7 @@ final class ChatImageGalleryItemNode: ZoomableContentGalleryItemNode {
                     // LuminaGram: OCR image translate - one-tap version of the existing manual
                     // text-selection "Translate" action, reusing the same on-device Vision
                     // recognizer. See LuminaOcrTranslateAction.swift.
-                    items.append(.action(ContextMenuActionItem(text: "Translate Image", icon: { theme in generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/Translate"), color: theme.actionSheet.primaryTextColor) }, action: { [weak self] _, f in
+                    items.append(.action(ContextMenuActionItem(text: LuminaL10n.tr("Translate Image"), icon: { theme in generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/Translate"), color: theme.actionSheet.primaryTextColor) }, action: { [weak self] _, f in
                         f(.default)
                         guard let self else {
                             return

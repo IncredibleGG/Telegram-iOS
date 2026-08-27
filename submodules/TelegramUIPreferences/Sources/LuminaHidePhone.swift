@@ -15,5 +15,5 @@ import Foundation
 // PresentationStrings key this fork invents has no cloud translation and would silently read
 // English for every non-English user regardless of their selected language.
 public enum LuminaHidePhone {
-    public static let maskedText = "Hidden"
+    public static var maskedText: String { LuminaL10n.tr("Hidden") }
 }

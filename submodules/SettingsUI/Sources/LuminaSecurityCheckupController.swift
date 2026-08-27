@@ -196,7 +196,7 @@ private func summaryText(_ configuration: TwoStepVerificationConfiguration?) -> 
     if issues == 0 {
         return LuminaL10n.tr("Your account security looks good.")
     }
-    return "\(issues) recommendation\(issues == 1 ? "" : "s") to review below."
+    return issues == 1 ? LuminaL10n.tr("1 recommendation to review below.") : "\(issues) " + LuminaL10n.tr("recommendations to review below.")
 }
 
 private func twoStepValueText(_ configuration: TwoStepVerificationConfiguration?) -> String {

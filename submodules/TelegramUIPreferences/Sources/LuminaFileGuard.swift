@@ -246,24 +246,24 @@ public enum LuminaFileGuard {
     /// Short, human-recognizable token for an executable/installer MIME type.
     private static func mimeExecToken(_ mime: String?) -> String {
         guard let mime else {
-            return "app / program"
+            return LuminaL10n.tr("app / program")
         }
         switch mime.trimmingCharacters(in: .whitespaces).lowercased() {
         case "application/vnd.android.package-archive":
-            return "Android app (.apk)"
+            return LuminaL10n.tr("Android app (.apk)")
         case "application/x-msdownload", "application/x-msdos-program", "application/x-dosexec",
              "application/vnd.microsoft.portable-executable":
-            return "Windows program (.exe)"
+            return LuminaL10n.tr("Windows program (.exe)")
         case "application/x-ms-installer", "application/x-msi":
-            return "Windows installer (.msi)"
+            return LuminaL10n.tr("Windows installer (.msi)")
         case "application/java-archive", "application/x-java-archive":
-            return "Java program (.jar)"
+            return LuminaL10n.tr("Java program (.jar)")
         case "text/javascript", "application/javascript", "application/x-javascript":
-            return "script (.js)"
+            return LuminaL10n.tr("script (.js)")
         case "application/x-sh", "application/x-shellscript":
-            return "shell script (.sh)"
+            return LuminaL10n.tr("shell script (.sh)")
         default:
-            return "app / program"
+            return LuminaL10n.tr("app / program")
         }
     }
 
@@ -294,11 +294,11 @@ public enum LuminaFileGuard {
         let b2 = head[head.startIndex + 2], b3 = head[head.startIndex + 3]
         // ELF: 0x7F 'E' 'L' 'F'
         if b0 == 0x7F, b1 == 0x45, b2 == 0x4C, b3 == 0x46 {
-            return "native program (ELF)"
+            return LuminaL10n.tr("native program (ELF)")
         }
         // Windows PE: "MZ"
         if b0 == 0x4D, b1 == 0x5A {
-            return "Windows program (.exe)"
+            return LuminaL10n.tr("Windows program (.exe)")
         }
         // Mach-O (32/64-bit, either endianness) — iOS/macOS's own native-executable magic,
         // the closest analogue of Android's DEX check for "this is secretly a program".
@@ -308,11 +308,11 @@ public enum LuminaFileGuard {
             [0xCA, 0xFE, 0xBA, 0xBE], // fat/universal binary
         ]
         if machOMagics.contains([b0, b1, b2, b3]) {
-            return "native program (Mach-O)"
+            return LuminaL10n.tr("native program (Mach-O)")
         }
         // Shell/script shebang: "#!"
         if b0 == 0x23, b1 == 0x21 {
-            return "script"
+            return LuminaL10n.tr("script")
         }
         return nil
     }

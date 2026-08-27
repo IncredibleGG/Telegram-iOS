@@ -468,7 +468,7 @@ func chatContextMenuItems(context: AccountContext, peerId: EnginePeer.Id, promoI
                                 // back, so the user is sent to set a code first instead - the
                                 // same HasSecretCode guard desktop's window_peer_menu.cpp uses.
                                 let isLocked = LuminaChatLock.isLocked(peerId.toInt64())
-                                items.append(.action(ContextMenuActionItem(text: isLocked ? "Unlock Chat" : "Lock Chat", icon: { theme in generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/Lock"), color: theme.contextMenu.primaryColor) }, action: { _, f in
+                                items.append(.action(ContextMenuActionItem(text: isLocked ? LuminaL10n.tr("Unlock Chat") : LuminaL10n.tr("Lock Chat"), icon: { theme in generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/Lock"), color: theme.contextMenu.primaryColor) }, action: { _, f in
                                     if isLocked {
                                         LuminaChatLock.unlock(peerId: peerId.toInt64(), accountManager: context.sharedContext.accountManager)
                                         f(.default)

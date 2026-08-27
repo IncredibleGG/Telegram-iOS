@@ -5233,7 +5233,7 @@ public class ChatTextInputPanelNode: ChatInputPanelNode, ASEditableTextNodeDeleg
         // LuminaGram: quick-reply templates - "Insert a saved reply" entry, reachable from
         // this same long-press menu instead of a dedicated always-visible composer icon
         // (which would need new manual layout/frame code in this file to add safely).
-        elements.insert(UIAction(title: "Quick Reply", image: nil) { [weak self] _ in
+        elements.insert(UIAction(title: LuminaL10n.tr("Quick Reply"), image: nil) { [weak self] _ in
             self?._quickReply(0)
         }, at: min(insertIndex + 1, elements.count))
         return elements

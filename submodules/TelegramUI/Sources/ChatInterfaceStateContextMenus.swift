@@ -1159,7 +1159,7 @@ func contextMenuForChatPresentationInterfaceState(chatPresentationInterfaceState
         if resourceAvailable {
             for media in message.effectiveMedia {
                 if let file = media as? TelegramMediaFile, file.isVoice || file.isInstantVideo, LuminaVoiceTranscription.isApplicable(to: message) {
-                    actions.append(.action(ContextMenuActionItem(text: "Transcribe", icon: { theme in
+                    actions.append(.action(ContextMenuActionItem(text: LuminaL10n.tr("Transcribe"), icon: { theme in
                         return generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/Audio"), color: theme.actionSheet.primaryTextColor)
                     }, action: { _, f in
                         f(.default)
@@ -1482,7 +1482,7 @@ func contextMenuForChatPresentationInterfaceState(chatPresentationInterfaceState
                 // ON); the row itself is not shown when the setting is off.
                 let luminaSettings = LuminaSettingsCache.shared.current()
                 if luminaSettings.explainMessage, !messageText.isEmpty {
-                    actions.append(.action(ContextMenuActionItem(text: "Explain", icon: { theme in
+                    actions.append(.action(ContextMenuActionItem(text: LuminaL10n.tr("Explain"), icon: { theme in
                         return generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/Translate"), color: theme.actionSheet.primaryTextColor)
                     }, action: { c, _ in
                         c?.dismiss(completion: {
@@ -1497,7 +1497,7 @@ func contextMenuForChatPresentationInterfaceState(chatPresentationInterfaceState
                 // before-send translated and sent. Only ever shows up on outgoing messages that
                 // actually went through that pipeline (luminaOriginalText returns nil otherwise).
                 if !message.effectivelyIncoming(context.account.peerId), let luminaOriginal = luminaOriginalText(for: message) {
-                    actions.append(.action(ContextMenuActionItem(text: "Show Original", icon: { theme in
+                    actions.append(.action(ContextMenuActionItem(text: LuminaL10n.tr("Show Original"), icon: { theme in
                         return generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/Translate"), color: theme.actionSheet.primaryTextColor)
                     }, action: { c, _ in
                         c?.dismiss(completion: {
@@ -1513,7 +1513,7 @@ func contextMenuForChatPresentationInterfaceState(chatPresentationInterfaceState
                 // language + tone/register for this dialog). Same "not a secret chat" gate as
                 // Translate above; secret chats already opt out of every translation feature.
                 if let luminaPeerId = chatPresentationInterfaceState.chatLocation.peerId, luminaPeerId.namespace != Namespaces.Peer.SecretChat {
-                    actions.append(.action(ContextMenuActionItem(text: "Chat Translation Settings", icon: { theme in
+                    actions.append(.action(ContextMenuActionItem(text: LuminaL10n.tr("Chat Translation Settings"), icon: { theme in
                         return generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/Translate"), color: theme.actionSheet.primaryTextColor)
                     }, action: { c, _ in
                         c?.dismiss(completion: {
@@ -1526,7 +1526,7 @@ func contextMenuForChatPresentationInterfaceState(chatPresentationInterfaceState
                 // persisted in LuminaSettings.bookmarks (submodules/TelegramUIPreferences).
                 // No server RPC; snippet + peer/message id only, so it round-trips into the
                 // backup export too.
-                actions.append(.action(ContextMenuActionItem(text: "Bookmark", icon: { theme in
+                actions.append(.action(ContextMenuActionItem(text: LuminaL10n.tr("Bookmark"), icon: { theme in
                     return generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/ReadingList"), color: theme.actionSheet.primaryTextColor)
                 }, action: { _, f in
                     if let peerId = chatPresentationInterfaceState.chatLocation.peerId {

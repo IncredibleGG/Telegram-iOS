@@ -34,13 +34,13 @@ public enum LuminaLinkSafety {
         public var text: String {
             switch self {
             case .userinfoMismatch:
-                return "This link hides its real destination before the \"@\"."
+                return LuminaL10n.tr("This link hides its real destination before the \"@\".")
             case .punycode:
-                return "This address uses look-alike international characters (punycode)."
+                return LuminaL10n.tr("This address uses look-alike international characters (punycode).")
             case .mixedScript:
-                return "This address mixes letters from different alphabets — a common trick to impersonate a trusted site."
+                return LuminaL10n.tr("This address mixes letters from different alphabets — a common trick to impersonate a trusted site.")
             case .shortener:
-                return "This is a shortened link — its real destination is hidden until you open it."
+                return LuminaL10n.tr("This is a shortened link — its real destination is hidden until you open it.")
             }
         }
     }

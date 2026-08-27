@@ -421,9 +421,9 @@ final class AuthorizedApplicationContext {
                                     }
                                     strongSelf.mainWindow.present(textAlertController(
                                         sharedContext: context.sharedContext,
-                                        title: "Possible Scam",
-                                        text: "This message contains a phrase commonly used in scams. Be careful with money, gift cards, codes or personal details in this chat.",
-                                        actions: [TextAlertAction(type: .defaultAction, title: "OK", action: {})]
+                                        title: LuminaL10n.tr("Possible Scam"),
+                                        text: LuminaL10n.tr("This message contains a phrase commonly used in scams. Be careful with money, gift cards, codes or personal details in this chat."),
+                                        actions: [TextAlertAction(type: .defaultAction, title: LuminaL10n.tr("OK"), action: {})]
                                     ), on: .root)
                                 })
                             }
