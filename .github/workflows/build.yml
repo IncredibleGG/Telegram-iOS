@@ -90,3 +90,5 @@ jobs:
             /Users/Shared/telegram-ios/build/artifacts/Telegram.ipa
             /Users/Shared/telegram-ios/build/artifacts/Telegram.DSYMs.zip
           if-no-files-found: error
+
+# re-register 2026-09-09T14:17:22Z
