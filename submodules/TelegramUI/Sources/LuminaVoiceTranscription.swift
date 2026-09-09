@@ -109,20 +109,26 @@ public enum LuminaVoiceTranscription {
         |> take(1)
         |> deliverOnMainQueue).start(next: { view, _, _ in
             let messages = view.entries.map(\.message)
-            let detect: (Bool) -> String? = { sameAuthorOnly in
+            // pass 0 (authorOnly): the voice author's own recent messages - the strongest signal.
+            // pass 1: others on the SAME side of the chat only (never the opposite side), so a
+            // peer's voice is never hinted with the local user's own writing, and vice versa.
+            let detect: (Bool) -> String? = { authorOnly in
                 var buffer = ""
                 for m in messages.reversed() {
                     if m.id == message.id {
                         continue
                     }
-                    if sameAuthorOnly {
+                    let mIncoming = m.effectivelyIncoming(accountPeerId)
+                    if authorOnly {
                         if let voiceAuthorId {
                             if m.author?.id != voiceAuthorId {
                                 continue
                             }
-                        } else if m.effectivelyIncoming(accountPeerId) != voiceIncoming {
+                        } else if mIncoming != voiceIncoming {
                             continue
                         }
+                    } else if mIncoming != voiceIncoming {
+                        continue
                     }
                     let text = m.text.trimmingCharacters(in: .whitespacesAndNewlines)
                     if text.count < 2 {
