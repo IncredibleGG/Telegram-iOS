@@ -9,6 +9,7 @@ import TelegramPresentationData
 import AccountContext
 import UndoUI
 import TranslateUI
+import NaturalLanguage
 // LuminaOpusPCM (the OGG/Opus decode helper reused below) lives in SettingsUI, alongside the
 // rest of the reverse-voice pipeline that also needs it - see LuminaReverseVoice.swift's file
 // header for why. TelegramUI already depends on SettingsUI, so this is a same-direction import.
@@ -70,7 +71,9 @@ public enum LuminaVoiceTranscription {
                     presentError(.authorizationDenied, displayUndo: displayUndo)
                     return
                 }
-                runRecognition(context: context, message: message, path: path, displayUndo: displayUndo)
+                resolveSpeechLanguage(context: context, message: message) { langHint in
+                    runRecognition(context: context, message: message, path: path, langHint: langHint, displayUndo: displayUndo)
+                }
             }
         }
     }
@@ -81,13 +84,87 @@ public enum LuminaVoiceTranscription {
         var delivered = false
     }
 
-    private static func runRecognition(context: AccountContext, message: Message, path: String, displayUndo: @escaping (UndoOverlayContent) -> Void) {
+    // LuminaGram: work out which language the voice note is actually in, so the recogniser can be
+    // pinned to it (see runRecognition). The audio carries no language until it is transcribed, so
+    // we read the language of the surrounding TEXT - first the voice author's own recent messages
+    // (what he actually speaks), then anyone's - and recognise it with NLLanguageRecognizer (the
+    // same detector chat translation uses). Fall back to the app UI language, never the device
+    // locale (which was the bug: an English device transcribed a Chinese note as English garbage).
+    private static func resolveSpeechLanguage(context: AccountContext, message: Message, completion: @escaping (String?) -> Void) {
+        let presentationData = context.sharedContext.currentPresentationData.with { $0 }
+        var appLang = presentationData.strings.baseLanguageCode
+        if appLang.hasSuffix("-raw") {
+            appLang = String(appLang.dropLast(4))
+        }
+        let fallback: String? = appLang.isEmpty ? nil : appLang
+        let accountPeerId = context.account.peerId
+        let voiceAuthorId = message.author?.id
+        let voiceIncoming = message.effectivelyIncoming(accountPeerId)
+        let _ = (context.account.viewTracker.aroundMessageHistoryViewForLocation(
+            .peer(peerId: message.id.peerId, threadId: nil),
+            index: .upperBound,
+            anchorIndex: .upperBound,
+            count: 40,
+            fixedCombinedReadStates: nil)
+        |> take(1)
+        |> deliverOnMainQueue).start(next: { view, _, _ in
+            let messages = view.entries.map(\.message)
+            let detect: (Bool) -> String? = { sameAuthorOnly in
+                var buffer = ""
+                for m in messages.reversed() {
+                    if m.id == message.id {
+                        continue
+                    }
+                    if sameAuthorOnly {
+                        if let voiceAuthorId {
+                            if m.author?.id != voiceAuthorId {
+                                continue
+                            }
+                        } else if m.effectivelyIncoming(accountPeerId) != voiceIncoming {
+                            continue
+                        }
+                    }
+                    let text = m.text.trimmingCharacters(in: .whitespacesAndNewlines)
+                    if text.count < 2 {
+                        continue
+                    }
+                    buffer += text + " "
+                    if buffer.count > 4000 {
+                        break
+                    }
+                }
+                if buffer.isEmpty {
+                    return nil
+                }
+                let hypotheses = luminaDetectLanguageHypotheses(buffer, maximum: 4)
+                if let best = hypotheses.sorted(by: { $0.value > $1.value }).first {
+                    let code = best.key.rawValue
+                    if !code.isEmpty && code != "und" {
+                        return code
+                    }
+                }
+                return nil
+            }
+            let detected = detect(true) ?? detect(false)
+            completion(detected ?? fallback)
+        })
+    }
+
+    private static func runRecognition(context: AccountContext, message: Message, path: String, langHint: String?, displayUndo: @escaping (UndoOverlayContent) -> Void) {
         guard let pcm = LuminaOpusPCM.decodeToPCM16Mono48k(path: path), !pcm.isEmpty else {
             presentError(.decodeFailed, displayUndo: displayUndo)
             return
         }
 
-        let recognizer = SFSpeechRecognizer(locale: Locale.autoupdatingCurrent) ?? SFSpeechRecognizer()
+        // LuminaGram: recognise in the detected spoken language; the device recogniser is only a
+        // last resort. SFSpeechRecognizer accepts the bare/script codes NLLanguageRecognizer emits
+        // ("zh-Hans" -> zh-CN), verified against supportedLocales.
+        let recognizer: SFSpeechRecognizer?
+        if let langHint, !langHint.isEmpty, let pinned = SFSpeechRecognizer(locale: Locale(identifier: langHint)) {
+            recognizer = pinned
+        } else {
+            recognizer = SFSpeechRecognizer(locale: Locale.autoupdatingCurrent) ?? SFSpeechRecognizer()
+        }
         guard let recognizer, recognizer.isAvailable else {
             presentError(.recognitionFailed, displayUndo: displayUndo)
             return
