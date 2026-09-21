@@ -640,6 +640,9 @@ func infoItems(
         let ItemEdit = 10
         let ItemPeerPersonalChannel = 11
         let ItemCommunity = 12
+        // LuminaGram: numeric chat ID + creation-date rows (utility bucket).
+        let ItemLuminaChatId = 90001
+        let ItemLuminaChatCreationDate = 90002
         
         if let _ = data.threadData {
             let mainUsername: String
@@ -686,6 +689,31 @@ func infoItems(
                 items[currentPeerInfoSection]!.append(PeerInfoScreenCommentItem(id: ItemUsernameInfo, text: presentationData.strings.PeerInfo_PrivateShareLinkInfo))
             }
         } else {
+            // LuminaGram: numeric chat ID (copyable) + creation date for groups/channels
+            // (utility bucket). Mirrors the user-profile ID row. The ID is always available
+            // and shown for every chat; tap copies it. The creation date uses
+            // TelegramChannel.creationDate (the API-provided creation/join timestamp) when
+            // present, rendered date-only and localized; when it is 0/unavailable it shows
+            // "Unknown" rather than a fabricated value. Pure local render of data the client
+            // already holds - nothing here calls the server.
+            let luminaChatIdText = "\(channel.id.id._internalGetInt64Value())"
+            items[currentPeerInfoSection]!.append(PeerInfoScreenLabeledValueItem(id: ItemLuminaChatId, label: "ID", text: luminaChatIdText, textColor: .accent, action: { _, _ in
+                UIPasteboard.general.string = luminaChatIdText
+                if let controller = interaction.getController() {
+                    controller.present(UndoOverlayController(presentationData: presentationData, content: .copy(text: LuminaL10n.tr("ID copied")), elevatedLayout: false, animateInAsReplacement: false, action: { _ in return false }), in: .current)
+                }
+            }, requestLayout: { animated in
+                interaction.requestLayout(animated)
+            }))
+            let luminaCreationText: String
+            if channel.creationDate > 0 {
+                luminaCreationText = stringForMediumDate(timestamp: channel.creationDate, strings: presentationData.strings, dateTimeFormat: presentationData.dateTimeFormat, withTime: false)
+            } else {
+                luminaCreationText = LuminaL10n.tr("Unknown")
+            }
+            items[currentPeerInfoSection]!.append(PeerInfoScreenLabeledValueItem(id: ItemLuminaChatCreationDate, label: LuminaL10n.tr("Created"), text: luminaCreationText, textColor: .primary, action: nil, requestLayout: { animated in
+                interaction.requestLayout(animated)
+            }))
             if let location = (data.cachedData as? CachedChannelData)?.peerGeoLocation {
                 items[.groupLocation]!.append(PeerInfoScreenHeaderItem(id: ItemLocationHeader, text: presentationData.strings.GroupInfo_Location.uppercased()))
                 
@@ -911,6 +939,30 @@ func infoItems(
             }
         }
     } else if case let .legacyGroup(group) = data.peer {
+        // LuminaGram: numeric chat ID (copyable) + creation date for legacy groups
+        // (utility bucket). Same treatment as the channel/supergroup branch;
+        // TelegramGroup.creationDate is the API-provided creation timestamp, shown
+        // date-only or "Unknown" when 0. Pure local render, never calls the server.
+        let ItemLuminaChatId = 90001
+        let ItemLuminaChatCreationDate = 90002
+        let luminaChatIdText = "\(group.id.id._internalGetInt64Value())"
+        items[currentPeerInfoSection]!.append(PeerInfoScreenLabeledValueItem(id: ItemLuminaChatId, label: "ID", text: luminaChatIdText, textColor: .accent, action: { _, _ in
+            UIPasteboard.general.string = luminaChatIdText
+            if let controller = interaction.getController() {
+                controller.present(UndoOverlayController(presentationData: presentationData, content: .copy(text: LuminaL10n.tr("ID copied")), elevatedLayout: false, animateInAsReplacement: false, action: { _ in return false }), in: .current)
+            }
+        }, requestLayout: { animated in
+            interaction.requestLayout(animated)
+        }))
+        let luminaCreationText: String
+        if group.creationDate > 0 {
+            luminaCreationText = stringForMediumDate(timestamp: group.creationDate, strings: presentationData.strings, dateTimeFormat: presentationData.dateTimeFormat, withTime: false)
+        } else {
+            luminaCreationText = LuminaL10n.tr("Unknown")
+        }
+        items[currentPeerInfoSection]!.append(PeerInfoScreenLabeledValueItem(id: ItemLuminaChatCreationDate, label: LuminaL10n.tr("Created"), text: luminaCreationText, textColor: .primary, action: nil, requestLayout: { animated in
+            interaction.requestLayout(animated)
+        }))
         if let cachedData = data.cachedData as? CachedGroupData {
             let aboutText: String?
             if group.isFake {
