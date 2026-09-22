@@ -353,6 +353,12 @@ public final class ChatControllerInteraction: ChatControllerInteractionProtocol 
     public var summarizedMessageIds: Set<EngineMessage.Id> = Set()
     public var focusedTextInputIsMedia: Bool = false
     public var focusedPollAddOptionMessageId: EngineMessage.Id?
+    // LuminaGram #14: double-tap-to-edit hook. Set post-construction by the real chat
+    // (ChatControllerImpl); nil in every other ChatControllerInteraction consumer. Given a
+    // message id, returns true if it started editing that message (reusing the standard
+    // edit-message path) and false if the message is not editable, so the caller can fall
+    // back to the stock double-tap reaction.
+    public var luminaRequestEditMessage: ((EngineMessage.Id) -> Bool)?
     
     private var isOpeningMediaValue: Bool = false
     public var isOpeningMedia: Bool {

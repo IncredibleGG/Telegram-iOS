@@ -227,6 +227,32 @@ public struct LuminaSettings: Codable, Equatable {
     public var sendWithReturnKey: Bool
     public var formattingToolbar: Bool
 
+    // MARK: Chat & interaction (LuminaGram, Batch 4)
+    //
+    // Every default below is the stock behavior, so an untouched install is byte-identical to
+    // upstream.
+    //
+    // doubleTapToEdit: double-tapping your OWN message enters edit mode (reusing the standard
+    //   edit-message path) instead of adding a quick reaction. Default false = double-tap adds a
+    //   reaction (stock behavior).
+    // ctxMenuShow*: show/hide individual long-press message-menu actions. Default true for each =
+    //   the action is shown (stock behavior); an untouched install shows every action.
+    // messageFilterKeywords: pure client-side display filter. Messages whose text contains any of
+    //   these keywords are hidden from the visible message list (the user's own choice - nothing
+    //   is deleted or hidden on the server). Default [] = nothing is filtered.
+    // confirmBeforeCall: show a confirmation dialog before starting a voice/video call. Default
+    //   false = a call starts immediately (stock behavior).
+    public var doubleTapToEdit: Bool
+    public var ctxMenuShowReply: Bool
+    public var ctxMenuShowCopy: Bool
+    public var ctxMenuShowForward: Bool
+    public var ctxMenuShowPin: Bool
+    public var ctxMenuShowReport: Bool
+    public var ctxMenuShowSave: Bool
+    public var ctxMenuShowSelect: Bool
+    public var messageFilterKeywords: [String]
+    public var confirmBeforeCall: Bool
+
     public static var defaultSettings: LuminaSettings {
         return LuminaSettings(
             trMode: "manual",
@@ -289,7 +315,17 @@ public struct LuminaSettings: Codable, Equatable {
             hideSendAsButton: false,
             disableThanosDeleteEffect: false,
             sendWithReturnKey: false,
-            formattingToolbar: false
+            formattingToolbar: false,
+            doubleTapToEdit: false,
+            ctxMenuShowReply: true,
+            ctxMenuShowCopy: true,
+            ctxMenuShowForward: true,
+            ctxMenuShowPin: true,
+            ctxMenuShowReport: true,
+            ctxMenuShowSave: true,
+            ctxMenuShowSelect: true,
+            messageFilterKeywords: [],
+            confirmBeforeCall: false
         )
     }
 
@@ -354,7 +390,17 @@ public struct LuminaSettings: Codable, Equatable {
         hideSendAsButton: Bool,
         disableThanosDeleteEffect: Bool,
         sendWithReturnKey: Bool,
-        formattingToolbar: Bool
+        formattingToolbar: Bool,
+        doubleTapToEdit: Bool,
+        ctxMenuShowReply: Bool,
+        ctxMenuShowCopy: Bool,
+        ctxMenuShowForward: Bool,
+        ctxMenuShowPin: Bool,
+        ctxMenuShowReport: Bool,
+        ctxMenuShowSave: Bool,
+        ctxMenuShowSelect: Bool,
+        messageFilterKeywords: [String],
+        confirmBeforeCall: Bool
     ) {
         self.trMode = trMode
         self.trReadLang = trReadLang
@@ -417,6 +463,16 @@ public struct LuminaSettings: Codable, Equatable {
         self.disableThanosDeleteEffect = disableThanosDeleteEffect
         self.sendWithReturnKey = sendWithReturnKey
         self.formattingToolbar = formattingToolbar
+        self.doubleTapToEdit = doubleTapToEdit
+        self.ctxMenuShowReply = ctxMenuShowReply
+        self.ctxMenuShowCopy = ctxMenuShowCopy
+        self.ctxMenuShowForward = ctxMenuShowForward
+        self.ctxMenuShowPin = ctxMenuShowPin
+        self.ctxMenuShowReport = ctxMenuShowReport
+        self.ctxMenuShowSave = ctxMenuShowSave
+        self.ctxMenuShowSelect = ctxMenuShowSelect
+        self.messageFilterKeywords = messageFilterKeywords
+        self.confirmBeforeCall = confirmBeforeCall
     }
 
     public init(from decoder: Decoder) throws {
@@ -488,6 +544,16 @@ public struct LuminaSettings: Codable, Equatable {
         self.disableThanosDeleteEffect = try container.decodeIfPresent(Bool.self, forKey: "disableThanosDeleteEffect") ?? defaults.disableThanosDeleteEffect
         self.sendWithReturnKey = try container.decodeIfPresent(Bool.self, forKey: "sendWithReturnKey") ?? defaults.sendWithReturnKey
         self.formattingToolbar = try container.decodeIfPresent(Bool.self, forKey: "formattingToolbar") ?? defaults.formattingToolbar
+        self.doubleTapToEdit = try container.decodeIfPresent(Bool.self, forKey: "doubleTapToEdit") ?? defaults.doubleTapToEdit
+        self.ctxMenuShowReply = try container.decodeIfPresent(Bool.self, forKey: "ctxMenuShowReply") ?? defaults.ctxMenuShowReply
+        self.ctxMenuShowCopy = try container.decodeIfPresent(Bool.self, forKey: "ctxMenuShowCopy") ?? defaults.ctxMenuShowCopy
+        self.ctxMenuShowForward = try container.decodeIfPresent(Bool.self, forKey: "ctxMenuShowForward") ?? defaults.ctxMenuShowForward
+        self.ctxMenuShowPin = try container.decodeIfPresent(Bool.self, forKey: "ctxMenuShowPin") ?? defaults.ctxMenuShowPin
+        self.ctxMenuShowReport = try container.decodeIfPresent(Bool.self, forKey: "ctxMenuShowReport") ?? defaults.ctxMenuShowReport
+        self.ctxMenuShowSave = try container.decodeIfPresent(Bool.self, forKey: "ctxMenuShowSave") ?? defaults.ctxMenuShowSave
+        self.ctxMenuShowSelect = try container.decodeIfPresent(Bool.self, forKey: "ctxMenuShowSelect") ?? defaults.ctxMenuShowSelect
+        self.messageFilterKeywords = try container.decodeIfPresent([String].self, forKey: "messageFilterKeywords") ?? defaults.messageFilterKeywords
+        self.confirmBeforeCall = try container.decodeIfPresent(Bool.self, forKey: "confirmBeforeCall") ?? defaults.confirmBeforeCall
     }
 
     public func encode(to encoder: Encoder) throws {
@@ -558,6 +624,16 @@ public struct LuminaSettings: Codable, Equatable {
         try container.encode(self.disableThanosDeleteEffect, forKey: "disableThanosDeleteEffect")
         try container.encode(self.sendWithReturnKey, forKey: "sendWithReturnKey")
         try container.encode(self.formattingToolbar, forKey: "formattingToolbar")
+        try container.encode(self.doubleTapToEdit, forKey: "doubleTapToEdit")
+        try container.encode(self.ctxMenuShowReply, forKey: "ctxMenuShowReply")
+        try container.encode(self.ctxMenuShowCopy, forKey: "ctxMenuShowCopy")
+        try container.encode(self.ctxMenuShowForward, forKey: "ctxMenuShowForward")
+        try container.encode(self.ctxMenuShowPin, forKey: "ctxMenuShowPin")
+        try container.encode(self.ctxMenuShowReport, forKey: "ctxMenuShowReport")
+        try container.encode(self.ctxMenuShowSave, forKey: "ctxMenuShowSave")
+        try container.encode(self.ctxMenuShowSelect, forKey: "ctxMenuShowSelect")
+        try container.encode(self.messageFilterKeywords, forKey: "messageFilterKeywords")
+        try container.encode(self.confirmBeforeCall, forKey: "confirmBeforeCall")
     }
 }
 

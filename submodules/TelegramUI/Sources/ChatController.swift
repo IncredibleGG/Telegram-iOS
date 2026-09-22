@@ -5940,7 +5940,24 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
             self.displayPollRestrictedToast(messageId: messageId)
         }, automaticMediaDownloadSettings: self.automaticMediaDownloadSettings, pollActionState: ChatInterfacePollActionState(), stickerSettings: self.stickerSettings, presentationContext: ChatPresentationContext(context: context, backgroundNode: self.chatBackgroundNode))
         controllerInteraction.enableFullTranslucency = context.sharedContext.energyUsageSettings.fullTranslucency
-        
+
+        // LuminaGram #14: wire the double-tap-to-edit hook (only for the real chat). Returns true
+        // when editing was started (message is the user's own and editable), false otherwise so
+        // the bubble node falls back to the stock double-tap reaction.
+        controllerInteraction.luminaRequestEditMessage = { [weak self] messageId in
+            guard let self else {
+                return false
+            }
+            guard let message = self.chatDisplayNode.historyNode.messageInCurrentHistoryView(messageId)?._asMessage() else {
+                return false
+            }
+            guard canEditMessage(context: self.context, limitsConfiguration: self.context.currentLimitsConfiguration.with { EngineConfiguration.Limits($0) }, message: message) else {
+                return false
+            }
+            self.interfaceInteraction?.setupEditMessage(messageId, { _ in })
+            return true
+        }
+
         self.controllerInteraction = controllerInteraction
         
         self.navigationBar?.allowsCustomTransition = { [weak self] in

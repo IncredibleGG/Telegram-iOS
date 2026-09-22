@@ -841,6 +841,32 @@ func chatHistoryEntriesForView(
         }
     }
     
+    // LuminaGram #22: client-side keyword message filter. Hide message entries whose text
+    // contains any of the user's keywords (case-insensitive). This is a pure display filter and
+    // the user's own choice - nothing is deleted or changed on the server. Default (an empty
+    // keyword list) is a no-op, so an untouched install is byte-identical to stock.
+    let luminaFilterKeywords = LuminaSettingsCache.settings.messageFilterKeywords
+    if !luminaFilterKeywords.isEmpty {
+        let loweredKeywords = luminaFilterKeywords.map { $0.lowercased() }.filter { !$0.isEmpty }
+        if !loweredKeywords.isEmpty {
+            entries = entries.filter { entry in
+                switch entry {
+                case let .MessageEntry(message, _, _, _, _, _):
+                    return !luminaTextMatchesFilterKeywords(message.text, loweredKeywords)
+                case let .MessageGroupEntry(_, messages, _):
+                    for messageTuple in messages {
+                        if luminaTextMatchesFilterKeywords(messageTuple.0.text, loweredKeywords) {
+                            return false
+                        }
+                    }
+                    return true
+                default:
+                    return true
+                }
+            }
+        }
+    }
+
     if isMusicPlaylist && entries.count == 1 {
         return ([], currentState)
     }
@@ -853,4 +879,20 @@ func chatHistoryEntriesForView(
 //        #endif
         return (entries, currentState)
     }
+}
+
+
+// LuminaGram #22 helper: true when `text` contains any of the (already-lowercased, non-empty)
+// keywords. Empty text never matches. Case-insensitive substring match.
+private func luminaTextMatchesFilterKeywords(_ text: String, _ loweredKeywords: [String]) -> Bool {
+    if text.isEmpty {
+        return false
+    }
+    let loweredText = text.lowercased()
+    for keyword in loweredKeywords {
+        if loweredText.contains(keyword) {
+            return true
+        }
+    }
+    return false
 }

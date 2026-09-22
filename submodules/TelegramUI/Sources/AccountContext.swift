@@ -820,6 +820,39 @@ public final class AccountContextImpl: AccountContext {
     }
     
     public func requestCall(peerId: PeerId, isVideo: Bool, completion: @escaping () -> Void) {
+        // LuminaGram #16: optional confirmation before starting an outgoing voice/video call.
+        // Distinct from any send-voice-message confirm. Default off = a call starts immediately
+        // (stock behavior). When on, we fetch the peer for the dialog and only proceed through
+        // the unchanged original path (luminaPerformRequestCall) once the user confirms.
+        if LuminaSettingsCache.settings.confirmBeforeCall {
+            let _ = (self.engine.data.get(TelegramEngine.EngineData.Item.Peer.Peer(id: peerId))
+            |> deliverOnMainQueue).start(next: { [weak self] peer in
+                guard let strongSelf = self else {
+                    return
+                }
+                let presentationData = strongSelf.sharedContext.currentPresentationData.with { $0 }
+                let text: String
+                if let peer {
+                    text = LuminaL10n.tr("Start a call with %@?").replacingOccurrences(of: "%@", with: peer.compactDisplayTitle)
+                } else {
+                    text = LuminaL10n.tr("Start a call?")
+                }
+                strongSelf.sharedContext.mainWindow?.present(textAlertController(context: strongSelf, title: LuminaL10n.tr("Start a Call?"), text: text, actions: [
+                    TextAlertAction(type: .genericAction, title: presentationData.strings.Common_Cancel, action: {}),
+                    TextAlertAction(type: .defaultAction, title: LuminaL10n.tr("Call"), action: {
+                        guard let strongSelf = self else {
+                            return
+                        }
+                        strongSelf.luminaPerformRequestCall(peerId: peerId, isVideo: isVideo, completion: completion)
+                    })
+                ]), on: .root)
+            })
+            return
+        }
+        self.luminaPerformRequestCall(peerId: peerId, isVideo: isVideo, completion: completion)
+    }
+
+    private func luminaPerformRequestCall(peerId: PeerId, isVideo: Bool, completion: @escaping () -> Void) {
         guard let callResult = self.sharedContext.callManager?.requestCall(context: self, peerId: peerId, isVideo: isVideo, endCurrentIfAny: false) else {
             return
         }

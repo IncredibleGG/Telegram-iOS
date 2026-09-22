@@ -70,6 +70,7 @@ private enum LuminaGramSettingsEntry: ItemListNodeEntry {
     case security
     case privacy
     case tools
+    case chat
     case storedLocallyFooter
 
     var section: ItemListSectionId {
@@ -90,8 +91,10 @@ private enum LuminaGramSettingsEntry: ItemListNodeEntry {
             return 4
         case .tools:
             return 5
-        case .storedLocallyFooter:
+        case .chat:
             return 6
+        case .storedLocallyFooter:
+            return 7
         }
     }
 
@@ -124,6 +127,10 @@ private enum LuminaGramSettingsEntry: ItemListNodeEntry {
             return ItemListDisclosureItem(presentationData: presentationData, icon: PresentationResourcesSettings.aiTools, title: LuminaL10n.tr("Tools"), label: "", sectionId: self.section, style: .blocks, action: {
                 arguments.pushController(luminaToolsController(context: arguments.context))
             })
+        case .chat:
+            return ItemListDisclosureItem(presentationData: presentationData, icon: PresentationResourcesSettings.chatFolders, title: LuminaL10n.tr("Chat"), label: "", sectionId: self.section, style: .blocks, action: {
+                arguments.pushController(luminaChatController(context: arguments.context))
+            })
         case .storedLocallyFooter:
             return ItemListTextItem(presentationData: presentationData, text: .plain(LuminaL10n.tr("LuminaGram options are stored on this device only and are never synced to Telegram.")), sectionId: self.section)
         }
@@ -138,6 +145,7 @@ private func luminaGramSettingsControllerEntries() -> [LuminaGramSettingsEntry] 
         .security,
         .privacy,
         .tools,
+        .chat,
         .storedLocallyFooter
     ]
 }
