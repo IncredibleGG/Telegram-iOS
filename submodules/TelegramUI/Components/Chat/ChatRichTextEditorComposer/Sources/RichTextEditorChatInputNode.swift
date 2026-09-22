@@ -213,6 +213,12 @@ public final class RichTextEditorChatInputNode: ASDisplayNode, ChatRichTextInput
             return self?.storedDelegate?.chatInputTextNodeShouldReturn(modifierFlags: modifierFlags) ?? true
         }
 
+        // LuminaGram #15 (Send with Return Key): route the software keyboard's Return to the panel's
+        // decision. The default delegate implementation returns true (newline); only the chat panel sends.
+        self.editorView.onSoftwareReturn = { [weak self] in
+            return self?.storedDelegate?.chatInputTextNodeShouldReturnFromSoftwareKeyboard() ?? true
+        }
+
         self.editorView.onChange = { [weak self] in
             guard let self else { return }
             // RichTextEditorView is parent-driven: it does NOT self-layout on a content change (unlike the

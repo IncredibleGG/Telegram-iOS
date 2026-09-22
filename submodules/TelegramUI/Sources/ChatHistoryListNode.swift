@@ -3962,7 +3962,7 @@ public final class ChatHistoryListNodeImpl: ASDisplayNode, ChatHistoryNode, Chat
         self.currentDeleteAnimationCorrelationIds.formUnion(expiredMessageStableIds)
         
         var appliedDeleteAnimationCorrelationIds = Set<UInt32>()
-        if !self.currentDeleteAnimationCorrelationIds.isEmpty && self.allowDustEffect {
+        if !self.currentDeleteAnimationCorrelationIds.isEmpty && self.allowDustEffect && !LuminaSettingsCache.settings.disableThanosDeleteEffect {
             var foundItemNodes: [ChatMessageItemView] = []
             self.forEachItemNode { itemNode in
                 if let itemNode = itemNode as? ChatMessageItemView, let item = itemNode.item {

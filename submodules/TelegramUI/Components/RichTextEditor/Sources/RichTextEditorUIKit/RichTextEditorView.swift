@@ -142,6 +142,11 @@ public final class RichTextEditorView: UIView, UIScrollViewDelegate {
     /// The software keyboard's Return is unaffected (it always inserts a newline).
     public var onHardwareReturn: ((UIKeyModifierFlags) -> Bool)? { didSet { canvas.onHardwareReturn = onHardwareReturn } }
 
+    /// LuminaGram #15 (Send with Return Key): the SOFTWARE keyboard's Return. Default nil => the editor
+    /// inserts a newline exactly as before. When set, the closure decides: return true to insert a
+    /// newline, false when the host consumed the Return (e.g. sent the message).
+    public var onSoftwareReturn: (() -> Bool)? { didSet { canvas.onSoftwareReturn = onSoftwareReturn } }
+
     /// Configure each selection-handle ("knob") view. The closure is invoked once per handle view (start and
     /// end), passing it as a bare `UIView`. Use it to set host-framework properties the editor package can't
     /// reach — e.g. Display's `disablesInteractiveTransitionGestureRecognizer` (the navigation back-swipe a

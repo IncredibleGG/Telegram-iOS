@@ -121,6 +121,7 @@ private enum LuminaToolsSection: Int32 {
     case stories
     case display
     case chatList
+    case input
 }
 
 private enum LuminaToolsEntry: ItemListNodeEntry {
@@ -148,6 +149,14 @@ private enum LuminaToolsEntry: ItemListNodeEntry {
     case chatListHideDeleteSwipe(Bool, Bool) // (value, enabled)
     case chatListFooter
 
+    case inputHeader
+    case hideVoiceRecordButton(Bool)
+    case hideSendAsButton(Bool)
+    case disableThanosDeleteEffect(Bool)
+    case sendWithReturnKey(Bool)
+    case formattingToolbar(Bool)
+    case inputFooter
+
     var section: ItemListSectionId {
         switch self {
         case .screensHeader, .bookmarks, .quickReplies, .backup:
@@ -158,6 +167,8 @@ private enum LuminaToolsEntry: ItemListNodeEntry {
             return LuminaToolsSection.display.rawValue
         case .chatListHeader, .chatListPreviewLines, .chatListDisableSwipe, .chatListHideDeleteSwipe, .chatListFooter:
             return LuminaToolsSection.chatList.rawValue
+        case .inputHeader, .hideVoiceRecordButton, .hideSendAsButton, .disableThanosDeleteEffect, .sendWithReturnKey, .formattingToolbar, .inputFooter:
+            return LuminaToolsSection.input.rawValue
         }
     }
 
@@ -203,6 +214,20 @@ private enum LuminaToolsEntry: ItemListNodeEntry {
             return 33
         case .chatListFooter:
             return 34
+        case .inputHeader:
+            return 40
+        case .hideVoiceRecordButton:
+            return 41
+        case .hideSendAsButton:
+            return 42
+        case .disableThanosDeleteEffect:
+            return 43
+        case .sendWithReturnKey:
+            return 44
+        case .formattingToolbar:
+            return 45
+        case .inputFooter:
+            return 46
         }
     }
 
@@ -311,6 +336,50 @@ private enum LuminaToolsEntry: ItemListNodeEntry {
             })
         case .chatListFooter:
             return ItemListTextItem(presentationData: presentationData, text: .plain(LuminaL10n.tr("These options change only how the chat list looks and behaves on this device.")), sectionId: self.section)
+        case .inputHeader:
+            return ItemListSectionHeaderItem(presentationData: presentationData, text: LuminaL10n.tr("INPUT"), sectionId: self.section)
+        case let .hideVoiceRecordButton(value):
+            return ItemListSwitchItem(presentationData: presentationData, title: LuminaL10n.tr("Hide Voice Record Button"), value: value, sectionId: self.section, style: .blocks, updated: { value in
+                arguments.updateSettings { settings in
+                    var settings = settings
+                    settings.hideVoiceRecordButton = value
+                    return settings
+                }
+            })
+        case let .hideSendAsButton(value):
+            return ItemListSwitchItem(presentationData: presentationData, title: LuminaL10n.tr("Hide Send-As Button"), value: value, sectionId: self.section, style: .blocks, updated: { value in
+                arguments.updateSettings { settings in
+                    var settings = settings
+                    settings.hideSendAsButton = value
+                    return settings
+                }
+            })
+        case let .disableThanosDeleteEffect(value):
+            return ItemListSwitchItem(presentationData: presentationData, title: LuminaL10n.tr("Disable Delete Animation"), text: LuminaL10n.tr("Turn off the thanos-snap dust effect on deleted messages."), value: value, sectionId: self.section, style: .blocks, updated: { value in
+                arguments.updateSettings { settings in
+                    var settings = settings
+                    settings.disableThanosDeleteEffect = value
+                    return settings
+                }
+            })
+        case let .sendWithReturnKey(value):
+            return ItemListSwitchItem(presentationData: presentationData, title: LuminaL10n.tr("Send with Return Key"), text: LuminaL10n.tr("The on-screen keyboard's Return key sends the message instead of adding a new line."), value: value, sectionId: self.section, style: .blocks, updated: { value in
+                arguments.updateSettings { settings in
+                    var settings = settings
+                    settings.sendWithReturnKey = value
+                    return settings
+                }
+            })
+        case let .formattingToolbar(value):
+            return ItemListSwitchItem(presentationData: presentationData, title: LuminaL10n.tr("Formatting Toolbar"), text: LuminaL10n.tr("Show a bold / italic / link bar above the input."), value: value, sectionId: self.section, style: .blocks, updated: { value in
+                arguments.updateSettings { settings in
+                    var settings = settings
+                    settings.formattingToolbar = value
+                    return settings
+                }
+            })
+        case .inputFooter:
+            return ItemListTextItem(presentationData: presentationData, text: .plain(LuminaL10n.tr("These options change the message input on this device only.")), sectionId: self.section)
         }
     }
 }
@@ -339,6 +408,14 @@ private func luminaToolsControllerEntries(settings: LuminaSettings) -> [LuminaTo
         .chatListPreviewLines(settings.chatListPreviewLines),
         .chatListDisableSwipe(settings.chatListDisableSwipe),
         .chatListHideDeleteSwipe(settings.chatListDisableSwipe ? false : settings.chatListHideDeleteSwipe, !settings.chatListDisableSwipe),
-        .chatListFooter
+        .chatListFooter,
+
+        .inputHeader,
+        .hideVoiceRecordButton(settings.hideVoiceRecordButton),
+        .hideSendAsButton(settings.hideSendAsButton),
+        .disableThanosDeleteEffect(settings.disableThanosDeleteEffect),
+        .sendWithReturnKey(settings.sendWithReturnKey),
+        .formattingToolbar(settings.formattingToolbar),
+        .inputFooter
     ]
 }

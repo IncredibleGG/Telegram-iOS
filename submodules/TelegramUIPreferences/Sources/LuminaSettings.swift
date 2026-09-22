@@ -204,6 +204,29 @@ public struct LuminaSettings: Codable, Equatable {
     public var chatListDisableSwipe: Bool
     public var chatListHideDeleteSwipe: Bool
 
+    // MARK: Input row (LuminaGram)
+    //
+    // Composer input-row detail toggles. Every default below is the stock behavior, so an
+    // untouched install is byte-identical to upstream.
+    //
+    // hideVoiceRecordButton: hide the voice/video-message record button in the composer.
+    //   Default false = the mic button shows as usual.
+    // hideSendAsButton: hide the "send as" (post-as-channel) avatar button in the composer.
+    //   Default false = the button shows whenever send-as peers are available.
+    // disableThanosDeleteEffect: turn off the "thanos snap" dust delete animation in the
+    //   chat history; deletions fall back to the standard list-removal animation. Default
+    //   false = the dust effect plays (stock behavior; mirrors the existing app-config
+    //   ios_killswitch_disable_dust_effect graceful path).
+    // sendWithReturnKey: make the on-screen keyboard Return key send the message instead of
+    //   inserting a newline. Default false = Return inserts a newline (stock behavior).
+    // formattingToolbar: show a small bar of quick formatting buttons (bold / italic / link)
+    //   above the composer input, reusing the existing formatting actions. Default false.
+    public var hideVoiceRecordButton: Bool
+    public var hideSendAsButton: Bool
+    public var disableThanosDeleteEffect: Bool
+    public var sendWithReturnKey: Bool
+    public var formattingToolbar: Bool
+
     public static var defaultSettings: LuminaSettings {
         return LuminaSettings(
             trMode: "manual",
@@ -261,7 +284,12 @@ public struct LuminaSettings: Codable, Equatable {
             hideReactions: false,
             chatListPreviewLines: 0,
             chatListDisableSwipe: false,
-            chatListHideDeleteSwipe: false
+            chatListHideDeleteSwipe: false,
+            hideVoiceRecordButton: false,
+            hideSendAsButton: false,
+            disableThanosDeleteEffect: false,
+            sendWithReturnKey: false,
+            formattingToolbar: false
         )
     }
 
@@ -321,7 +349,12 @@ public struct LuminaSettings: Codable, Equatable {
         hideReactions: Bool,
         chatListPreviewLines: Int32,
         chatListDisableSwipe: Bool,
-        chatListHideDeleteSwipe: Bool
+        chatListHideDeleteSwipe: Bool,
+        hideVoiceRecordButton: Bool,
+        hideSendAsButton: Bool,
+        disableThanosDeleteEffect: Bool,
+        sendWithReturnKey: Bool,
+        formattingToolbar: Bool
     ) {
         self.trMode = trMode
         self.trReadLang = trReadLang
@@ -379,6 +412,11 @@ public struct LuminaSettings: Codable, Equatable {
         self.chatListPreviewLines = chatListPreviewLines
         self.chatListDisableSwipe = chatListDisableSwipe
         self.chatListHideDeleteSwipe = chatListHideDeleteSwipe
+        self.hideVoiceRecordButton = hideVoiceRecordButton
+        self.hideSendAsButton = hideSendAsButton
+        self.disableThanosDeleteEffect = disableThanosDeleteEffect
+        self.sendWithReturnKey = sendWithReturnKey
+        self.formattingToolbar = formattingToolbar
     }
 
     public init(from decoder: Decoder) throws {
@@ -445,6 +483,11 @@ public struct LuminaSettings: Codable, Equatable {
         self.chatListPreviewLines = try container.decodeIfPresent(Int32.self, forKey: "chatListPreviewLines") ?? defaults.chatListPreviewLines
         self.chatListDisableSwipe = try container.decodeIfPresent(Bool.self, forKey: "chatListDisableSwipe") ?? defaults.chatListDisableSwipe
         self.chatListHideDeleteSwipe = try container.decodeIfPresent(Bool.self, forKey: "chatListHideDeleteSwipe") ?? defaults.chatListHideDeleteSwipe
+        self.hideVoiceRecordButton = try container.decodeIfPresent(Bool.self, forKey: "hideVoiceRecordButton") ?? defaults.hideVoiceRecordButton
+        self.hideSendAsButton = try container.decodeIfPresent(Bool.self, forKey: "hideSendAsButton") ?? defaults.hideSendAsButton
+        self.disableThanosDeleteEffect = try container.decodeIfPresent(Bool.self, forKey: "disableThanosDeleteEffect") ?? defaults.disableThanosDeleteEffect
+        self.sendWithReturnKey = try container.decodeIfPresent(Bool.self, forKey: "sendWithReturnKey") ?? defaults.sendWithReturnKey
+        self.formattingToolbar = try container.decodeIfPresent(Bool.self, forKey: "formattingToolbar") ?? defaults.formattingToolbar
     }
 
     public func encode(to encoder: Encoder) throws {
@@ -510,6 +553,11 @@ public struct LuminaSettings: Codable, Equatable {
         try container.encode(self.chatListPreviewLines, forKey: "chatListPreviewLines")
         try container.encode(self.chatListDisableSwipe, forKey: "chatListDisableSwipe")
         try container.encode(self.chatListHideDeleteSwipe, forKey: "chatListHideDeleteSwipe")
+        try container.encode(self.hideVoiceRecordButton, forKey: "hideVoiceRecordButton")
+        try container.encode(self.hideSendAsButton, forKey: "hideSendAsButton")
+        try container.encode(self.disableThanosDeleteEffect, forKey: "disableThanosDeleteEffect")
+        try container.encode(self.sendWithReturnKey, forKey: "sendWithReturnKey")
+        try container.encode(self.formattingToolbar, forKey: "formattingToolbar")
     }
 }
 

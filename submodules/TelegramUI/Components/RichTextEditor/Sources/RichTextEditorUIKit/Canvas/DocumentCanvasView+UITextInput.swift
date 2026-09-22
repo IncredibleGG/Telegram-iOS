@@ -326,6 +326,11 @@ extension DocumentCanvasView: UIKeyInput {
             return
         }
         if text == "\n" {
+            // LuminaGram #15 (Send with Return Key): a genuine software-keyboard Return routes here. Ask
+            // the host first (skipped when a hardware Return is falling through). false => host consumed it.
+            if !self.isPerformingHardwareReturn, let onSoftwareReturn = self.onSoftwareReturn, !onSoftwareReturn() {
+                return
+            }
             // Return in a quote AUTHOR line splits the author at the caret (like a media caption): the head runs
             // stay as the author, the tail runs become a NEW body paragraph immediately after the quote (caret
             // there). Handled here, at the TOP of the "\n" dispatch, because a caret in the author resolves

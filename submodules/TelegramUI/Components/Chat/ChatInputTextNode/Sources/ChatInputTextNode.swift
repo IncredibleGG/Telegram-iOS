@@ -26,6 +26,17 @@ public protocol ChatInputTextNodeDelegate: AnyObject {
     
     func chatInputTextNodeShouldRespondToAction(action: Selector) -> Bool
     func chatInputTextNodeTargetForAction(action: Selector) -> ChatInputTextNode.TargetForAction?
+
+    // LuminaGram #15 (Send with Return Key): the on-screen keyboard's Return. The default in the
+    // extension below returns true (insert a newline), so every existing conformer is unchanged; only
+    // the chat input panel overrides it to send the message when the Lumina setting is on.
+    func chatInputTextNodeShouldReturnFromSoftwareKeyboard() -> Bool
+}
+
+public extension ChatInputTextNodeDelegate {
+    func chatInputTextNodeShouldReturnFromSoftwareKeyboard() -> Bool {
+        return true
+    }
 }
 
 @available(iOS 15.0, *)

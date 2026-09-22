@@ -273,6 +273,16 @@ public class ChatTextInputPanelNode: ChatInputPanelNode, ASEditableTextNodeDeleg
     public let sendAsAvatarContainerNode: ContextControllerSourceNode
     private let sendAsAvatarNode: AvatarNode
     private let sendAsCloseIconView: UIImageView
+
+    // LuminaGram #23 (Formatting Toolbar): a small bar of bold / italic / link buttons shown above the
+    // input when enabled. All state below is inert unless the Lumina setting is on (default off), so an
+    // untouched install never allocates space for or shows this bar.
+    private static let luminaFormattingToolbarHeight: CGFloat = 40.0
+    private var luminaFormattingToolbarActive = false
+    private let luminaFormattingToolbarContainer: ASDisplayNode
+    private let luminaFormattingBoldButton: HighlightableButtonNode
+    private let luminaFormattingItalicButton: HighlightableButtonNode
+    private let luminaFormattingLinkButton: HighlightableButtonNode
     
     public let attachmentButton: HighlightTrackingButton
     public let attachmentButtonBackground: GlassBackgroundView
@@ -774,6 +784,11 @@ public class ChatTextInputPanelNode: ChatInputPanelNode, ASEditableTextNodeDeleg
         self.sendAsAvatarContainerNode.animateScale = false
         self.sendAsAvatarNode = AvatarNode(font: avatarPlaceholderFont(size: 16.0))
         self.sendAsCloseIconView = UIImageView()
+
+        self.luminaFormattingToolbarContainer = ASDisplayNode()
+        self.luminaFormattingBoldButton = HighlightableButtonNode()
+        self.luminaFormattingItalicButton = HighlightableButtonNode()
+        self.luminaFormattingLinkButton = HighlightableButtonNode()
         
         self.attachmentButton = HighlightTrackingButton()
         self.attachmentButton.accessibilityLabel = presentationInterfaceState.strings.VoiceOver_AttachMedia
@@ -875,6 +890,15 @@ public class ChatTextInputPanelNode: ChatInputPanelNode, ASEditableTextNodeDeleg
         }
         
         self.sendAsAvatarButtonNode.addTarget(self, action: #selector(self.sendAsAvatarButtonPressed), forControlEvents: .touchUpInside)
+
+        self.luminaFormattingBoldButton.addTarget(self, action: #selector(self.formatAttributesBold(_:)), forControlEvents: .touchUpInside)
+        self.luminaFormattingItalicButton.addTarget(self, action: #selector(self.formatAttributesItalic(_:)), forControlEvents: .touchUpInside)
+        self.luminaFormattingLinkButton.addTarget(self, action: #selector(self.formatAttributesLink(_:)), forControlEvents: .touchUpInside)
+        self.luminaFormattingToolbarContainer.addSubnode(self.luminaFormattingBoldButton)
+        self.luminaFormattingToolbarContainer.addSubnode(self.luminaFormattingItalicButton)
+        self.luminaFormattingToolbarContainer.addSubnode(self.luminaFormattingLinkButton)
+        self.luminaFormattingToolbarContainer.isHidden = true
+        self.addSubnode(self.luminaFormattingToolbarContainer)
         self.sendAsAvatarButtonNode.highligthedChanged = { [weak self] highlighted in
             if let strongSelf = self {
                 if highlighted {
@@ -1440,7 +1464,7 @@ public class ChatTextInputPanelNode: ChatInputPanelNode, ASEditableTextNodeDeleg
         }
         
         var hasSendAsButton = false
-        if let sendAsPeers = interfaceState.sendAsPeers, !sendAsPeers.isEmpty && interfaceState.editMessageState == nil {
+        if let sendAsPeers = interfaceState.sendAsPeers, !sendAsPeers.isEmpty && interfaceState.editMessageState == nil && !LuminaSettingsCache.settings.hideSendAsButton {
             hasSendAsButton = true
         }
         
@@ -1473,6 +1497,11 @@ public class ChatTextInputPanelNode: ChatInputPanelNode, ASEditableTextNodeDeleg
     
     private func textFieldInsets(metrics: LayoutMetrics, bottomInset: CGFloat) -> UIEdgeInsets {
         var insets = UIEdgeInsets(top: 0.0, left: 8.0, bottom: 0.0, right: 8.0)
+        // LuminaGram #23: reserve space above the input for the formatting toolbar when active. Every
+        // consumer of textFieldInsets.top (panel height, container frame, placeholders) shifts together.
+        if self.luminaFormattingToolbarActive {
+            insets.top += ChatTextInputPanelNode.luminaFormattingToolbarHeight
+        }
         if let customLeftAction = self.customLeftAction, case let .toggleExpanded(isVisible, _, _) = customLeftAction, !isVisible {
         } else if let customLeftAction = self.customLeftAction, case .empty = customLeftAction {
         } else {
@@ -1652,6 +1681,11 @@ public class ChatTextInputPanelNode: ChatInputPanelNode, ASEditableTextNodeDeleg
         
         let previousAdditionalSideInsets = self.validLayout?.4
         self.validLayout = (width, leftInset, rightInset, bottomInset, additionalSideInsets, maxHeight, maxOverlayHeight, metrics, isSecondary, isMediaInputExpanded, deviceMetrics)
+
+        // LuminaGram #23 (Formatting Toolbar): compute activation before textFieldInsets() is consulted
+        // this pass, so the reserved top space and panel height are consistent. Kept off during audio
+        // recording so the bar never appears over the recording UI. Default off => byte-identical layout.
+        self.luminaFormattingToolbarActive = LuminaSettingsCache.settings.formattingToolbar && interfaceState.inputTextPanelState.mediaRecordingState == nil
         
         let defaultGlassTintColor: GlassBackgroundView.TintColor
         let defaultGlassTintWithInnerColor: GlassBackgroundView.TintColor
@@ -1825,7 +1859,7 @@ public class ChatTextInputPanelNode: ChatInputPanelNode, ASEditableTextNodeDeleg
         
         var displaySendAsAvatarButton = false
         let mediaRecordingState = interfaceState.inputTextPanelState.mediaRecordingState
-        if let sendAsPeers = interfaceState.sendAsPeers, !sendAsPeers.isEmpty && interfaceState.editMessageState == nil {
+        if let sendAsPeers = interfaceState.sendAsPeers, !sendAsPeers.isEmpty && interfaceState.editMessageState == nil && !LuminaSettingsCache.settings.hideSendAsButton {
             menuButtonExpanded = false
             displaySendAsAvatarButton = true
             
@@ -3142,6 +3176,27 @@ public class ChatTextInputPanelNode: ChatInputPanelNode, ASEditableTextNodeDeleg
         let previousTextInputContainerBackgroundFrame = self.textInputContainerBackgroundView.frame
         let textInputContainerBackgroundFrame = CGRect(x: hideOffset.x + leftInset + textFieldInsets.left, y: hideOffset.y + textFieldInsets.top, width: textInputWidth, height: contentHeight)
         let textInputFrame = textInputContainerBackgroundFrame
+
+        // LuminaGram #23 (Formatting Toolbar): lay the bar in the reserved strip just above the input.
+        if self.luminaFormattingToolbarActive {
+            let luminaToolbarHeight = ChatTextInputPanelNode.luminaFormattingToolbarHeight
+            let luminaToolbarFrame = CGRect(x: textInputContainerBackgroundFrame.minX, y: textInputContainerBackgroundFrame.minY - luminaToolbarHeight, width: textInputContainerBackgroundFrame.width, height: luminaToolbarHeight)
+            self.luminaFormattingToolbarContainer.isHidden = false
+            transition.updateFrame(node: self.luminaFormattingToolbarContainer, frame: luminaToolbarFrame)
+            transition.updateAlpha(node: self.luminaFormattingToolbarContainer, alpha: 1.0)
+            let luminaAccentColor = interfaceState.theme.chat.inputPanel.panelControlAccentColor
+            self.luminaFormattingBoldButton.setAttributedTitle(NSAttributedString(string: LuminaL10n.tr("Bold"), font: Font.semibold(15.0), textColor: luminaAccentColor), for: [])
+            self.luminaFormattingItalicButton.setAttributedTitle(NSAttributedString(string: LuminaL10n.tr("Italic"), font: Font.italic(15.0), textColor: luminaAccentColor), for: [])
+            self.luminaFormattingLinkButton.setAttributedTitle(NSAttributedString(string: LuminaL10n.tr("Link"), font: Font.regular(15.0), textColor: luminaAccentColor), for: [])
+            var luminaButtonX: CGFloat = 8.0
+            let luminaButtonWidth: CGFloat = 64.0
+            for luminaButton in [self.luminaFormattingBoldButton, self.luminaFormattingItalicButton, self.luminaFormattingLinkButton] {
+                luminaButton.frame = CGRect(x: luminaButtonX, y: 0.0, width: luminaButtonWidth, height: luminaToolbarHeight)
+                luminaButtonX += luminaButtonWidth
+            }
+        } else if !self.luminaFormattingToolbarContainer.isHidden {
+            self.luminaFormattingToolbarContainer.isHidden = true
+        }
         
         transition.updateFrame(view: self.accessoryPanelContainer, frame: CGRect(origin: CGPoint(), size: textInputContainerBackgroundFrame.size))
         transition.updateFrame(view: self.textInputContainerBackgroundView, frame: textInputContainerBackgroundFrame)
@@ -3169,7 +3224,7 @@ public class ChatTextInputPanelNode: ChatInputPanelNode, ASEditableTextNodeDeleg
         }
         
         var hasSendAsButton = false
-        if let sendAsPeers = interfaceState.sendAsPeers, !sendAsPeers.isEmpty && interfaceState.editMessageState == nil {
+        if let sendAsPeers = interfaceState.sendAsPeers, !sendAsPeers.isEmpty && interfaceState.editMessageState == nil && !LuminaSettingsCache.settings.hideSendAsButton {
             hasSendAsButton = true
         }
         
@@ -4589,6 +4644,12 @@ public class ChatTextInputPanelNode: ChatInputPanelNode, ASEditableTextNodeDeleg
         
         var hideMicButton = false
         var hideMicButtonBackground = false
+        // LuminaGram #10: hide the voice/video-message record button when enabled. Default off =>
+        // hideMicButton stays false here, so behavior is unchanged. hideMicButton is only ever set
+        // to true afterwards (never reset), so setting it early is safe.
+        if LuminaSettingsCache.settings.hideVoiceRecordButton {
+            hideMicButton = true
+        }
         
         if self.customRightAction != nil {
             self.mediaActionButtons.isHidden = true
@@ -4840,6 +4901,21 @@ public class ChatTextInputPanelNode: ChatInputPanelNode, ASEditableTextNodeDeleg
     
     @objc public func editableTextNodeShouldReturn(_ editableTextNode: ASEditableTextNode) -> Bool {
         return self.chatInputTextNodeShouldReturn(modifierFlags: [])
+    }
+
+    public func chatInputTextNodeShouldReturnFromSoftwareKeyboard() -> Bool {
+        // LuminaGram #15 (Send with Return Key), native rich-text backend: the on-screen keyboard's
+        // Return routes here (RichTextEditorChatInputNode.onSoftwareReturn). Default off => return true
+        // so the editor inserts a newline exactly as before. When enabled, send if there is something
+        // to send; otherwise fall through to a newline.
+        guard LuminaSettingsCache.settings.sendWithReturnKey else {
+            return true
+        }
+        if self.sendActionButtons.sendButton.supernode != nil && !self.sendActionButtons.sendButton.isHidden && !self.sendActionButtons.sendContainerNode.alpha.isZero {
+            self.sendButtonPressed()
+            return false
+        }
+        return true
     }
     
     private func applyUpdateSendButtonIcon() {
@@ -5408,6 +5484,18 @@ public class ChatTextInputPanelNode: ChatInputPanelNode, ASEditableTextNodeDeleg
     public func chatInputTextNode(shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {
         guard let richTextInputNode = self.richTextInputNode, let context = self.context else {
             return false
+        }
+
+        // LuminaGram #15 (Send with Return Key), legacy text backend: the software keyboard's Return
+        // arrives here as a lone "\n" replacement (a hardware Return is handled via the keyCommand path
+        // in chatInputTextNodeShouldReturn, and a multi-line paste is never exactly "\n"). When enabled
+        // and the send button is visible (there is something to send), send instead of inserting a
+        // newline. Default off => unchanged behavior.
+        if text == "\n", LuminaSettingsCache.settings.sendWithReturnKey {
+            if self.sendActionButtons.sendButton.supernode != nil && !self.sendActionButtons.sendButton.isHidden && !self.sendActionButtons.sendContainerNode.alpha.isZero {
+                self.sendButtonPressed()
+                return false
+            }
         }
 
         self.updateActivity()
