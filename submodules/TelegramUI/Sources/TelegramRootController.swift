@@ -6,6 +6,7 @@ import TelegramCore
 import SwiftSignalKit
 import TelegramPresentationData
 import AccountContext
+import TelegramUIPreferences
 import ContactListUI
 import CallListUI
 import ChatListUI
@@ -201,6 +202,10 @@ public final class TelegramRootController: NavigationController, TelegramRootCon
     public func addRootControllers(showCallsTab: Bool) {
         let tabBarController = TabBarControllerImpl(theme: self.presentationData.theme, strings: self.presentationData.strings)
         tabBarController.navigationPresentation = .master
+        // LuminaGram (#3): apply the tab-bar label preference before the bar builds. Default off
+        // => labels show (upstream).
+        let luminaSettings = LuminaSettingsCache.settings
+        tabBarController.setLuminaHideTabTitles(luminaSettings.tabBarHideLabels)
         let chatListController = self.context.sharedContext.makeChatListController(context: self.context, location: .chatList(groupId: .root), controlsHistoryPreload: true, hideNetworkActivityStatus: false, previewing: false, enableDebugActions: !GlobalExperimentalSettings.isAppStoreBuild)
         if let sharedContext = self.context.sharedContext as? SharedAccountContextImpl {
             chatListController.tabBarItem.badgeValue = sharedContext.switchingData.chatListBadge
@@ -213,9 +218,14 @@ public final class TelegramRootController: NavigationController, TelegramRootCon
         contactsController.switchToChatsController = {  [weak self] in
             self?.openChatsController(activateSearch: false)
         }
-        controllers.append(contactsController)
+        // LuminaGram (#3): optionally hide the Contacts tab. The controller is still created and
+        // retained (openContacts stays valid); it is only left out of the visible tab set.
+        if !luminaSettings.tabBarHideContacts {
+            controllers.append(contactsController)
+        }
         
-        if showCallsTab {
+        // LuminaGram (#3): hide the Calls tab even when the account setting would show it.
+        if showCallsTab && !luminaSettings.tabBarHideCalls {
             controllers.append(callListController)
         }
         controllers.append(chatListController)
@@ -247,21 +257,36 @@ public final class TelegramRootController: NavigationController, TelegramRootCon
         self.accountSettingsController = accountSettingsController
         self.rootTabController = tabBarController
         self.pushViewController(tabBarController, animated: false)
+        // LuminaGram (#2): hide the main bottom tab bar. Default off => the bar shows. When on,
+        // the chat list surfaces a Settings entry (see ChatListController) so navigation is not
+        // stranded.
+        if luminaSettings.hideTabBar {
+            tabBarController.updateIsTabBarHidden(true, transition: .immediate)
+        }
     }
         
     public func updateRootControllers(showCallsTab: Bool) {
         guard let rootTabController = self.rootTabController as? TabBarControllerImpl else {
             return
         }
+        let luminaSettings = LuminaSettingsCache.settings
+        rootTabController.setLuminaHideTabTitles(luminaSettings.tabBarHideLabels)
         var controllers: [ViewController] = []
-        controllers.append(self.contactsController!)
-        if showCallsTab {
+        if !luminaSettings.tabBarHideContacts {
+            controllers.append(self.contactsController!)
+        }
+        if showCallsTab && !luminaSettings.tabBarHideCalls {
             controllers.append(self.callListController!)
         }
         controllers.append(self.chatListController!)
         controllers.append(self.accountSettingsController!)
         
         rootTabController.setControllers(controllers, selectedIndex: nil)
+        // LuminaGram (#2): only touch the hidden state when the option is on, so an untouched
+        // install goes through the exact upstream path here.
+        if luminaSettings.hideTabBar {
+            rootTabController.updateIsTabBarHidden(true, transition: .immediate)
+        }
     }
     
     public func openChatsController(activateSearch: Bool, filter: ChatListSearchFilter = .chats, query: String? = nil) {
@@ -839,6 +864,11 @@ public final class TelegramRootController: NavigationController, TelegramRootCon
     
     public func startNewCall() {
         self.callListController?.tabBarActivateSearch()
+    }
+    
+    public func pushSettings() {
+        let controller = PeerInfoScreenImpl(context: self.context, updatedPresentationData: nil, peerId: self.context.account.peerId, avatarInitiallyExpanded: false, isOpenedFromChat: false, reactionSourceMessageId: nil, callMessages: [], isSettings: true)
+        self.pushViewController(controller)
     }
 }
 

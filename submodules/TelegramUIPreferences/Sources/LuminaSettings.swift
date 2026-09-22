@@ -260,6 +260,33 @@ public struct LuminaSettings: Codable, Equatable {
     public var mutePinnedNotifications: Bool
     public var muteMentionReplyNotifications: Bool
 
+    // MARK: Navigation & folders (LuminaGram, Batch 7)
+    //
+    // Every default below is the stock behavior, so an untouched install is byte-identical to
+    // upstream.
+    //
+    // hideAllChatsFolder: hide the "All Chats" tab from the folder strip. Default false.
+    // compactFolderTabs: tighten the spacing between folder tabs. Default false.
+    // wideFolderTabs: stretch the folder tab strip to fill the full width evenly when the tabs
+    //   already fit. Default false.
+    // rememberLastFolder: reopen the chat list to the last-used folder instead of always "All
+    //   Chats". Default false. lastSelectedFolderId persists that folder id (0 = All Chats).
+    // hideTabBar: hide the main bottom tab bar. Default false. When on, a Settings entry is
+    //   surfaced in the chat list so the user is never stranded.
+    // tabBarHideLabels: hide the text labels under the bottom tab-bar items. Default false.
+    // tabBarHideContacts: hide the Contacts tab from the bottom tab bar. Default false.
+    // tabBarHideCalls: hide the Calls tab from the bottom tab bar even when the account setting
+    //   would show it. Default false.
+    public var hideAllChatsFolder: Bool
+    public var compactFolderTabs: Bool
+    public var wideFolderTabs: Bool
+    public var rememberLastFolder: Bool
+    public var lastSelectedFolderId: Int32
+    public var hideTabBar: Bool
+    public var tabBarHideLabels: Bool
+    public var tabBarHideContacts: Bool
+    public var tabBarHideCalls: Bool
+
     public static var defaultSettings: LuminaSettings {
         return LuminaSettings(
             trMode: "manual",
@@ -334,7 +361,16 @@ public struct LuminaSettings: Codable, Equatable {
             messageFilterKeywords: [],
             confirmBeforeCall: false,
             mutePinnedNotifications: false,
-            muteMentionReplyNotifications: false
+            muteMentionReplyNotifications: false,
+            hideAllChatsFolder: false,
+            compactFolderTabs: false,
+            wideFolderTabs: false,
+            rememberLastFolder: false,
+            lastSelectedFolderId: 0,
+            hideTabBar: false,
+            tabBarHideLabels: false,
+            tabBarHideContacts: false,
+            tabBarHideCalls: false
         )
     }
 
@@ -411,7 +447,16 @@ public struct LuminaSettings: Codable, Equatable {
         messageFilterKeywords: [String],
         confirmBeforeCall: Bool,
         mutePinnedNotifications: Bool,
-        muteMentionReplyNotifications: Bool
+        muteMentionReplyNotifications: Bool,
+        hideAllChatsFolder: Bool,
+        compactFolderTabs: Bool,
+        wideFolderTabs: Bool,
+        rememberLastFolder: Bool,
+        lastSelectedFolderId: Int32,
+        hideTabBar: Bool,
+        tabBarHideLabels: Bool,
+        tabBarHideContacts: Bool,
+        tabBarHideCalls: Bool
     ) {
         self.trMode = trMode
         self.trReadLang = trReadLang
@@ -486,6 +531,15 @@ public struct LuminaSettings: Codable, Equatable {
         self.confirmBeforeCall = confirmBeforeCall
         self.mutePinnedNotifications = mutePinnedNotifications
         self.muteMentionReplyNotifications = muteMentionReplyNotifications
+        self.hideAllChatsFolder = hideAllChatsFolder
+        self.compactFolderTabs = compactFolderTabs
+        self.wideFolderTabs = wideFolderTabs
+        self.rememberLastFolder = rememberLastFolder
+        self.lastSelectedFolderId = lastSelectedFolderId
+        self.hideTabBar = hideTabBar
+        self.tabBarHideLabels = tabBarHideLabels
+        self.tabBarHideContacts = tabBarHideContacts
+        self.tabBarHideCalls = tabBarHideCalls
     }
 
     public init(from decoder: Decoder) throws {
@@ -569,6 +623,16 @@ public struct LuminaSettings: Codable, Equatable {
         self.confirmBeforeCall = try container.decodeIfPresent(Bool.self, forKey: "confirmBeforeCall") ?? defaults.confirmBeforeCall
         self.mutePinnedNotifications = try container.decodeIfPresent(Bool.self, forKey: "mutePinnedNotifications") ?? defaults.mutePinnedNotifications
         self.muteMentionReplyNotifications = try container.decodeIfPresent(Bool.self, forKey: "muteMentionReplyNotifications") ?? defaults.muteMentionReplyNotifications
+
+        self.hideAllChatsFolder = try container.decodeIfPresent(Bool.self, forKey: "hideAllChatsFolder") ?? defaults.hideAllChatsFolder
+        self.compactFolderTabs = try container.decodeIfPresent(Bool.self, forKey: "compactFolderTabs") ?? defaults.compactFolderTabs
+        self.wideFolderTabs = try container.decodeIfPresent(Bool.self, forKey: "wideFolderTabs") ?? defaults.wideFolderTabs
+        self.rememberLastFolder = try container.decodeIfPresent(Bool.self, forKey: "rememberLastFolder") ?? defaults.rememberLastFolder
+        self.lastSelectedFolderId = try container.decodeIfPresent(Int32.self, forKey: "lastSelectedFolderId") ?? defaults.lastSelectedFolderId
+        self.hideTabBar = try container.decodeIfPresent(Bool.self, forKey: "hideTabBar") ?? defaults.hideTabBar
+        self.tabBarHideLabels = try container.decodeIfPresent(Bool.self, forKey: "tabBarHideLabels") ?? defaults.tabBarHideLabels
+        self.tabBarHideContacts = try container.decodeIfPresent(Bool.self, forKey: "tabBarHideContacts") ?? defaults.tabBarHideContacts
+        self.tabBarHideCalls = try container.decodeIfPresent(Bool.self, forKey: "tabBarHideCalls") ?? defaults.tabBarHideCalls
     }
 
     public func encode(to encoder: Encoder) throws {
@@ -651,6 +715,16 @@ public struct LuminaSettings: Codable, Equatable {
         try container.encode(self.confirmBeforeCall, forKey: "confirmBeforeCall")
         try container.encode(self.mutePinnedNotifications, forKey: "mutePinnedNotifications")
         try container.encode(self.muteMentionReplyNotifications, forKey: "muteMentionReplyNotifications")
+
+        try container.encode(self.hideAllChatsFolder, forKey: "hideAllChatsFolder")
+        try container.encode(self.compactFolderTabs, forKey: "compactFolderTabs")
+        try container.encode(self.wideFolderTabs, forKey: "wideFolderTabs")
+        try container.encode(self.rememberLastFolder, forKey: "rememberLastFolder")
+        try container.encode(self.lastSelectedFolderId, forKey: "lastSelectedFolderId")
+        try container.encode(self.hideTabBar, forKey: "hideTabBar")
+        try container.encode(self.tabBarHideLabels, forKey: "tabBarHideLabels")
+        try container.encode(self.tabBarHideContacts, forKey: "tabBarHideContacts")
+        try container.encode(self.tabBarHideCalls, forKey: "tabBarHideCalls")
     }
 }
 

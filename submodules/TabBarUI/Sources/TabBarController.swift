@@ -95,6 +95,9 @@ open class TabBarControllerImpl: ViewController, TabBarController {
     private var theme: PresentationTheme
     private var strings: PresentationStrings
     
+    // LuminaGram (#3): whether the tab-bar item text labels are hidden. Default false.
+    private var luminaHideTabTitles: Bool = false
+    
     public init(theme: PresentationTheme, strings: PresentationStrings) {
         self.theme = theme
         self.strings = strings
@@ -150,6 +153,15 @@ open class TabBarControllerImpl: ViewController, TabBarController {
         self.tabBarControllerNode.tabBarHidden = value
         if let layout = self.validLayout {
             self.containerLayoutUpdated(layout, transition: .animated(duration: 0.4, curve: .slide))
+        }
+    }
+    
+    // LuminaGram (#3): hide/show the tab-bar item text labels. Safe to call before the node is
+    // loaded; the value is applied in loadDisplayNode.
+    public func setLuminaHideTabTitles(_ value: Bool) {
+        self.luminaHideTabTitles = value
+        if self.isNodeLoaded {
+            self.tabBarControllerNode.updateLuminaHideTabTitles(value)
         }
     }
     
@@ -264,6 +276,7 @@ open class TabBarControllerImpl: ViewController, TabBarController {
             self.currentController?.tabBarDeactivateSearch()
         })
         
+        self.tabBarControllerNode.updateLuminaHideTabTitles(self.luminaHideTabTitles)
         self.updateSelectedIndex()
         self.displayNodeDidLoad()
     }

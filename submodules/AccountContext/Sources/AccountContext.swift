@@ -1082,6 +1082,9 @@ public protocol TelegramRootControllerInterface: NavigationController {
     func openPhotoSetup(completedWithUploadingImage: @escaping (UIImage, Signal<PeerInfoAvatarUploadStatus, NoError>) -> UIView?)
     func openAvatars()
     func startNewCall()
+    // LuminaGram (#2): push the account settings screen onto the navigation stack. Used by the
+    // chat list's Settings entry when the bottom tab bar is hidden, so the user is never stranded.
+    func pushSettings()
 }
 
 public protocol QuickReplySetupScreenInitialData: AnyObject {

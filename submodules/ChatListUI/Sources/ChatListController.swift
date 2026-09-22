@@ -358,6 +358,22 @@ public class ChatListControllerImpl: TelegramBaseController, ChatListController 
                         }
                     )))
                     
+                    // LuminaGram (#2): when the bottom tab bar is hidden, add a Settings entry to the
+                    // chat list so the user can always reach Settings (and turn the option back off).
+                    if LuminaSettingsCache.settings.hideTabBar {
+                        self.primaryContext?.luminaSettingsButton = AnyComponentWithIdentity(id: "luminaSettings", component: AnyComponent(NavigationButtonComponent(
+                            content: .text(title: self.presentationData.strings.Settings_Title, isBold: false),
+                            pressed: { [weak self] _ in
+                                guard let self else {
+                                    return
+                                }
+                                if let rootController = self.context.sharedContext.mainWindow?.viewController as? TelegramRootControllerInterface {
+                                    rootController.pushSettings()
+                                }
+                            }
+                        )))
+                    }
+                    
                     //let backBarButtonItem = UIBarButtonItem(title: self.presentationData.strings.DialogList_Title, style: .plain, target: nil, action: nil)
                     //backBarButtonItem.accessibilityLabel = self.presentationData.strings.Common_Back
                     //self.navigationItem.backBarButtonItem = backBarButtonItem
@@ -4038,6 +4054,16 @@ public class ChatListControllerImpl: TelegramBaseController, ChatListController 
             }
             
             var selectedEntryId = !strongSelf.initializedFilters ? firstItemEntryId : strongSelf.chatListDisplayNode.mainContainerNode.currentItemFilter
+            // LuminaGram (#5): on first load, reopen to the last-used folder instead of the
+            // first item, when the option is on and that folder still exists. Default off =>
+            // selectedEntryId is left as the upstream firstItemEntryId.
+            if !strongSelf.initializedFilters, LuminaSettingsCache.settings.rememberLastFolder {
+                let storedFolderId = LuminaSettingsCache.settings.lastSelectedFolderId
+                let desiredEntryId: ChatListFilterTabEntryId = storedFolderId == 0 ? .all : .filter(storedFolderId)
+                if resolvedItems.contains(where: { $0.id == desiredEntryId }) {
+                    selectedEntryId = desiredEntryId
+                }
+            }
             var resetCurrentEntry = false
             if !resolvedItems.contains(where: { $0.id == selectedEntryId }) {
                 resetCurrentEntry = true
@@ -4117,6 +4143,22 @@ public class ChatListControllerImpl: TelegramBaseController, ChatListController 
     }
     
     func selectTab(id: ChatListFilterTabEntryId, switchToChatsIfNeeded: Bool = true) {
+        // LuminaGram (#5): remember the last-selected folder so the next launch can reopen it.
+        // Default off => nothing is written.
+        if LuminaSettingsCache.settings.rememberLastFolder {
+            let luminaFolderId: Int32
+            switch id {
+            case .all:
+                luminaFolderId = 0
+            case let .filter(filterId):
+                luminaFolderId = filterId
+            }
+            let _ = updateLuminaSettingsInteractively(accountManager: self.context.sharedContext.accountManager, { settings in
+                var settings = settings
+                settings.lastSelectedFolderId = luminaFolderId
+                return settings
+            }).start()
+        }
         if self.parent == nil, switchToChatsIfNeeded {
             if let navigationController = self.context.sharedContext.mainWindow?.viewController as? NavigationController {
                 for controller in navigationController.viewControllers {
@@ -6782,11 +6824,17 @@ private final class ChatListLocationContext {
     var rightButton: AnyComponentWithIdentity<NavigationButtonComponentEnvironment>?
     var proxyButton: AnyComponentWithIdentity<NavigationButtonComponentEnvironment>?
     var storyButton: AnyComponentWithIdentity<NavigationButtonComponentEnvironment>?
+    // LuminaGram (#2): a Settings entry surfaced in the chat list when the bottom tab bar is
+    // hidden, so Settings stays reachable. nil (default) => not shown.
+    var luminaSettingsButton: AnyComponentWithIdentity<NavigationButtonComponentEnvironment>?
     
     var rightButtons: [AnyComponentWithIdentity<NavigationButtonComponentEnvironment>] {
         var result: [AnyComponentWithIdentity<NavigationButtonComponentEnvironment>] = []
         if let rightButton = self.rightButton {
             result.append(rightButton)
+        }
+        if let luminaSettingsButton = self.luminaSettingsButton {
+            result.append(luminaSettingsButton)
         }
         if let storyButton = self.storyButton {
             result.append(storyButton)

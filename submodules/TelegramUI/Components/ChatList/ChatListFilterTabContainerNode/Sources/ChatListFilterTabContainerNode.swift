@@ -9,6 +9,7 @@ import AccountContext
 import GlassBackgroundComponent
 import ComponentFlow
 import ComponentDisplayAdapters
+import TelegramUIPreferences
 
 private final class ItemNodeDeleteButtonNode: HighlightableButtonNode {
     private let pressed: () -> Void
@@ -697,6 +698,21 @@ public final class ChatListFilterTabContainerNode: ASDisplayNode {
     public func update(size containerSize: CGSize, sideInset containerSideInset: CGFloat, filters: [ChatListFilterTabEntry], selectedFilter: ChatListFilterTabEntryId?, isReordering: Bool, isEditing: Bool, canReorderAllChats: Bool, filtersLimit: Int32?, transitionFraction: CGFloat, presentationData: PresentationData, transition proposedTransition: ContainedViewLayoutTransition) {
         let isFirstTime = self.currentParams == nil
         let transition: ContainedViewLayoutTransition = isFirstTime ? .immediate : proposedTransition
+
+        // LuminaGram (#4): optionally hide the "All Chats" folder tab. Only ever hide it when at
+        // least one real folder remains, so the strip is never left empty. Default off => the
+        // incoming filters array is used verbatim (byte-identical to upstream).
+        let luminaSettings = LuminaSettingsCache.settings
+        var filters = filters
+        if luminaSettings.hideAllChatsFolder && filters.count > 1 {
+            filters = filters.filter { entry in
+                if case .all = entry {
+                    return false
+                } else {
+                    return true
+                }
+            }
+        }
         
         let backgroundSize = CGSize(width: containerSize.width - (16.0 - containerSideInset) * 2.0, height: 44.0)
         
@@ -876,7 +892,9 @@ public final class ChatListFilterTabContainerNode: ASDisplayNode {
             }
         }
         
-        let minSpacing: CGFloat = 26.0
+        // LuminaGram (#4): compact folder tabs tighten the inter-tab spacing. Default off => 26.0
+        // (the upstream constant).
+        let minSpacing: CGFloat = luminaSettings.compactFolderTabs ? 14.0 : 26.0
         
         let resolvedSideInset: CGFloat = 14.0
         var leftOffset: CGFloat = resolvedSideInset
@@ -891,6 +909,18 @@ public final class ChatListFilterTabContainerNode: ASDisplayNode {
         }
         longTitlesWidth += resolvedSideInset
         let useShortTitles = longTitlesWidth > backgroundSize.width
+
+        // LuminaGram (#8): wide folder tabs stretch the strip to fill the full width evenly, but
+        // only when the tabs already fit (no short titles) and there is more than one. Default off
+        // => interTabSpacing stays minSpacing, i.e. upstream layout.
+        var interTabSpacing = minSpacing
+        if luminaSettings.wideFolderTabs && !useShortTitles && tabSizes.count > 1 {
+            let available = backgroundSize.width - resolvedSideInset * 2.0
+            let proposed = (available - totalRawTabSize) / CGFloat(tabSizes.count - 1)
+            if proposed > minSpacing {
+                interTabSpacing = proposed
+            }
+        }
         
         for i in 0 ..< tabSizes.count {
             let (itemId, paneNodeLongSize, paneNodeShortSize, paneNode, wasAdded) = tabSizes[i]
@@ -924,9 +954,9 @@ public final class ChatListFilterTabContainerNode: ASDisplayNode {
             
             selectionFrames.append(paneFrame)
             
-            leftOffset += paneNodeSize.width + minSpacing
+            leftOffset += paneNodeSize.width + interTabSpacing
         }
-        leftOffset -= minSpacing
+        leftOffset -= interTabSpacing
         leftOffset += resolvedSideInset
         
         self.scrollNode.view.contentSize = CGSize(width: leftOffset, height: backgroundSize.height)

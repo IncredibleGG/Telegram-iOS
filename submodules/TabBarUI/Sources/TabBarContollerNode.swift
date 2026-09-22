@@ -168,6 +168,16 @@ final class TabBarControllerNode: ASDisplayNode {
         transition.updateAlpha(node: self.disabledOverlayNode, alpha: value ? 0.0 : 1.0)
     }
     
+    // LuminaGram (#3): hide the text labels under the tab-bar items. Default false => labels show.
+    var luminaHideTabTitles: Bool = false
+    
+    func updateLuminaHideTabTitles(_ value: Bool) {
+        if self.luminaHideTabTitles != value {
+            self.luminaHideTabTitles = value
+            self.requestUpdate()
+        }
+    }
+    
     var tabBarHidden = false {
         didSet {
             if self.tabBarHidden != oldValue {
@@ -283,7 +293,8 @@ final class TabBarControllerNode: ASDisplayNode {
                     )
                 },
                 selectedId: selectedId,
-                outerInsets: UIEdgeInsets(top: 0.0, left: sideInset, bottom: tabBarBottomInset, right: sideInset)
+                outerInsets: UIEdgeInsets(top: 0.0, left: sideInset, bottom: tabBarBottomInset, right: sideInset),
+                luminaHideTitles: self.luminaHideTabTitles
             )),
             environment: {},
             containerSize: CGSize(width: params.layout.size.width - sideInset * 2.0, height: 100.0)

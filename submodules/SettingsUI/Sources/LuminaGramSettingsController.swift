@@ -71,6 +71,7 @@ private enum LuminaGramSettingsEntry: ItemListNodeEntry {
     case privacy
     case tools
     case chat
+    case interface
     case notifications
     case storedLocallyFooter
 
@@ -94,10 +95,12 @@ private enum LuminaGramSettingsEntry: ItemListNodeEntry {
             return 5
         case .chat:
             return 6
-        case .notifications:
+        case .interface:
             return 7
-        case .storedLocallyFooter:
+        case .notifications:
             return 8
+        case .storedLocallyFooter:
+            return 9
         }
     }
 
@@ -134,6 +137,10 @@ private enum LuminaGramSettingsEntry: ItemListNodeEntry {
             return ItemListDisclosureItem(presentationData: presentationData, icon: PresentationResourcesSettings.chatFolders, title: LuminaL10n.tr("Chat"), label: "", sectionId: self.section, style: .blocks, action: {
                 arguments.pushController(luminaChatController(context: arguments.context))
             })
+        case .interface:
+            return ItemListDisclosureItem(presentationData: presentationData, icon: PresentationResourcesSettings.appearance, title: LuminaL10n.tr("Interface"), label: "", sectionId: self.section, style: .blocks, action: {
+                arguments.pushController(luminaInterfaceController(context: arguments.context))
+            })
         case .notifications:
             return ItemListDisclosureItem(presentationData: presentationData, icon: PresentationResourcesSettings.notifications, title: LuminaL10n.tr("Notifications"), label: "", sectionId: self.section, style: .blocks, action: {
                 arguments.pushController(luminaNotificationsController(context: arguments.context))
@@ -153,6 +160,7 @@ private func luminaGramSettingsControllerEntries() -> [LuminaGramSettingsEntry] 
         .privacy,
         .tools,
         .chat,
+        .interface,
         .notifications,
         .storedLocallyFooter
     ]

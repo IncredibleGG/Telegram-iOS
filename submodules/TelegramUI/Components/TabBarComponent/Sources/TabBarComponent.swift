@@ -354,6 +354,9 @@ public final class TabBarComponent: Component {
     public let search: Search?
     public let selectedId: AnyHashable?
     public let outerInsets: UIEdgeInsets
+    // LuminaGram (#3): force all tab items into their compact (icon-only, no text label) layout.
+    // Default false => labels show, i.e. upstream behavior.
+    public let luminaHideTitles: Bool
     
     public init(
         theme: PresentationTheme,
@@ -363,7 +366,8 @@ public final class TabBarComponent: Component {
         items: [Item],
         search: Search?,
         selectedId: AnyHashable?,
-        outerInsets: UIEdgeInsets
+        outerInsets: UIEdgeInsets,
+        luminaHideTitles: Bool = false
     ) {
         self.theme = theme
         self.tintSelectedItem = tintSelectedItem
@@ -373,6 +377,7 @@ public final class TabBarComponent: Component {
         self.search = search
         self.selectedId = selectedId
         self.outerInsets = outerInsets
+        self.luminaHideTitles = luminaHideTitles
     }
     
     public static func ==(lhs: TabBarComponent, rhs: TabBarComponent) -> Bool {
@@ -398,6 +403,9 @@ public final class TabBarComponent: Component {
             return false
         }
         if lhs.outerInsets != rhs.outerInsets {
+            return false
+        }
+        if lhs.luminaHideTitles != rhs.luminaHideTitles {
             return false
         }
         return true
@@ -766,7 +774,7 @@ public final class TabBarComponent: Component {
                     component: AnyComponent(ItemComponent(
                         item: item,
                         theme: component.theme,
-                        isCompact: component.search?.isActive == true,
+                        isCompact: component.luminaHideTitles || component.search?.isActive == true,
                         isSelected: false,
                         tintSelectedItem: component.tintSelectedItem,
                         isUnconstrained: false
@@ -779,7 +787,7 @@ public final class TabBarComponent: Component {
                     component: AnyComponent(ItemComponent(
                         item: item,
                         theme: component.theme,
-                        isCompact: component.search?.isActive == true,
+                        isCompact: component.luminaHideTitles || component.search?.isActive == true,
                         isSelected: true,
                         tintSelectedItem: component.tintSelectedItem,
                         isUnconstrained: false
