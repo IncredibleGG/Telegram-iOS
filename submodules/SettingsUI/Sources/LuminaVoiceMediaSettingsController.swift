@@ -32,6 +32,7 @@ private final class LuminaVoiceMediaSettingsControllerArguments {
     let updateSaveMediaToLuminaAlbum: (Bool) -> Void
     let updateSwipeVideoPip: (Bool) -> Void
     let updateSendLargePhotos: (Bool) -> Void
+    let updateTransferBoost: (Bool) -> Void
     let pickPhotoQuality: (Int32) -> Void
     let openReverseVoiceComposer: () -> Void
 
@@ -47,6 +48,7 @@ private final class LuminaVoiceMediaSettingsControllerArguments {
         updateSaveMediaToLuminaAlbum: @escaping (Bool) -> Void,
         updateSwipeVideoPip: @escaping (Bool) -> Void,
         updateSendLargePhotos: @escaping (Bool) -> Void,
+        updateTransferBoost: @escaping (Bool) -> Void,
         pickPhotoQuality: @escaping (Int32) -> Void,
         openReverseVoiceComposer: @escaping () -> Void
     ) {
@@ -61,6 +63,7 @@ private final class LuminaVoiceMediaSettingsControllerArguments {
         self.updateSaveMediaToLuminaAlbum = updateSaveMediaToLuminaAlbum
         self.updateSwipeVideoPip = updateSwipeVideoPip
         self.updateSendLargePhotos = updateSendLargePhotos
+        self.updateTransferBoost = updateTransferBoost
         self.pickPhotoQuality = pickPhotoQuality
         self.openReverseVoiceComposer = openReverseVoiceComposer
     }
@@ -72,6 +75,7 @@ private enum LuminaVoiceMediaSection: Int32 {
     case ocr
     case media
     case photos
+    case transfers
 }
 
 private enum LuminaVoiceMediaEntry: ItemListNodeEntry {
@@ -101,6 +105,10 @@ private enum LuminaVoiceMediaEntry: ItemListNodeEntry {
     case sendLargePhotos(Bool)
     case photosFooter
 
+    case transfersHeader
+    case transferBoost(Bool)
+    case transfersFooter
+
     var section: ItemListSectionId {
         switch self {
         case .voiceHeader, .sttAutoPipeline, .autoTranslateTranscript, .voiceFooter:
@@ -113,6 +121,8 @@ private enum LuminaVoiceMediaEntry: ItemListNodeEntry {
             return LuminaVoiceMediaSection.media.rawValue
         case .photosHeader, .photoQuality, .sendLargePhotos, .photosFooter:
             return LuminaVoiceMediaSection.photos.rawValue
+        case .transfersHeader, .transferBoost, .transfersFooter:
+            return LuminaVoiceMediaSection.transfers.rawValue
         }
     }
 
@@ -139,6 +149,9 @@ private enum LuminaVoiceMediaEntry: ItemListNodeEntry {
         case .photoQuality: return 18
         case .sendLargePhotos: return 19
         case .photosFooter: return 20
+        case .transfersHeader: return 21
+        case .transferBoost: return 22
+        case .transfersFooter: return 23
         }
     }
 
@@ -213,6 +226,14 @@ private enum LuminaVoiceMediaEntry: ItemListNodeEntry {
             })
         case .photosFooter:
             return ItemListTextItem(presentationData: presentationData, text: .plain(LuminaL10n.tr("Photos are sent through Telegram's normal upload. These options only change the compression quality and size before upload.")), sectionId: self.section)
+        case .transfersHeader:
+            return ItemListSectionHeaderItem(presentationData: presentationData, text: LuminaL10n.tr("FAST TRANSFERS (EXPERIMENTAL)"), sectionId: self.section)
+        case let .transferBoost(value):
+            return ItemListSwitchItem(presentationData: presentationData, title: LuminaL10n.tr("Speed Up Large File Transfers"), text: LuminaL10n.tr("Use larger upload and download chunks to move big files faster."), value: value, sectionId: self.section, style: .blocks, updated: { value in
+                arguments.updateTransferBoost(value)
+            })
+        case .transfersFooter:
+            return ItemListTextItem(presentationData: presentationData, text: .plain(LuminaL10n.tr("Experimental. Sends and receives files in larger pieces to speed up big transfers. If uploads or downloads start failing on your network, turn this off. Off by default - and when off, Telegram's standard transfer behavior is completely unchanged.")), sectionId: self.section)
         }
     }
 }
@@ -239,7 +260,10 @@ private func luminaVoiceMediaSettingsControllerEntries(settings: LuminaSettings)
         .photosHeader,
         .photoQuality(settings.outgoingPhotoQuality),
         .sendLargePhotos(settings.sendLargePhotos),
-        .photosFooter
+        .photosFooter,
+        .transfersHeader,
+        .transferBoost(settings.transferBoost),
+        .transfersFooter
     ]
 }
 
@@ -312,6 +336,13 @@ public func luminaVoiceMediaSettingsController(context: AccountContext) -> ViewC
             let _ = updateLuminaSettingsInteractively(accountManager: context.sharedContext.accountManager, { settings in
                 var settings = settings
                 settings.sendLargePhotos = value
+                return settings
+            }).start()
+        },
+        updateTransferBoost: { value in
+            let _ = updateLuminaSettingsInteractively(accountManager: context.sharedContext.accountManager, { settings in
+                var settings = settings
+                settings.transferBoost = value
                 return settings
             }).start()
         },

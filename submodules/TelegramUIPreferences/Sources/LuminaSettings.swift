@@ -309,6 +309,16 @@ public struct LuminaSettings: Codable, Equatable {
     // a fullscreen video enters picture-in-picture instead of dismissing. Mobile/touch only.
     public var swipeVideoPip: Bool
 
+    // #21 large-file transfer boost. Default false = the stock MTProto part-size and parallelism
+    // logic in MultipartUpload.swift / MultipartFetch.swift runs byte-for-byte unchanged (the
+    // TelegramCore-side LuminaTransferConfig also defaults to false, so nothing branches). When
+    // true, uploads and downloads use larger *server-valid* part sizes - all still a power of two
+    // dividing 1 MB and within the protocol limits (upload part <= 512 KB, download part <= 1 MB)
+    // - plus more parallel parts, to move big files faster. Pushed down into TelegramCore's
+    // LuminaTransferConfig by LuminaSettingsCache (this module sits above TelegramCore, which
+    // cannot read LuminaSettings directly).
+    public var transferBoost: Bool
+
     public static var defaultSettings: LuminaSettings {
         return LuminaSettings(
             trMode: "manual",
@@ -395,7 +405,8 @@ public struct LuminaSettings: Codable, Equatable {
             tabBarHideCalls: false,
             outgoingPhotoQuality: 0,
             sendLargePhotos: false,
-            swipeVideoPip: false
+            swipeVideoPip: false,
+            transferBoost: false
         )
     }
 
@@ -484,7 +495,8 @@ public struct LuminaSettings: Codable, Equatable {
         tabBarHideCalls: Bool,
         outgoingPhotoQuality: Int32,
         sendLargePhotos: Bool,
-        swipeVideoPip: Bool
+        swipeVideoPip: Bool,
+        transferBoost: Bool
     ) {
         self.trMode = trMode
         self.trReadLang = trReadLang
@@ -571,6 +583,7 @@ public struct LuminaSettings: Codable, Equatable {
         self.outgoingPhotoQuality = outgoingPhotoQuality
         self.sendLargePhotos = sendLargePhotos
         self.swipeVideoPip = swipeVideoPip
+        self.transferBoost = transferBoost
     }
 
     public init(from decoder: Decoder) throws {
@@ -668,6 +681,7 @@ public struct LuminaSettings: Codable, Equatable {
         self.outgoingPhotoQuality = try container.decodeIfPresent(Int32.self, forKey: "outgoingPhotoQuality") ?? defaults.outgoingPhotoQuality
         self.sendLargePhotos = try container.decodeIfPresent(Bool.self, forKey: "sendLargePhotos") ?? defaults.sendLargePhotos
         self.swipeVideoPip = try container.decodeIfPresent(Bool.self, forKey: "swipeVideoPip") ?? defaults.swipeVideoPip
+        self.transferBoost = try container.decodeIfPresent(Bool.self, forKey: "transferBoost") ?? defaults.transferBoost
     }
 
     public func encode(to encoder: Encoder) throws {
@@ -764,6 +778,7 @@ public struct LuminaSettings: Codable, Equatable {
         try container.encode(self.outgoingPhotoQuality, forKey: "outgoingPhotoQuality")
         try container.encode(self.sendLargePhotos, forKey: "sendLargePhotos")
         try container.encode(self.swipeVideoPip, forKey: "swipeVideoPip")
+        try container.encode(self.transferBoost, forKey: "transferBoost")
     }
 }
 

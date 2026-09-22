@@ -565,16 +565,37 @@ private final class MultipartFetchManager {
         }
         
         if isStory {
-            self.defaultPartSize = 512 * 1024
-            if let size = size, size > self.defaultPartSize {
-                self.parallelParts = 4
+            if LuminaTransferConfig.transferBoostEnabled {
+                // LuminaGram #21: 1 MB is the protocol maximum for upload.getFile and is exactly
+                // what the fetch loop already clamps every request down to (see checkState: it
+                // forces limit % 4096 == 0, forbids straddling a 1 MB boundary, and shrinks until
+                // 1048576 % limit == 0). Raising defaultPartSize only lets one aligned request
+                // carry a full 1 MB instead of 512 KB; the loop keeps every emitted limit
+                // server-valid regardless of this value.
+                self.defaultPartSize = 1024 * 1024
+                if let size = size, size > self.defaultPartSize {
+                    self.parallelParts = 8
+                } else {
+                    self.parallelParts = 1
+                }
             } else {
-                self.parallelParts = 1
+                self.defaultPartSize = 512 * 1024
+                if let size = size, size > self.defaultPartSize {
+                    self.parallelParts = 4
+                } else {
+                    self.parallelParts = 1
+                }
             }
         } else if let size = size {
             if size <= 512 * 1024 {
                 self.defaultPartSize = 16 * 1024
                 self.parallelParts = 4 * 4
+            } else if LuminaTransferConfig.transferBoostEnabled {
+                // LuminaGram #21: 1 MB parts (protocol max) instead of the stock 512 KB; the fetch
+                // loop below keeps every request 4 KB-aligned, within one 1 MB block, and a clean
+                // divisor of 1 MB, so offsets and limits stay valid at the larger size.
+                self.defaultPartSize = 1024 * 1024
+                self.parallelParts = 8
             } else {
                 self.defaultPartSize = 512 * 1024
                 self.parallelParts = 8

@@ -421,6 +421,10 @@ public enum LuminaL10n {
             "Swipe Down for Picture-in-Picture": "下滑进入画中画",
             "Swipe a full-screen video down to enter picture-in-picture instead of closing it.": "在全屏视频上向下滑动即可进入画中画，而不是关闭视频。",
             "Choose the JPEG quality for photos you send. Higher quality means larger uploads. Default keeps Telegram's standard quality.": "选择发送照片的 JPEG 质量。质量越高，上传越大。默认保持 Telegram 的标准质量。",
+            "FAST TRANSFERS (EXPERIMENTAL)": "快速传输（实验性）",
+            "Speed Up Large File Transfers": "加速大文件传输",
+            "Use larger upload and download chunks to move big files faster.": "使用更大的上传和下载分块，更快地传输大文件。",
+            "Experimental. Sends and receives files in larger pieces to speed up big transfers. If uploads or downloads start failing on your network, turn this off. Off by default - and when off, Telegram's standard transfer behavior is completely unchanged.": "实验性功能。以更大的分块收发文件，从而加速大文件传输。如果在你的网络上出现上传或下载失败，请关闭此项。默认关闭；关闭时，Telegram 的标准传输行为完全保持不变。",
             "Maximum (100%)": "最高（100%）",
         ],
         "zh-hant": [
@@ -787,6 +791,10 @@ public enum LuminaL10n {
             "Swipe Down for Picture-in-Picture": "下滑進入子母畫面",
             "Swipe a full-screen video down to enter picture-in-picture instead of closing it.": "在全螢幕影片上向下滑動即可進入子母畫面，而不是關閉影片。",
             "Choose the JPEG quality for photos you send. Higher quality means larger uploads. Default keeps Telegram's standard quality.": "選擇傳送照片的 JPEG 品質。品質越高，上傳越大。預設保持 Telegram 的標準品質。",
+            "FAST TRANSFERS (EXPERIMENTAL)": "快速傳輸（實驗性）",
+            "Speed Up Large File Transfers": "加速大型檔案傳輸",
+            "Use larger upload and download chunks to move big files faster.": "使用更大的上傳和下載分塊，更快地傳輸大型檔案。",
+            "Experimental. Sends and receives files in larger pieces to speed up big transfers. If uploads or downloads start failing on your network, turn this off. Off by default - and when off, Telegram's standard transfer behavior is completely unchanged.": "實驗性功能。以更大的分塊收發檔案，從而加速大型檔案傳輸。如果在你的網路上出現上傳或下載失敗，請關閉此項。預設關閉；關閉時，Telegram 的標準傳輸行為完全保持不變。",
             "Maximum (100%)": "最高（100%）",
         ],
     ]

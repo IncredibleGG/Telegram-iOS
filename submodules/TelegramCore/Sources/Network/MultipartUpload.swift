@@ -8,6 +8,27 @@ import ManagedFile
 
 private typealias SignalKitTimer = SwiftSignalKit.Timer
 
+// LuminaGram feature #21 (transferBoost): a process-wide, thread-safe mirror of
+// LuminaSettings.transferBoost. TelegramUIPreferences - where LuminaSettings and
+// LuminaSettingsCache live - sits ABOVE TelegramCore, so this low layer cannot read the
+// setting directly; instead LuminaSettingsCache pushes the value down here via
+// setTransferBoostEnabled(_:) whenever the SharedData entry changes. Default false => every
+// stock part-size and parallelism decision in MultipartUpload / MultipartFetch runs
+// byte-for-byte unchanged (the OFF code paths below are never entered). Only when true do those
+// files branch into larger, still server-valid part sizes. Mirrors desktop's
+// lumina_exif_strip.cpp `Enabled` atomic - a synchronous mirror of an async-loaded preference.
+public final class LuminaTransferConfig {
+    private static let value = Atomic<Bool>(value: false)
+
+    public static func setTransferBoostEnabled(_ enabled: Bool) {
+        let _ = value.swap(enabled)
+    }
+
+    public static var transferBoostEnabled: Bool {
+        return value.with { $0 }
+    }
+}
+
 
 private struct UploadPart {
     let fileId: Int64
@@ -152,6 +173,10 @@ private final class MultipartUploadManager {
         
         if increaseParallelParts {
             self.parallelParts = 30
+        } else if LuminaTransferConfig.transferBoostEnabled {
+            // LuminaGram #21: more concurrent parts to fill the pipe on large uploads. Each part
+            // carries its own offset/index, so extra parallelism cannot corrupt data - only speed.
+            self.parallelParts = 8
         } else {
             self.parallelParts = 3
         }
@@ -183,6 +208,14 @@ private final class MultipartUploadManager {
         } else if useLargerParts {
             self.bigParts = false
             self.defaultPartSize = 256 * 1024
+            self.bigTotalParts = nil
+        } else if LuminaTransferConfig.transferBoostEnabled {
+            // LuminaGram #21: 512 KB is the largest server-valid upload part - a power of two with
+            // 524288 % 524288 == 0 - i.e. 4x the stock 128 KB non-big part. partIndex and the
+            // effective/big part counts below all divide by self.defaultPartSize, so raising it
+            // keeps every offset aligned and every count correct.
+            self.bigParts = false
+            self.defaultPartSize = 512 * 1024
             self.bigTotalParts = nil
         } else {
             self.bigParts = false
@@ -234,6 +267,9 @@ private final class MultipartUploadManager {
                     self.bigParts = false
                     if self.useLargerParts {
                         self.defaultPartSize = 256 * 1024
+                    } else if LuminaTransferConfig.transferBoostEnabled {
+                        // LuminaGram #21: 512 KB max server-valid upload part (vs stock 16 KB here).
+                        self.defaultPartSize = 512 * 1024
                     } else {
                         self.defaultPartSize = 16 * 1024
                     }

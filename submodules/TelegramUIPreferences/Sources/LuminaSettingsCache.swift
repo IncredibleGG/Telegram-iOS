@@ -59,6 +59,10 @@ public final class LuminaSettingsCache {
             }
             let settings = sharedData.entries[ApplicationSpecificSharedDataKeys.luminaSettings]?.get(LuminaSettings.self) ?? .defaultSettings
             let _ = self.atomic.swap(settings)
+            // LuminaGram #21: push the transfer-boost flag down into TelegramCore, which sits
+            // below this module and cannot read LuminaSettings itself. Default false keeps the
+            // stock MTProto part-size / parallelism logic byte-identical.
+            LuminaTransferConfig.setTransferBoostEnabled(settings.transferBoost)
             self.changesPipe.putNext(settings)
         })
     }
