@@ -1146,6 +1146,11 @@ final class ChatListControllerNode: ASDisplayNode, ASGestureRecognizerDelegate {
     weak var controller: ChatListControllerImpl?
     
     private var toolbar: ComponentView<Empty>?
+
+    // LuminaGram: folders-at-bottom - the folder tab strip hosted at the bottom of the chat
+    // list instead of inside the navigation bar. Both nil (and untouched) when the flag is off.
+    private var bottomFoldersView: ComponentView<Empty>?
+    private var pendingBottomFoldersTabs: AnyComponent<Empty>?
     var toolbarData: Toolbar?
     var toolbarActionSelected: ((ToolbarActionOption) -> Void)?
     
@@ -1650,9 +1655,17 @@ final class ChatListControllerNode: ASDisplayNode, ASGestureRecognizerDelegate {
                 ))
             }
                 
+            // LuminaGram: folders-at-bottom - when enabled, keep any other header panels (media
+            // playback, live location) at the top but pull the folder tab strip out of the
+            // navigation bar (tabs: nil here, which drives the nav bar to the existing zero-height
+            // header-panel path) and stash it for rendering at the bottom in containerLayoutUpdated.
+            // When disabled, `foldersAtBottom ? nil : tabs` is exactly `tabs` and
+            // pendingBottomFoldersTabs is nil, so the stock top layout is byte-identical.
+            let luminaFoldersAtBottom = LuminaSettingsCache.shared.current().foldersAtBottom
+            self.pendingBottomFoldersTabs = luminaFoldersAtBottom ? tabs : nil
             navigationHeaderPanels = AnyComponent(HeaderPanelContainerComponent(
                 theme: self.presentationData.theme,
-                tabs: tabs,
+                tabs: luminaFoldersAtBottom ? nil : tabs,
                 panels: panels
             ))
         }
@@ -1855,6 +1868,18 @@ final class ChatListControllerNode: ASDisplayNode, ASGestureRecognizerDelegate {
         insets.top += navigationBarHeight
         insets.left += layout.safeInsets.left
         insets.right += layout.safeInsets.right
+
+        // LuminaGram: folders-at-bottom - reserve room below the chat list for the bottom folder
+        // strip. Every value here is inert when the flag is off (the block is not entered).
+        let luminaFoldersAtBottom = LuminaSettingsCache.shared.current().foldersAtBottom
+        let luminaHasFolderTabs = (self.controller?.tabContainerData?.0.count ?? 0) > 1
+        let luminaFoldersAtBottomActive = luminaFoldersAtBottom && luminaHasFolderTabs && self.isSearchDisplayControllerActive == nil
+        let luminaFoldersStripHeight: CGFloat = 40.0
+        let luminaFoldersStripReserved: CGFloat = luminaFoldersStripHeight + 6.0
+        let luminaFoldersOriginalBottomInset = insets.bottom
+        if luminaFoldersAtBottomActive {
+            insets.bottom += luminaFoldersStripReserved
+        }
         
         if let toolbarData = self.toolbarData {
             var panelsBottomInset: CGFloat = layout.insets(options: []).bottom
@@ -1967,6 +1992,31 @@ final class ChatListControllerNode: ASDisplayNode, ASGestureRecognizerDelegate {
             mainInsets.top = visualNavigationHeight
         }
         self.mainContainerNode.update(layout: layout, navigationBarHeight: mainNavigationBarHeight, visualNavigationHeight: visualNavigationHeight, originalNavigationHeight: navigationBarHeight, cleanNavigationBarHeight: cleanMainNavigationBarHeight, insets: mainInsets, isReorderingFilters: self.isReorderingFilters, isEditing: self.isEditing, inlineNavigationLocation: self.inlineStackContainerNode?.location, inlineNavigationTransitionFraction: self.inlineStackContainerTransitionFraction, storiesInset: storiesInset, transition: transition)
+
+        // LuminaGram: folders-at-bottom - render/position the folder tab strip pinned just above
+        // the bottom tab bar, or tear it down when the flag is off / search is active / no folders.
+        if luminaFoldersAtBottomActive, let bottomTabs = self.pendingBottomFoldersTabs {
+            let stripSideInset: CGFloat = 16.0 + layout.safeInsets.left
+            let stripWidth = max(0.0, layout.size.width - stripSideInset - (16.0 + layout.safeInsets.right))
+            let stripFrame = CGRect(origin: CGPoint(x: stripSideInset, y: layout.size.height - luminaFoldersOriginalBottomInset - luminaFoldersStripReserved + 3.0), size: CGSize(width: stripWidth, height: luminaFoldersStripHeight))
+            let bottomView: ComponentView<Empty>
+            if let current = self.bottomFoldersView {
+                bottomView = current
+            } else {
+                bottomView = ComponentView()
+                self.bottomFoldersView = bottomView
+            }
+            let _ = bottomView.update(transition: ComponentTransition(transition), component: bottomTabs, environment: {}, containerSize: stripFrame.size)
+            if let view = bottomView.view {
+                if view.superview == nil {
+                    self.view.addSubview(view)
+                }
+                transition.updateFrame(view: view, frame: stripFrame)
+            }
+        } else if let bottomView = self.bottomFoldersView {
+            self.bottomFoldersView = nil
+            bottomView.view?.removeFromSuperview()
+        }
         
         if let inlineStackContainerNode = self.inlineStackContainerNode {
             var inlineStackContainerNodeTransition = transition

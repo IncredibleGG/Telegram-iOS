@@ -82,6 +82,7 @@ private enum LuminaInterfaceEntry: ItemListNodeEntry {
     case compactFolderTabs(Bool)
     case wideFolderTabs(Bool)
     case rememberLastFolder(Bool)
+    case foldersAtBottom(Bool)
     case foldersFooter
 
     case appIconHeader
@@ -92,7 +93,7 @@ private enum LuminaInterfaceEntry: ItemListNodeEntry {
         switch self {
         case .tabBarHeader, .hideTabBar, .tabBarHideLabels, .tabBarHideContacts, .tabBarHideCalls, .tabBarFooter:
             return LuminaInterfaceSection.tabBar.rawValue
-        case .foldersHeader, .hideAllChatsFolder, .compactFolderTabs, .wideFolderTabs, .rememberLastFolder, .foldersFooter:
+        case .foldersHeader, .hideAllChatsFolder, .compactFolderTabs, .wideFolderTabs, .rememberLastFolder, .foldersAtBottom, .foldersFooter:
             return LuminaInterfaceSection.folders.rawValue
         case .appIconHeader, .appIcon, .appIconFooter:
             return LuminaInterfaceSection.appIcon.rawValue
@@ -123,8 +124,10 @@ private enum LuminaInterfaceEntry: ItemListNodeEntry {
             return 13
         case .rememberLastFolder:
             return 14
-        case .foldersFooter:
+        case .foldersAtBottom:
             return 15
+        case .foldersFooter:
+            return 16
         case .appIconHeader:
             return 20
         case .appIcon:
@@ -211,6 +214,14 @@ private enum LuminaInterfaceEntry: ItemListNodeEntry {
                     return settings
                 }
             })
+        case let .foldersAtBottom(value):
+            return ItemListSwitchItem(presentationData: presentationData, title: LuminaL10n.tr("Folders at Bottom"), text: LuminaL10n.tr("Move the folder tab bar to the bottom of the chat list for easier one-handed reach."), value: value, sectionId: self.section, style: .blocks, updated: { value in
+                arguments.updateSettings { settings in
+                    var settings = settings
+                    settings.foldersAtBottom = value
+                    return settings
+                }
+            })
         case .foldersFooter:
             return ItemListTextItem(presentationData: presentationData, text: .plain(LuminaL10n.tr("LuminaGram options are stored on this device only and are never synced to Telegram.")), sectionId: self.section)
         case .appIconHeader:
@@ -240,6 +251,7 @@ private func luminaInterfaceControllerEntries(settings: LuminaSettings) -> [Lumi
     entries.append(.compactFolderTabs(settings.compactFolderTabs))
     entries.append(.wideFolderTabs(settings.wideFolderTabs))
     entries.append(.rememberLastFolder(settings.rememberLastFolder))
+    entries.append(.foldersAtBottom(settings.foldersAtBottom))
     entries.append(.foldersFooter)
 
     entries.append(.appIconHeader)

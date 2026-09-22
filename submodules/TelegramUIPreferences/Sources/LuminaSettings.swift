@@ -286,6 +286,10 @@ public struct LuminaSettings: Codable, Equatable {
     public var tabBarHideLabels: Bool
     public var tabBarHideContacts: Bool
     public var tabBarHideCalls: Bool
+    // foldersAtBottom: move the chat-folder tab strip from its stock position (top, inside the
+    //   navigation bar) to the bottom of the chat list, above the tab bar, for one-handed reach.
+    //   Default false = the stock top layout is untouched and byte-identical to upstream.
+    public var foldersAtBottom: Bool
 
     // MARK: Media send (LuminaGram, Batch 8)
     //
@@ -403,6 +407,7 @@ public struct LuminaSettings: Codable, Equatable {
             tabBarHideLabels: false,
             tabBarHideContacts: false,
             tabBarHideCalls: false,
+            foldersAtBottom: false,
             outgoingPhotoQuality: 0,
             sendLargePhotos: false,
             swipeVideoPip: false,
@@ -493,6 +498,7 @@ public struct LuminaSettings: Codable, Equatable {
         tabBarHideLabels: Bool,
         tabBarHideContacts: Bool,
         tabBarHideCalls: Bool,
+        foldersAtBottom: Bool,
         outgoingPhotoQuality: Int32,
         sendLargePhotos: Bool,
         swipeVideoPip: Bool,
@@ -580,6 +586,7 @@ public struct LuminaSettings: Codable, Equatable {
         self.tabBarHideLabels = tabBarHideLabels
         self.tabBarHideContacts = tabBarHideContacts
         self.tabBarHideCalls = tabBarHideCalls
+        self.foldersAtBottom = foldersAtBottom
         self.outgoingPhotoQuality = outgoingPhotoQuality
         self.sendLargePhotos = sendLargePhotos
         self.swipeVideoPip = swipeVideoPip
@@ -677,6 +684,7 @@ public struct LuminaSettings: Codable, Equatable {
         self.tabBarHideLabels = try container.decodeIfPresent(Bool.self, forKey: "tabBarHideLabels") ?? defaults.tabBarHideLabels
         self.tabBarHideContacts = try container.decodeIfPresent(Bool.self, forKey: "tabBarHideContacts") ?? defaults.tabBarHideContacts
         self.tabBarHideCalls = try container.decodeIfPresent(Bool.self, forKey: "tabBarHideCalls") ?? defaults.tabBarHideCalls
+        self.foldersAtBottom = try container.decodeIfPresent(Bool.self, forKey: "foldersAtBottom") ?? defaults.foldersAtBottom
 
         self.outgoingPhotoQuality = try container.decodeIfPresent(Int32.self, forKey: "outgoingPhotoQuality") ?? defaults.outgoingPhotoQuality
         self.sendLargePhotos = try container.decodeIfPresent(Bool.self, forKey: "sendLargePhotos") ?? defaults.sendLargePhotos
@@ -774,6 +782,7 @@ public struct LuminaSettings: Codable, Equatable {
         try container.encode(self.tabBarHideLabels, forKey: "tabBarHideLabels")
         try container.encode(self.tabBarHideContacts, forKey: "tabBarHideContacts")
         try container.encode(self.tabBarHideCalls, forKey: "tabBarHideCalls")
+        try container.encode(self.foldersAtBottom, forKey: "foldersAtBottom")
 
         try container.encode(self.outgoingPhotoQuality, forKey: "outgoingPhotoQuality")
         try container.encode(self.sendLargePhotos, forKey: "sendLargePhotos")
