@@ -225,7 +225,7 @@ func infoItems(
                 registrationText = "~" + stringForMonth(strings: presentationData.strings, month: month, ofYear: year)
             }
             if let registrationText {
-                items[currentPeerInfoSection]!.append(PeerInfoScreenLabeledValueItem(id: ItemRegistrationDate, label: LuminaL10n.tr("Registration"), text: registrationText, textColor: .primary, action: nil, requestLayout: { animated in
+                items[currentPeerInfoSection]!.append(PeerInfoScreenLabeledValueItem(id: ItemRegistrationDate, label: LuminaL10n.tr("Registration"), text: registrationText, textColor: .primary, leadingIcon: PresentationResourcesSettings.luminaInfoCreated, action: nil, requestLayout: { animated in
                     interaction.requestLayout(animated)
                 }))
             }
@@ -235,7 +235,7 @@ func infoItems(
         // (mirrors Android's always-on ProfileActivity ID line). Local display of data the
         // client already holds; tap copies it.
         let luminaUserIdText = "\(user.id.id._internalGetInt64Value())"
-        items[currentPeerInfoSection]!.append(PeerInfoScreenLabeledValueItem(id: ItemLuminaUserId, label: "ID", text: luminaUserIdText, textColor: .accent, action: { _, _ in
+        items[currentPeerInfoSection]!.append(PeerInfoScreenLabeledValueItem(id: ItemLuminaUserId, label: "ID", text: luminaUserIdText, textColor: .accent, leadingIcon: PresentationResourcesSettings.luminaInfoId, action: { _, _ in
             UIPasteboard.general.string = luminaUserIdText
             if let controller = interaction.getController() {
                 controller.present(UndoOverlayController(presentationData: presentationData, content: .copy(text: LuminaL10n.tr("ID copied")), elevatedLayout: false, animateInAsReplacement: false, action: { _ in return false }), in: .current)
@@ -697,7 +697,7 @@ func infoItems(
             // "Unknown" rather than a fabricated value. Pure local render of data the client
             // already holds - nothing here calls the server.
             let luminaChatIdText = "-100\(channel.id.id._internalGetInt64Value())"
-            items[currentPeerInfoSection]!.append(PeerInfoScreenLabeledValueItem(id: ItemLuminaChatId, label: "ID", text: luminaChatIdText, textColor: .accent, action: { _, _ in
+            items[currentPeerInfoSection]!.append(PeerInfoScreenLabeledValueItem(id: ItemLuminaChatId, label: "ID", text: luminaChatIdText, textColor: .accent, leadingIcon: PresentationResourcesSettings.luminaInfoId, action: { _, _ in
                 UIPasteboard.general.string = luminaChatIdText
                 if let controller = interaction.getController() {
                     controller.present(UndoOverlayController(presentationData: presentationData, content: .copy(text: LuminaL10n.tr("ID copied")), elevatedLayout: false, animateInAsReplacement: false, action: { _ in return false }), in: .current)
@@ -713,7 +713,7 @@ func infoItems(
             // (never fall back to the join date under a "Created" label).
             if let luminaCreationTimestamp = data.channelCreationTimestamp, luminaCreationTimestamp > 0 {
                 let luminaCreationText = stringForMediumDate(timestamp: luminaCreationTimestamp, strings: presentationData.strings, dateTimeFormat: presentationData.dateTimeFormat, withTime: false)
-                items[currentPeerInfoSection]!.append(PeerInfoScreenLabeledValueItem(id: ItemLuminaChatCreationDate, label: LuminaL10n.tr("Created"), text: luminaCreationText, textColor: .primary, action: nil, requestLayout: { animated in
+                items[currentPeerInfoSection]!.append(PeerInfoScreenLabeledValueItem(id: ItemLuminaChatCreationDate, label: LuminaL10n.tr("Created"), text: luminaCreationText, textColor: .primary, leadingIcon: PresentationResourcesSettings.luminaInfoCreated, action: nil, requestLayout: { animated in
                     interaction.requestLayout(animated)
                 }))
             }
@@ -949,7 +949,7 @@ func infoItems(
         let ItemLuminaChatId = 90001
         let ItemLuminaChatCreationDate = 90002
         let luminaChatIdText = "-\(group.id.id._internalGetInt64Value())"
-        items[currentPeerInfoSection]!.append(PeerInfoScreenLabeledValueItem(id: ItemLuminaChatId, label: "ID", text: luminaChatIdText, textColor: .accent, action: { _, _ in
+        items[currentPeerInfoSection]!.append(PeerInfoScreenLabeledValueItem(id: ItemLuminaChatId, label: "ID", text: luminaChatIdText, textColor: .accent, leadingIcon: PresentationResourcesSettings.luminaInfoId, action: { _, _ in
             UIPasteboard.general.string = luminaChatIdText
             if let controller = interaction.getController() {
                 controller.present(UndoOverlayController(presentationData: presentationData, content: .copy(text: LuminaL10n.tr("ID copied")), elevatedLayout: false, animateInAsReplacement: false, action: { _ in return false }), in: .current)
@@ -963,7 +963,7 @@ func infoItems(
         // when unavailable (0).
         if group.creationDate > 0 {
             let luminaCreationText = stringForMediumDate(timestamp: group.creationDate, strings: presentationData.strings, dateTimeFormat: presentationData.dateTimeFormat, withTime: false)
-            items[currentPeerInfoSection]!.append(PeerInfoScreenLabeledValueItem(id: ItemLuminaChatCreationDate, label: LuminaL10n.tr("Created"), text: luminaCreationText, textColor: .primary, action: nil, requestLayout: { animated in
+            items[currentPeerInfoSection]!.append(PeerInfoScreenLabeledValueItem(id: ItemLuminaChatCreationDate, label: LuminaL10n.tr("Created"), text: luminaCreationText, textColor: .primary, leadingIcon: PresentationResourcesSettings.luminaInfoCreated, action: nil, requestLayout: { animated in
                 interaction.requestLayout(animated)
             }))
         }

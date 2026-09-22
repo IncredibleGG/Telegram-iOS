@@ -75,6 +75,7 @@ final class PeerInfoScreenLabeledValueItem: PeerInfoScreenItem {
     let textBehavior: PeerInfoScreenLabeledValueTextBehavior
     let leftIcon: PeerInfoScreenLabeledValueLeftIcon?
     let icon: PeerInfoScreenLabeledValueIcon?
+    let leadingIcon: UIImage?
     let action: ((ASDisplayNode, Promise<Bool>?) -> Void)?
     let longTapAction: ((ASDisplayNode) -> Void)?
     let linkItemAction: ((TextLinkItemActionType, TextLinkItem, ASDisplayNode, CGRect?, Promise<Bool>?) -> Void)?
@@ -96,6 +97,7 @@ final class PeerInfoScreenLabeledValueItem: PeerInfoScreenItem {
         textBehavior: PeerInfoScreenLabeledValueTextBehavior = .singleLine,
         leftIcon: PeerInfoScreenLabeledValueLeftIcon? = nil,
         icon: PeerInfoScreenLabeledValueIcon? = nil,
+        leadingIcon: UIImage? = nil,
         action: ((ASDisplayNode, Promise<Bool>?) -> Void)?,
         longTapAction: ((ASDisplayNode) -> Void)? = nil,
         linkItemAction: ((TextLinkItemActionType, TextLinkItem, ASDisplayNode, CGRect?, Promise<Bool>?) -> Void)? = nil,
@@ -116,6 +118,7 @@ final class PeerInfoScreenLabeledValueItem: PeerInfoScreenItem {
         self.textBehavior = textBehavior
         self.leftIcon = leftIcon
         self.icon = icon
+        self.leadingIcon = leadingIcon
         self.action = action
         self.longTapAction = longTapAction
         self.linkItemAction = linkItemAction
@@ -172,6 +175,7 @@ private final class PeerInfoScreenLabeledValueItemNode: PeerInfoScreenItemNode {
     private let expandButonNode: HighlightTrackingButtonNode
     
     private let iconNode: ASImageNode
+    private let leadingIconNode: ASImageNode
     private let iconButtonNode: HighlightTrackingButtonNode
     
     private var animatedEmojiLayer: InlineStickerItemLayer?
@@ -244,6 +248,12 @@ private final class PeerInfoScreenLabeledValueItemNode: PeerInfoScreenItemNode {
         self.iconNode.contentMode = .center
         self.iconNode.displaysAsynchronously = false
         
+        self.leadingIconNode = ASImageNode()
+        self.leadingIconNode.isLayerBacked = true
+        self.leadingIconNode.displaysAsynchronously = false
+        self.leadingIconNode.displayWithoutProcessing = true
+        self.leadingIconNode.isUserInteractionEnabled = false
+        
         self.iconButtonNode = HighlightTrackingButtonNode()
         
         self.activateArea = AccessibilityAreaNode()
@@ -274,6 +284,7 @@ private final class PeerInfoScreenLabeledValueItemNode: PeerInfoScreenItemNode {
         self.contextSourceNode.contentNode.addSubnode(self.expandNode)
         self.contextSourceNode.contentNode.addSubnode(self.expandButonNode)
         
+        self.contextSourceNode.contentNode.addSubnode(self.leadingIconNode)
         self.contextSourceNode.contentNode.addSubnode(self.iconNode)
         self.contextSourceNode.contentNode.addSubnode(self.iconButtonNode)
         
@@ -489,6 +500,18 @@ private final class PeerInfoScreenLabeledValueItemNode: PeerInfoScreenItemNode {
         }
                 
         let sideInset: CGFloat = 16.0 + safeInsets.left
+        // LuminaGram: optional leading settings-style icon (mirrors PeerInfoScreenDisclosureItem),
+        // used to align/beautify the otherwise bare ID / Created info rows inside the card.
+        let leadingIconInset: CGFloat = item.leadingIcon != nil ? 29.0 + 16.0 : 0.0
+        let contentLeftInset: CGFloat = sideInset + leadingIconInset
+        let separatorInset: CGFloat = leadingIconInset > 0.0 ? contentLeftInset - 1.0 : sideInset
+        if let leadingIcon = item.leadingIcon {
+            self.leadingIconNode.image = leadingIcon
+            self.leadingIconNode.isHidden = false
+        } else {
+            self.leadingIconNode.image = nil
+            self.leadingIconNode.isHidden = true
+        }
         
         self.bottomSeparatorNode.backgroundColor = presentationData.theme.list.itemBlocksSeparatorColor
         
@@ -596,7 +619,7 @@ private final class PeerInfoScreenLabeledValueItemNode: PeerInfoScreenItemNode {
                 self.textNode.attributedText = createAttributedText(text)
             }
             
-            let textLayout = self.measureTextNode.updateLayoutInfo(CGSize(width: width - sideInset * 2.0 - additionalSideInset, height: .greatestFiniteMagnitude))
+            let textLayout = self.measureTextNode.updateLayoutInfo(CGSize(width: width - contentLeftInset - sideInset - additionalSideInset, height: .greatestFiniteMagnitude))
             var collapsedNumberOfLines = 3
             if textLayout.numberOfLines == 4 {
                 collapsedNumberOfLines = 4
@@ -607,12 +630,12 @@ private final class PeerInfoScreenLabeledValueItemNode: PeerInfoScreenItemNode {
         }
         
 
-        let labelSize = self.labelNode.updateLayout(CGSize(width: width - sideInset * 2.0, height: .greatestFiniteMagnitude))
+        let labelSize = self.labelNode.updateLayout(CGSize(width: width - contentLeftInset - sideInset, height: .greatestFiniteMagnitude))
         let rightLabelSize = self.rightLabelNode.updateLayout(CGSize(width: width - sideInset * 2.0, height: .greatestFiniteMagnitude))
-        let textLayout = self.textNode.updateLayoutInfo(CGSize(width: width - sideInset * 2.0 - additionalSideInset, height: .greatestFiniteMagnitude))
+        let textLayout = self.textNode.updateLayoutInfo(CGSize(width: width - contentLeftInset - sideInset - additionalSideInset, height: .greatestFiniteMagnitude))
         let textSize = textLayout.size
         
-        let additionalTextSize = self.additionalTextNode.updateLayout(CGSize(width: width - sideInset * 2.0, height: .greatestFiniteMagnitude))
+        let additionalTextSize = self.additionalTextNode.updateLayout(CGSize(width: width - contentLeftInset - sideInset, height: .greatestFiniteMagnitude))
         
         var displayMore = false
         if !self.isExpanded {
@@ -633,18 +656,18 @@ private final class PeerInfoScreenLabeledValueItemNode: PeerInfoScreenItemNode {
         
         var topOffset = 15.0
         var height = topOffset * 2.0
-        let labelFrame = CGRect(origin: CGPoint(x: sideInset, y: topOffset), size: labelSize)
+        let labelFrame = CGRect(origin: CGPoint(x: contentLeftInset, y: topOffset), size: labelSize)
         let rightLabelFrame = CGRect(origin: CGPoint(x: width - sideInset - rightLabelSize.width, y: topOffset), size: rightLabelSize)
         if labelSize.height > 0.0 {
             topOffset += labelSize.height + 3.0
             height += labelSize.height + 3.0
         }
-        var textFrame = CGRect(origin: CGPoint(x: sideInset, y: topOffset), size: textSize)
+        var textFrame = CGRect(origin: CGPoint(x: contentLeftInset, y: topOffset), size: textSize)
         if textSize.height > 0.0 {
             topOffset += textSize.height + 3.0
             height += textSize.height
         }
-        let additionalTextFrame = CGRect(origin: CGPoint(x: sideInset, y: topOffset), size: additionalTextSize)
+        let additionalTextFrame = CGRect(origin: CGPoint(x: contentLeftInset, y: topOffset), size: additionalTextSize)
         
         if let context = item.context, let leftIcon = item.leftIcon {
             var file: TelegramMediaFile?
@@ -721,7 +744,7 @@ private final class PeerInfoScreenLabeledValueItemNode: PeerInfoScreenItemNode {
             spoilerTextNode.textStroke = self.textNode.textStroke
             spoilerTextNode.isUserInteractionEnabled = false
             
-            let _ = spoilerTextNode.updateLayout(CGSize(width: width - sideInset * 2.0 - additionalSideInset, height: .greatestFiniteMagnitude))
+            let _ = spoilerTextNode.updateLayout(CGSize(width: width - contentLeftInset - sideInset - additionalSideInset, height: .greatestFiniteMagnitude))
             spoilerTextNode.frame = textFrame
             
             if spoilerTextNode.supernode == nil {
@@ -798,13 +821,18 @@ private final class PeerInfoScreenLabeledValueItemNode: PeerInfoScreenItemNode {
             }
         }
         
+        if let leadingIconImage = self.leadingIconNode.image {
+            let leadingIconSize = leadingIconImage.size
+            transition.updateFrame(node: self.leadingIconNode, frame: CGRect(origin: CGPoint(x: sideInset, y: floorToScreenPixels((height - leadingIconSize.height) / 2.0)), size: leadingIconSize))
+        }
+        
         let highlightNodeOffset: CGFloat = topItem == nil ? 0.0 : UIScreenPixel
         self.selectionNode.update(size: CGSize(width: width, height: height + highlightNodeOffset), theme: presentationData.theme, transition: transition)
         transition.updateFrame(node: self.selectionNode, frame: CGRect(origin: CGPoint(x: 0.0, y: -highlightNodeOffset), size: CGSize(width: width, height: height + highlightNodeOffset)))
         
         let separatorRightInset: CGFloat = 16.0
         
-        transition.updateFrame(node: self.bottomSeparatorNode, frame: CGRect(origin: CGPoint(x: sideInset, y: height - UIScreenPixel), size: CGSize(width: width - sideInset - separatorRightInset, height: UIScreenPixel)))
+        transition.updateFrame(node: self.bottomSeparatorNode, frame: CGRect(origin: CGPoint(x: separatorInset, y: height - UIScreenPixel), size: CGSize(width: width - separatorInset - separatorRightInset, height: UIScreenPixel)))
         transition.updateAlpha(node: self.bottomSeparatorNode, alpha: bottomItem == nil ? 0.0 : 1.0)
         
         let hasCorners = hasCorners && (topItem == nil || bottomItem == nil)

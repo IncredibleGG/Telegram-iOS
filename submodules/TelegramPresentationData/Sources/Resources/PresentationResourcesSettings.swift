@@ -337,6 +337,9 @@ public struct PresentationResourcesSettings {
     public static let settings = renderSettingsIcon(name: "Item List/Icons/Settings", backgroundColors: [colorOrange])
     public static let antiSpam = renderSettingsIcon(name: "Item List/Icons/AntiSpam", backgroundColors: [colorGreen])
     public static let recentActions = renderSettingsIcon(name: "Item List/Icons/View", backgroundColors: [colorOrange])
+    // LuminaGram: leading icons for the beautified profile info rows (ID / Created date).
+    public static let luminaInfoId = renderSettingsIcon(name: "Item List/Icons/Tag", backgroundColors: [colorBlue])
+    public static let luminaInfoCreated = renderSettingsIcon(name: "Item List/Icons/Clock", backgroundColors: [colorOrange])
     public static let permissions = renderSettingsIcon(name: "Item List/Icons/Key", backgroundColors: [colorGray])
     public static let autoTranslate = renderSettingsIcon(name: "Item List/Icons/Translation", backgroundColors: [colorPurple])
     public static let emojiStatus = renderSettingsIcon(name: "Item List/Icons/Status", backgroundColors: [colorBlue])
