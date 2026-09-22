@@ -193,6 +193,17 @@ public struct LuminaSettings: Codable, Equatable {
     //   measure/layout, so no empty gap is left behind). Default false = stock behavior.
     public var hideReactions: Bool
 
+    // MARK: Chat list (LuminaGram)
+    //
+    // chatListPreviewLines: number of message-preview lines each chat-list row shows.
+    //   0 = follow stock behavior (2 lines for private chats, 1 alongside an author line);
+    //   1/2/3 = force that many preview lines and grow/shrink the row height to match.
+    // chatListDisableSwipe: disable the chat-list row swipe gesture entirely.
+    // chatListHideDeleteSwipe: hide only the destructive delete action from the swipe.
+    public var chatListPreviewLines: Int32
+    public var chatListDisableSwipe: Bool
+    public var chatListHideDeleteSwipe: Bool
+
     public static var defaultSettings: LuminaSettings {
         return LuminaSettings(
             trMode: "manual",
@@ -247,7 +258,10 @@ public struct LuminaSettings: Codable, Equatable {
             stickerScale: 100,
             timeWithSeconds: false,
             hideInputAiButton: false,
-            hideReactions: false
+            hideReactions: false,
+            chatListPreviewLines: 0,
+            chatListDisableSwipe: false,
+            chatListHideDeleteSwipe: false
         )
     }
 
@@ -304,7 +318,10 @@ public struct LuminaSettings: Codable, Equatable {
         stickerScale: Int32,
         timeWithSeconds: Bool,
         hideInputAiButton: Bool,
-        hideReactions: Bool
+        hideReactions: Bool,
+        chatListPreviewLines: Int32,
+        chatListDisableSwipe: Bool,
+        chatListHideDeleteSwipe: Bool
     ) {
         self.trMode = trMode
         self.trReadLang = trReadLang
@@ -359,6 +376,9 @@ public struct LuminaSettings: Codable, Equatable {
         self.timeWithSeconds = timeWithSeconds
         self.hideInputAiButton = hideInputAiButton
         self.hideReactions = hideReactions
+        self.chatListPreviewLines = chatListPreviewLines
+        self.chatListDisableSwipe = chatListDisableSwipe
+        self.chatListHideDeleteSwipe = chatListHideDeleteSwipe
     }
 
     public init(from decoder: Decoder) throws {
@@ -422,6 +442,9 @@ public struct LuminaSettings: Codable, Equatable {
         self.timeWithSeconds = try container.decodeIfPresent(Bool.self, forKey: "timeWithSeconds") ?? defaults.timeWithSeconds
         self.hideInputAiButton = try container.decodeIfPresent(Bool.self, forKey: "hideInputAiButton") ?? defaults.hideInputAiButton
         self.hideReactions = try container.decodeIfPresent(Bool.self, forKey: "hideReactions") ?? defaults.hideReactions
+        self.chatListPreviewLines = try container.decodeIfPresent(Int32.self, forKey: "chatListPreviewLines") ?? defaults.chatListPreviewLines
+        self.chatListDisableSwipe = try container.decodeIfPresent(Bool.self, forKey: "chatListDisableSwipe") ?? defaults.chatListDisableSwipe
+        self.chatListHideDeleteSwipe = try container.decodeIfPresent(Bool.self, forKey: "chatListHideDeleteSwipe") ?? defaults.chatListHideDeleteSwipe
     }
 
     public func encode(to encoder: Encoder) throws {
@@ -484,6 +507,9 @@ public struct LuminaSettings: Codable, Equatable {
         try container.encode(self.timeWithSeconds, forKey: "timeWithSeconds")
         try container.encode(self.hideInputAiButton, forKey: "hideInputAiButton")
         try container.encode(self.hideReactions, forKey: "hideReactions")
+        try container.encode(self.chatListPreviewLines, forKey: "chatListPreviewLines")
+        try container.encode(self.chatListDisableSwipe, forKey: "chatListDisableSwipe")
+        try container.encode(self.chatListHideDeleteSwipe, forKey: "chatListHideDeleteSwipe")
     }
 }
 

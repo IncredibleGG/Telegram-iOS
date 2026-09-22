@@ -55,6 +55,25 @@ public func luminaToolsController(context: AccountContext) -> ViewController {
                 makeAction(125, LuminaL10n.tr("Large (125%)")),
                 TextAlertAction(type: .genericAction, title: presentationData.strings.Common_Cancel, action: {})
             ], actionLayout: .vertical))
+        },
+        pickPreviewLines: { currentValue in
+            let presentationData = context.sharedContext.currentPresentationData.with { $0 }
+            let makeAction: (Int32, String) -> TextAlertAction = { value, title in
+                TextAlertAction(type: value == currentValue ? .defaultAction : .genericAction, title: title, action: {
+                    let _ = updateLuminaSettingsInteractively(accountManager: context.sharedContext.accountManager, { settings in
+                        var settings = settings
+                        settings.chatListPreviewLines = value
+                        return settings
+                    }).start()
+                })
+            }
+            presentControllerImpl?(textAlertController(context: context, title: LuminaL10n.tr("Chat List Preview Lines"), text: LuminaL10n.tr("How many message preview lines each chat row shows."), actions: [
+                makeAction(0, LuminaL10n.tr("Default")),
+                makeAction(1, LuminaL10n.tr("1 line")),
+                makeAction(2, LuminaL10n.tr("2 lines")),
+                makeAction(3, LuminaL10n.tr("3 lines")),
+                TextAlertAction(type: .genericAction, title: presentationData.strings.Common_Cancel, action: {})
+            ], actionLayout: .vertical))
         }
     )
 
@@ -86,12 +105,14 @@ private final class LuminaToolsControllerArguments {
     let pushController: (ViewController) -> Void
     let updateSettings: (@escaping (LuminaSettings) -> LuminaSettings) -> Void
     let pickStickerScale: (Int32) -> Void
+    let pickPreviewLines: (Int32) -> Void
 
-    init(context: AccountContext, pushController: @escaping (ViewController) -> Void, updateSettings: @escaping (@escaping (LuminaSettings) -> LuminaSettings) -> Void, pickStickerScale: @escaping (Int32) -> Void) {
+    init(context: AccountContext, pushController: @escaping (ViewController) -> Void, updateSettings: @escaping (@escaping (LuminaSettings) -> LuminaSettings) -> Void, pickStickerScale: @escaping (Int32) -> Void, pickPreviewLines: @escaping (Int32) -> Void) {
         self.context = context
         self.pushController = pushController
         self.updateSettings = updateSettings
         self.pickStickerScale = pickStickerScale
+        self.pickPreviewLines = pickPreviewLines
     }
 }
 
@@ -99,6 +120,7 @@ private enum LuminaToolsSection: Int32 {
     case screens
     case stories
     case display
+    case chatList
 }
 
 private enum LuminaToolsEntry: ItemListNodeEntry {
@@ -120,6 +142,12 @@ private enum LuminaToolsEntry: ItemListNodeEntry {
     case hideReactions(Bool)
     case displayFooter
 
+    case chatListHeader
+    case chatListPreviewLines(Int32)
+    case chatListDisableSwipe(Bool)
+    case chatListHideDeleteSwipe(Bool, Bool) // (value, enabled)
+    case chatListFooter
+
     var section: ItemListSectionId {
         switch self {
         case .screensHeader, .bookmarks, .quickReplies, .backup:
@@ -128,6 +156,8 @@ private enum LuminaToolsEntry: ItemListNodeEntry {
             return LuminaToolsSection.stories.rawValue
         case .displayHeader, .unreadDigest, .disableNumberRounding, .timeWithSeconds, .stickerScale, .hideReactions, .displayFooter:
             return LuminaToolsSection.display.rawValue
+        case .chatListHeader, .chatListPreviewLines, .chatListDisableSwipe, .chatListHideDeleteSwipe, .chatListFooter:
+            return LuminaToolsSection.chatList.rawValue
         }
     }
 
@@ -163,6 +193,16 @@ private enum LuminaToolsEntry: ItemListNodeEntry {
             return 26
         case .displayFooter:
             return 27
+        case .chatListHeader:
+            return 30
+        case .chatListPreviewLines:
+            return 31
+        case .chatListDisableSwipe:
+            return 32
+        case .chatListHideDeleteSwipe:
+            return 33
+        case .chatListFooter:
+            return 34
         }
     }
 
@@ -247,6 +287,30 @@ private enum LuminaToolsEntry: ItemListNodeEntry {
             })
         case .displayFooter:
             return ItemListTextItem(presentationData: presentationData, text: .plain(LuminaL10n.tr("These options and everything else under LuminaGram are stored on this device only.")), sectionId: self.section)
+        case .chatListHeader:
+            return ItemListSectionHeaderItem(presentationData: presentationData, text: LuminaL10n.tr("CHAT LIST"), sectionId: self.section)
+        case let .chatListPreviewLines(value):
+            return ItemListDisclosureItem(presentationData: presentationData, title: LuminaL10n.tr("Chat List Preview Lines"), label: value == 0 ? LuminaL10n.tr("Default") : "\(value)", sectionId: self.section, style: .blocks, action: {
+                arguments.pickPreviewLines(value)
+            })
+        case let .chatListDisableSwipe(value):
+            return ItemListSwitchItem(presentationData: presentationData, title: LuminaL10n.tr("Disable Swipe Actions"), text: LuminaL10n.tr("Turn off the swipe gesture on chat list rows entirely."), value: value, sectionId: self.section, style: .blocks, updated: { value in
+                arguments.updateSettings { settings in
+                    var settings = settings
+                    settings.chatListDisableSwipe = value
+                    return settings
+                }
+            })
+        case let .chatListHideDeleteSwipe(value, enabled):
+            return ItemListSwitchItem(presentationData: presentationData, title: LuminaL10n.tr("Hide Delete Swipe"), text: LuminaL10n.tr("Hide only the delete action from the chat list swipe."), value: value, enableInteractiveChanges: enabled, enabled: enabled, sectionId: self.section, style: .blocks, updated: { value in
+                arguments.updateSettings { settings in
+                    var settings = settings
+                    settings.chatListHideDeleteSwipe = value
+                    return settings
+                }
+            })
+        case .chatListFooter:
+            return ItemListTextItem(presentationData: presentationData, text: .plain(LuminaL10n.tr("These options change only how the chat list looks and behaves on this device.")), sectionId: self.section)
         }
     }
 }
@@ -269,6 +333,12 @@ private func luminaToolsControllerEntries(settings: LuminaSettings) -> [LuminaTo
         .timeWithSeconds(settings.timeWithSeconds),
         .stickerScale(settings.stickerScale),
         .hideReactions(settings.hideReactions),
-        .displayFooter
+        .displayFooter,
+
+        .chatListHeader,
+        .chatListPreviewLines(settings.chatListPreviewLines),
+        .chatListDisableSwipe(settings.chatListDisableSwipe),
+        .chatListHideDeleteSwipe(settings.chatListDisableSwipe ? false : settings.chatListHideDeleteSwipe, !settings.chatListDisableSwipe),
+        .chatListFooter
     ]
 }

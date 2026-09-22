@@ -29,6 +29,7 @@ import MultilineTextComponent
 import MultilineTextWithEntitiesComponent
 import ShimmerEffect
 import GlassBackgroundComponent
+import TelegramUIPreferences
 
 public enum ChatListItemContent {
     public final class ThreadInfo: Equatable {
@@ -3811,10 +3812,27 @@ public class ChatListItemNode: ItemListRevealOptionsItemNode {
             }
             
             let textLineSpacing: CGFloat = min(0.2, item.presentationData.fontSize.itemListBaseFontSize * 0.2 / 17.0)
+            // LuminaGram (#6): message-preview line count. Default (0) keeps stock behavior;
+            // 1/2/3 force that many preview lines on standard chat-list rows and the row-height
+            // math below grows/shrinks by the delta. Skipped for forum/thread/tagged/command rows.
+            let luminaBaseTextLines = (authorAttributedString == nil && itemTags.isEmpty && forumThread == nil && topForumTopicItems.isEmpty) ? 2 : 1
+            var luminaIsStandardPreviewRow = false
+            if case .chatList = item.index, forumThread == nil, topForumTopicItems.isEmpty, itemTags.isEmpty {
+                if case let .peer(luminaPeerData) = item.content, luminaPeerData.customMessageListData?.commandPrefix != nil {
+                    luminaIsStandardPreviewRow = false
+                } else {
+                    luminaIsStandardPreviewRow = true
+                }
+            }
+            var luminaEffectiveTextLines = luminaBaseTextLines
+            let luminaPreviewLinesSetting = LuminaSettingsCache.settings.chatListPreviewLines
+            if luminaIsStandardPreviewRow, luminaPreviewLinesSetting >= 1, luminaPreviewLinesSetting <= 3 {
+                luminaEffectiveTextLines = Int(luminaPreviewLinesSetting)
+            }
             let (textLayout, textApply) = textLayout(TextNodeLayoutArguments(
                 attributedString: textAttributedString,
                 backgroundColor: nil,
-                maximumNumberOfLines: (authorAttributedString == nil && itemTags.isEmpty && forumThread == nil && topForumTopicItems.isEmpty) ? 2 : 1,
+                maximumNumberOfLines: luminaEffectiveTextLines,
                 truncationType: .end,
                 constrainedSize: CGSize(width: textMaxWidth, height: .greatestFiniteMagnitude),
                 alignment: .natural,
@@ -4022,6 +4040,15 @@ public class ChatListItemNode: ItemListRevealOptionsItemNode {
                 peerRevealOptions = []
                 peerLeftRevealOptions = []
             }
+
+            // LuminaGram (#11): chat-list swipe toggles. Both default off = stock behavior.
+            let luminaSwipeSettings = LuminaSettingsCache.settings
+            if luminaSwipeSettings.chatListDisableSwipe {
+                peerRevealOptions = []
+                peerLeftRevealOptions = []
+            } else if luminaSwipeSettings.chatListHideDeleteSwipe {
+                peerRevealOptions = peerRevealOptions.filter { $0.key != RevealOptionKey.delete.rawValue }
+            }
             
             let (onlineLayout, onlineApply) = onlineLayout(online, onlineIsVoiceChat)
             var animateContent = false
@@ -4043,6 +4070,8 @@ public class ChatListItemNode: ItemListRevealOptionsItemNode {
                 itemHeight += measureLayout.size.height * 3.0
                 itemHeight += titleSpacing
                 itemHeight += authorSpacing
+                // LuminaGram (#6): grow/shrink the reserved preview area by the line delta.
+                itemHeight += measureLayout.size.height * CGFloat(luminaEffectiveTextLines - luminaBaseTextLines)
             }
                         
             let rawContentRect = CGRect(origin: CGPoint(x: 2.0, y: layoutOffset + floor(item.presentationData.fontSize.itemListBaseFontSize * 8.0 / 17.0)), size: CGSize(width: rawContentWidth, height: itemHeight - 12.0 - 9.0))
