@@ -578,6 +578,21 @@ open class GalleryControllerNode: ASDisplayNode, ASScrollViewDelegate, ASGesture
             }
             
             if distanceFromEquilibrium < -1.0, let centralItemNode = self.pager.centralItemNode(), centralItemNode.maybePerformActionForSwipeDownDismiss() {
+                // LuminaGram #19: the central item consumed the swipe-down (entered picture-in-picture),
+                // so do NOT dismiss the gallery - mirror the swipe-up PiP branch above (toast + return).
+                // Reached only when the LuminaGram swipeVideoPip setting is on; otherwise
+                // maybePerformActionForSwipeDownDismiss() returns false and this block is skipped, keeping
+                // the stock dismiss behavior byte-identical.
+                if let chatController = self.baseNavigationController()?.topViewController as? ChatController {
+                    let presentationData = self.context.sharedContext.currentPresentationData.with({ $0 })
+                    chatController.present(UndoOverlayController(
+                        presentationData: presentationData,
+                        content: .hidArchive(title: presentationData.strings.MediaGallery_ToastVideoPip_Title, text: presentationData.strings.MediaGallery_ToastVideoPip_Text, undo: false),
+                        elevatedLayout: false, action: { _ in true }
+                    ), in: .current)
+                }
+
+                return
             }
             
             if let backgroundColor = self.backgroundNode.backgroundColor {

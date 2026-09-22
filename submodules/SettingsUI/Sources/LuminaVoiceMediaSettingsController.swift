@@ -30,6 +30,9 @@ private final class LuminaVoiceMediaSettingsControllerArguments {
     let updateKeepOriginalFilename: (Bool) -> Void
     let updateAutoPauseBackgroundVideo: (Bool) -> Void
     let updateSaveMediaToLuminaAlbum: (Bool) -> Void
+    let updateSwipeVideoPip: (Bool) -> Void
+    let updateSendLargePhotos: (Bool) -> Void
+    let pickPhotoQuality: (Int32) -> Void
     let openReverseVoiceComposer: () -> Void
 
     init(
@@ -42,6 +45,9 @@ private final class LuminaVoiceMediaSettingsControllerArguments {
         updateKeepOriginalFilename: @escaping (Bool) -> Void,
         updateAutoPauseBackgroundVideo: @escaping (Bool) -> Void,
         updateSaveMediaToLuminaAlbum: @escaping (Bool) -> Void,
+        updateSwipeVideoPip: @escaping (Bool) -> Void,
+        updateSendLargePhotos: @escaping (Bool) -> Void,
+        pickPhotoQuality: @escaping (Int32) -> Void,
         openReverseVoiceComposer: @escaping () -> Void
     ) {
         self.context = context
@@ -53,6 +59,9 @@ private final class LuminaVoiceMediaSettingsControllerArguments {
         self.updateKeepOriginalFilename = updateKeepOriginalFilename
         self.updateAutoPauseBackgroundVideo = updateAutoPauseBackgroundVideo
         self.updateSaveMediaToLuminaAlbum = updateSaveMediaToLuminaAlbum
+        self.updateSwipeVideoPip = updateSwipeVideoPip
+        self.updateSendLargePhotos = updateSendLargePhotos
+        self.pickPhotoQuality = pickPhotoQuality
         self.openReverseVoiceComposer = openReverseVoiceComposer
     }
 }
@@ -62,6 +71,7 @@ private enum LuminaVoiceMediaSection: Int32 {
     case reverseVoice
     case ocr
     case media
+    case photos
 }
 
 private enum LuminaVoiceMediaEntry: ItemListNodeEntry {
@@ -83,7 +93,13 @@ private enum LuminaVoiceMediaEntry: ItemListNodeEntry {
     case keepOriginalFilename(Bool)
     case autoPauseBackgroundVideo(Bool)
     case saveMediaToLuminaAlbum(Bool)
+    case swipeVideoPip(Bool)
     case mediaFooter
+
+    case photosHeader
+    case photoQuality(Int32)
+    case sendLargePhotos(Bool)
+    case photosFooter
 
     var section: ItemListSectionId {
         switch self {
@@ -93,8 +109,10 @@ private enum LuminaVoiceMediaEntry: ItemListNodeEntry {
             return LuminaVoiceMediaSection.reverseVoice.rawValue
         case .ocrHeader, .ocrTranslate, .ocrFooter:
             return LuminaVoiceMediaSection.ocr.rawValue
-        case .mediaHeader, .keepOriginalFilename, .autoPauseBackgroundVideo, .saveMediaToLuminaAlbum, .mediaFooter:
+        case .mediaHeader, .keepOriginalFilename, .autoPauseBackgroundVideo, .saveMediaToLuminaAlbum, .swipeVideoPip, .mediaFooter:
             return LuminaVoiceMediaSection.media.rawValue
+        case .photosHeader, .photoQuality, .sendLargePhotos, .photosFooter:
+            return LuminaVoiceMediaSection.photos.rawValue
         }
     }
 
@@ -115,7 +133,12 @@ private enum LuminaVoiceMediaEntry: ItemListNodeEntry {
         case .keepOriginalFilename: return 12
         case .autoPauseBackgroundVideo: return 13
         case .saveMediaToLuminaAlbum: return 14
-        case .mediaFooter: return 15
+        case .swipeVideoPip: return 15
+        case .mediaFooter: return 16
+        case .photosHeader: return 17
+        case .photoQuality: return 18
+        case .sendLargePhotos: return 19
+        case .photosFooter: return 20
         }
     }
 
@@ -172,8 +195,24 @@ private enum LuminaVoiceMediaEntry: ItemListNodeEntry {
             return ItemListSwitchItem(presentationData: presentationData, title: LuminaL10n.tr("Save to \"LuminaGram\" album"), value: value, sectionId: self.section, style: .blocks, updated: { value in
                 arguments.updateSaveMediaToLuminaAlbum(value)
             })
+        case let .swipeVideoPip(value):
+            return ItemListSwitchItem(presentationData: presentationData, title: LuminaL10n.tr("Swipe Down for Picture-in-Picture"), text: LuminaL10n.tr("Swipe a full-screen video down to enter picture-in-picture instead of closing it."), value: value, sectionId: self.section, style: .blocks, updated: { value in
+                arguments.updateSwipeVideoPip(value)
+            })
         case .mediaFooter:
             return ItemListTextItem(presentationData: presentationData, text: .plain(LuminaL10n.tr("Applies to media saved through auto-save. Photos/videos are also added to a separate \"LuminaGram\" album alongside your camera roll when enabled.")), sectionId: self.section)
+        case .photosHeader:
+            return ItemListSectionHeaderItem(presentationData: presentationData, text: LuminaL10n.tr("PHOTOS"), sectionId: self.section)
+        case let .photoQuality(value):
+            return ItemListDisclosureItem(presentationData: presentationData, title: LuminaL10n.tr("Photo Quality"), label: value == 0 ? LuminaL10n.tr("Default") : "\(value)%", sectionId: self.section, style: .blocks, action: {
+                arguments.pickPhotoQuality(value)
+            })
+        case let .sendLargePhotos(value):
+            return ItemListSwitchItem(presentationData: presentationData, title: LuminaL10n.tr("Send Photos in Higher Resolution"), text: LuminaL10n.tr("Send photos at up to 2560px instead of 1280px. Uses more data."), value: value, sectionId: self.section, style: .blocks, updated: { value in
+                arguments.updateSendLargePhotos(value)
+            })
+        case .photosFooter:
+            return ItemListTextItem(presentationData: presentationData, text: .plain(LuminaL10n.tr("Photos are sent through Telegram's normal upload. These options only change the compression quality and size before upload.")), sectionId: self.section)
         }
     }
 }
@@ -195,12 +234,18 @@ private func luminaVoiceMediaSettingsControllerEntries(settings: LuminaSettings)
         .keepOriginalFilename(settings.keepOriginalFilename),
         .autoPauseBackgroundVideo(settings.autoPauseBackgroundVideo),
         .saveMediaToLuminaAlbum(settings.saveMediaToLuminaAlbum),
-        .mediaFooter
+        .swipeVideoPip(settings.swipeVideoPip),
+        .mediaFooter,
+        .photosHeader,
+        .photoQuality(settings.outgoingPhotoQuality),
+        .sendLargePhotos(settings.sendLargePhotos),
+        .photosFooter
     ]
 }
 
 public func luminaVoiceMediaSettingsController(context: AccountContext) -> ViewController {
     var pushControllerImpl: ((ViewController) -> Void)?
+    var presentControllerImpl: ((ViewController) -> Void)?
 
     let arguments = LuminaVoiceMediaSettingsControllerArguments(
         context: context,
@@ -256,6 +301,40 @@ public func luminaVoiceMediaSettingsController(context: AccountContext) -> ViewC
                 return settings
             }).start()
         },
+        updateSwipeVideoPip: { value in
+            let _ = updateLuminaSettingsInteractively(accountManager: context.sharedContext.accountManager, { settings in
+                var settings = settings
+                settings.swipeVideoPip = value
+                return settings
+            }).start()
+        },
+        updateSendLargePhotos: { value in
+            let _ = updateLuminaSettingsInteractively(accountManager: context.sharedContext.accountManager, { settings in
+                var settings = settings
+                settings.sendLargePhotos = value
+                return settings
+            }).start()
+        },
+        pickPhotoQuality: { currentValue in
+            let presentationData = context.sharedContext.currentPresentationData.with { $0 }
+            let makeAction: (Int32, String) -> TextAlertAction = { value, title in
+                TextAlertAction(type: value == currentValue ? .defaultAction : .genericAction, title: title, action: {
+                    let _ = updateLuminaSettingsInteractively(accountManager: context.sharedContext.accountManager, { settings in
+                        var settings = settings
+                        settings.outgoingPhotoQuality = value
+                        return settings
+                    }).start()
+                })
+            }
+            presentControllerImpl?(textAlertController(context: context, title: LuminaL10n.tr("Photo Quality"), text: LuminaL10n.tr("Choose the JPEG quality for photos you send. Higher quality means larger uploads. Default keeps Telegram's standard quality."), actions: [
+                makeAction(0, LuminaL10n.tr("Default")),
+                makeAction(70, "70%"),
+                makeAction(80, "80%"),
+                makeAction(90, "90%"),
+                makeAction(100, LuminaL10n.tr("Maximum (100%)")),
+                TextAlertAction(type: .genericAction, title: presentationData.strings.Common_Cancel, action: {})
+            ], actionLayout: .vertical))
+        },
         openReverseVoiceComposer: {
             let controller = context.sharedContext.makePeerSelectionController(PeerSelectionControllerParams(context: context, filter: [.onlyWriteable, .excludeDisabled], selectForumThreads: true))
             controller.peerSelected = { [weak controller] peer, _ in
@@ -281,6 +360,9 @@ public func luminaVoiceMediaSettingsController(context: AccountContext) -> ViewC
     let controller = ItemListController(context: context, state: signal)
     pushControllerImpl = { [weak controller] c in
         controller?.push(c)
+    }
+    presentControllerImpl = { [weak controller] c in
+        controller?.present(c, in: .window(.root))
     }
     return controller
 }

@@ -68,8 +68,13 @@ public func makeTelegramAccountAuxiliaryMethods(uploadInBackground: ((Postbox, M
                 // stripPhotoMetadata = true) is itself the privacy-safe direction, and in
                 // practice the cache is already subscribed by the time a user can send a
                 // photo at all (ChatListNode.init subscribes it - see LuminaSettingsCache.swift).
-                let stripMetadata = LuminaSettingsCache.settings.stripPhotoMetadata
-                return fetchPhotoLibraryResource(localIdentifier: photoLibraryResource.localIdentifier, width: photoLibraryResource.width, height: photoLibraryResource.height, format: photoLibraryResource.format, quality: photoLibraryResource.quality, hd: photoLibraryResource.forceHd, useExif: useExif, stripMetadata: stripMetadata)
+                let luminaSettings = LuminaSettingsCache.settings
+                let stripMetadata = luminaSettings.stripPhotoMetadata
+                // LuminaGram #20: outgoing photo JPEG quality override, resolved here (same place as
+                // stripMetadata) so LocalMediaResources needs no LuminaSettingsCache dependency. 0 =
+                // stock quality, so an untouched setting sends byte-identical bytes.
+                let overrideJpegQuality: Int32? = luminaSettings.outgoingPhotoQuality > 0 ? luminaSettings.outgoingPhotoQuality : nil
+                return fetchPhotoLibraryResource(localIdentifier: photoLibraryResource.localIdentifier, width: photoLibraryResource.width, height: photoLibraryResource.height, format: photoLibraryResource.format, quality: photoLibraryResource.quality, hd: photoLibraryResource.forceHd, useExif: useExif, stripMetadata: stripMetadata, overrideJpegQuality: overrideJpegQuality)
             }
         } else if let resource = resource as? ICloudFileResource {
             return fetchICloudFileResource(resource: resource)

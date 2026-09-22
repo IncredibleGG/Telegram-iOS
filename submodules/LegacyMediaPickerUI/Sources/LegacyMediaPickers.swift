@@ -406,7 +406,13 @@ public func legacyAssetPickerEnqueueMessages(
                                     var randomId: Int64 = 0
                                     arc4random_buf(&randomId, 8)
                                     let tempFilePath = NSTemporaryDirectory() + "\(randomId).jpeg"
-                                    let maxSize = item.forceHd ? CGSize(width: 2560.0, height: 2560.0) : CGSize(width: 1280.0, height: 1280.0)
+                                    // LuminaGram #20: outgoing photo size/quality override. Default
+                                    // (sendLargePhotos == false, outgoingPhotoQuality == 0) is byte-identical to
+                                    // upstream - same upload pipeline, same 1280px cap, same 0.6 JPEG quality; only
+                                    // these two parameters change, and only when the user sets them.
+                                    let luminaMediaSettings = LuminaSettingsCache.settings
+                                    let luminaForceHd = item.forceHd || luminaMediaSettings.sendLargePhotos
+                                    let maxSize = luminaForceHd ? CGSize(width: 2560.0, height: 2560.0) : CGSize(width: 1280.0, height: 1280.0)
                                     let scaledSize = image.size.aspectFittedOrSmaller(maxSize)
                                 
                                     if let scaledImage = TGScaleImageToPixelSize(image, scaledSize) {
@@ -414,7 +420,8 @@ public func legacyAssetPickerEnqueueMessages(
                                         defer {
                                             EngineTempBox.shared.dispose(tempFile)
                                         }
-                                        if let scaledImageData = compressImageToJPEG(scaledImage, quality: 0.6, tempFilePath: tempFile.path) {
+                                        let luminaJpegQuality: Float = luminaMediaSettings.outgoingPhotoQuality > 0 ? Float(luminaMediaSettings.outgoingPhotoQuality) / 100.0 : 0.6
+                                        if let scaledImageData = compressImageToJPEG(scaledImage, quality: luminaJpegQuality, tempFilePath: tempFile.path) {
                                             let _ = try? scaledImageData.write(to: URL(fileURLWithPath: tempFilePath))
 
                                             let resource = LocalFileReferenceMediaResource(localFilePath: tempFilePath, randomId: randomId)
@@ -620,8 +627,12 @@ public func legacyAssetPickerEnqueueMessages(
                                         var randomId: Int64 = 0
                                         arc4random_buf(&randomId, 8)
                                         let size = CGSize(width: CGFloat(asset.pixelWidth), height: CGFloat(asset.pixelHeight))
-                                        let scaledSize = size.aspectFittedOrSmaller(CGSize(width: 1280.0, height: 1280.0))
-                                        let resource = PhotoLibraryMediaResource(localIdentifier: asset.localIdentifier, uniqueId: Int64.random(in: Int64.min ... Int64.max), forceHd: item.forceHd)
+                                        // LuminaGram #20: honor "send large photos" for library assets. forceHd flows to
+                                        // fetchPhotoLibraryResource (hd == true -> 2560px cap); default keeps the stock 1280px.
+                                        let luminaAssetForceHd = item.forceHd || LuminaSettingsCache.settings.sendLargePhotos
+                                        let luminaAssetMaxSide: CGFloat = luminaAssetForceHd ? 2560.0 : 1280.0
+                                        let scaledSize = size.aspectFittedOrSmaller(CGSize(width: luminaAssetMaxSide, height: luminaAssetMaxSide))
+                                        let resource = PhotoLibraryMediaResource(localIdentifier: asset.localIdentifier, uniqueId: Int64.random(in: Int64.min ... Int64.max), forceHd: luminaAssetForceHd)
                                     
                                         let media: EngineRawMedia
                                         representations.append(TelegramMediaImageRepresentation(dimensions: PixelDimensions(scaledSize), resource: resource, progressiveSizes: [], immediateThumbnailData: nil, hasVideo: false, isPersonal: false))

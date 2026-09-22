@@ -2994,6 +2994,17 @@ final class UniversalVideoGalleryItemNode: ZoomableContentGalleryItemNode {
     
     override func maybePerformActionForSwipeDownDismiss() -> Bool {
         self.context.engine.accountData.addAppLogEvent(type: "swipe_down_close")
+        // LuminaGram #19: swipe-down-to-PiP. Default off (swipeVideoPip == false) returns false, so the
+        // gallery dismisses exactly as upstream. When enabled, and only for a video that actually
+        // supports picture-in-picture, route through the same pictureInPictureButtonPressed() path the
+        // PiP button uses - it lazily sets up the native PiP content and begins PiP - then return true
+        // so GalleryControllerNode keeps the gallery open instead of dismissing it.
+        if LuminaSettingsCache.settings.swipeVideoPip, self.hasPictureInPicture {
+            if #available(iOS 15.0, *) {
+                self.pictureInPictureButtonPressed()
+                return true
+            }
+        }
         return false
     }
     

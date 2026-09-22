@@ -287,6 +287,28 @@ public struct LuminaSettings: Codable, Equatable {
     public var tabBarHideContacts: Bool
     public var tabBarHideCalls: Bool
 
+    // MARK: Media send (LuminaGram, Batch 8)
+    //
+    // #20 outgoing photo quality + resolution. Both defaults are the stock behavior, so an
+    // untouched install sends byte-identical bytes to upstream: the photo goes through the
+    // exact same Telegram upload pipeline, only the JPEG compression quality and the maximum
+    // pixel dimension differ, and only when the user changes them.
+    //
+    // outgoingPhotoQuality: JPEG quality percent (1-100) applied when recompressing an outgoing
+    //   photo. 0 = follow stock (compressImageToJPEG's built-in 0.6 / fetchPhotoLibraryResource's
+    //   0.6). Any value 1-100 overrides that single quality parameter; nothing else in the send
+    //   path changes.
+    // sendLargePhotos: cap outgoing photos at the larger 2560px side instead of the stock 1280px
+    //   (this reuses Telegram's own existing "HD" sizing, the same forceHd path the app already
+    //   uses). Default false = the stock 1280px cap.
+    public var outgoingPhotoQuality: Int32
+    public var sendLargePhotos: Bool
+
+    // #19 swipe-down-to-PiP on a fullscreen video. Default false = stock behavior (a swipe down
+    // dismisses the gallery; a swipe up already enters PiP upstream). When true, a swipe down on
+    // a fullscreen video enters picture-in-picture instead of dismissing. Mobile/touch only.
+    public var swipeVideoPip: Bool
+
     public static var defaultSettings: LuminaSettings {
         return LuminaSettings(
             trMode: "manual",
@@ -370,7 +392,10 @@ public struct LuminaSettings: Codable, Equatable {
             hideTabBar: false,
             tabBarHideLabels: false,
             tabBarHideContacts: false,
-            tabBarHideCalls: false
+            tabBarHideCalls: false,
+            outgoingPhotoQuality: 0,
+            sendLargePhotos: false,
+            swipeVideoPip: false
         )
     }
 
@@ -456,7 +481,10 @@ public struct LuminaSettings: Codable, Equatable {
         hideTabBar: Bool,
         tabBarHideLabels: Bool,
         tabBarHideContacts: Bool,
-        tabBarHideCalls: Bool
+        tabBarHideCalls: Bool,
+        outgoingPhotoQuality: Int32,
+        sendLargePhotos: Bool,
+        swipeVideoPip: Bool
     ) {
         self.trMode = trMode
         self.trReadLang = trReadLang
@@ -540,6 +568,9 @@ public struct LuminaSettings: Codable, Equatable {
         self.tabBarHideLabels = tabBarHideLabels
         self.tabBarHideContacts = tabBarHideContacts
         self.tabBarHideCalls = tabBarHideCalls
+        self.outgoingPhotoQuality = outgoingPhotoQuality
+        self.sendLargePhotos = sendLargePhotos
+        self.swipeVideoPip = swipeVideoPip
     }
 
     public init(from decoder: Decoder) throws {
@@ -633,6 +664,10 @@ public struct LuminaSettings: Codable, Equatable {
         self.tabBarHideLabels = try container.decodeIfPresent(Bool.self, forKey: "tabBarHideLabels") ?? defaults.tabBarHideLabels
         self.tabBarHideContacts = try container.decodeIfPresent(Bool.self, forKey: "tabBarHideContacts") ?? defaults.tabBarHideContacts
         self.tabBarHideCalls = try container.decodeIfPresent(Bool.self, forKey: "tabBarHideCalls") ?? defaults.tabBarHideCalls
+
+        self.outgoingPhotoQuality = try container.decodeIfPresent(Int32.self, forKey: "outgoingPhotoQuality") ?? defaults.outgoingPhotoQuality
+        self.sendLargePhotos = try container.decodeIfPresent(Bool.self, forKey: "sendLargePhotos") ?? defaults.sendLargePhotos
+        self.swipeVideoPip = try container.decodeIfPresent(Bool.self, forKey: "swipeVideoPip") ?? defaults.swipeVideoPip
     }
 
     public func encode(to encoder: Encoder) throws {
@@ -725,6 +760,10 @@ public struct LuminaSettings: Codable, Equatable {
         try container.encode(self.tabBarHideLabels, forKey: "tabBarHideLabels")
         try container.encode(self.tabBarHideContacts, forKey: "tabBarHideContacts")
         try container.encode(self.tabBarHideCalls, forKey: "tabBarHideCalls")
+
+        try container.encode(self.outgoingPhotoQuality, forKey: "outgoingPhotoQuality")
+        try container.encode(self.sendLargePhotos, forKey: "sendLargePhotos")
+        try container.encode(self.swipeVideoPip, forKey: "swipeVideoPip")
     }
 }
 

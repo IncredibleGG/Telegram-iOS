@@ -110,7 +110,7 @@ private let fetchPhotoWorkers = ThreadPool(threadCount: 3, threadPriority: 0.2)
 // low-level one, already depended on by several others - does not need a new dependency on
 // TelegramUIPreferences. Defaults to false so any other, unseen call site keeps its old
 // behaviour unchanged.
-public func fetchPhotoLibraryResource(localIdentifier: String, width: Int32?, height: Int32?, format: MediaImageFormat?, quality: Int32?, hd: Bool, useExif: Bool, stripMetadata: Bool = false) -> Signal<EngineMediaResourceDataFetchResult, EngineMediaResourceDataFetchError> {
+public func fetchPhotoLibraryResource(localIdentifier: String, width: Int32?, height: Int32?, format: MediaImageFormat?, quality: Int32?, hd: Bool, useExif: Bool, stripMetadata: Bool = false, overrideJpegQuality: Int32? = nil) -> Signal<EngineMediaResourceDataFetchResult, EngineMediaResourceDataFetchError> {
     return Signal { subscriber in
         let queue = ThreadPoolQueue(threadPool: fetchPhotoWorkers)
         
@@ -188,7 +188,10 @@ public func fetchPhotoLibraryResource(localIdentifier: String, width: Int32?, he
                                     defer {
                                         EngineTempBox.shared.dispose(tempFile)
                                     }
-                                    if let scaledImage = scaledImage, var data = compressImageToJPEG(scaledImage, quality: 0.6, tempFilePath: tempFile.path) {
+                                    // LuminaGram #20: outgoing photo JPEG quality override. nil / 0 keeps the
+                                    // stock 0.6 quality, so an untouched setting is byte-identical to upstream.
+                                    let luminaJpegQuality: Float = (overrideJpegQuality ?? 0) > 0 ? Float(overrideJpegQuality!) / 100.0 : 0.6
+                                    if let scaledImage = scaledImage, var data = compressImageToJPEG(scaledImage, quality: luminaJpegQuality, tempFilePath: tempFile.path) {
     #if DEBUG
                                         print("compression completion \((CACurrentMediaTime() - startTime) * 1000.0) ms")
     #endif

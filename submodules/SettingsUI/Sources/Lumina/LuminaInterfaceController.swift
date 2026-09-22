@@ -19,10 +19,15 @@ import AccountContext
 // standard spacing, always open to All Chats), so an untouched install behaves identically to
 // upstream.
 public func luminaInterfaceController(context: AccountContext) -> ViewController {
+    var pushControllerImpl: ((ViewController) -> Void)?
+
     let arguments = LuminaInterfaceControllerArguments(
         context: context,
         updateSettings: { f in
             let _ = updateLuminaSettingsInteractively(accountManager: context.sharedContext.accountManager, f).start()
+        },
+        pushController: { c in
+            pushControllerImpl?(c)
         }
     )
 
@@ -40,22 +45,28 @@ public func luminaInterfaceController(context: AccountContext) -> ViewController
     }
 
     let controller = ItemListController(context: context, state: signal)
+    pushControllerImpl = { [weak controller] c in
+        controller?.push(c)
+    }
     return controller
 }
 
 private final class LuminaInterfaceControllerArguments {
     let context: AccountContext
     let updateSettings: (@escaping (LuminaSettings) -> LuminaSettings) -> Void
+    let pushController: (ViewController) -> Void
 
-    init(context: AccountContext, updateSettings: @escaping (@escaping (LuminaSettings) -> LuminaSettings) -> Void) {
+    init(context: AccountContext, updateSettings: @escaping (@escaping (LuminaSettings) -> LuminaSettings) -> Void, pushController: @escaping (ViewController) -> Void) {
         self.context = context
         self.updateSettings = updateSettings
+        self.pushController = pushController
     }
 }
 
 private enum LuminaInterfaceSection: Int32 {
     case tabBar
     case folders
+    case appIcon
 }
 
 private enum LuminaInterfaceEntry: ItemListNodeEntry {
@@ -73,12 +84,18 @@ private enum LuminaInterfaceEntry: ItemListNodeEntry {
     case rememberLastFolder(Bool)
     case foldersFooter
 
+    case appIconHeader
+    case appIcon
+    case appIconFooter
+
     var section: ItemListSectionId {
         switch self {
         case .tabBarHeader, .hideTabBar, .tabBarHideLabels, .tabBarHideContacts, .tabBarHideCalls, .tabBarFooter:
             return LuminaInterfaceSection.tabBar.rawValue
         case .foldersHeader, .hideAllChatsFolder, .compactFolderTabs, .wideFolderTabs, .rememberLastFolder, .foldersFooter:
             return LuminaInterfaceSection.folders.rawValue
+        case .appIconHeader, .appIcon, .appIconFooter:
+            return LuminaInterfaceSection.appIcon.rawValue
         }
     }
 
@@ -108,6 +125,12 @@ private enum LuminaInterfaceEntry: ItemListNodeEntry {
             return 14
         case .foldersFooter:
             return 15
+        case .appIconHeader:
+            return 20
+        case .appIcon:
+            return 21
+        case .appIconFooter:
+            return 22
         }
     }
 
@@ -190,6 +213,14 @@ private enum LuminaInterfaceEntry: ItemListNodeEntry {
             })
         case .foldersFooter:
             return ItemListTextItem(presentationData: presentationData, text: .plain(LuminaL10n.tr("LuminaGram options are stored on this device only and are never synced to Telegram.")), sectionId: self.section)
+        case .appIconHeader:
+            return ItemListSectionHeaderItem(presentationData: presentationData, text: LuminaL10n.tr("APP ICON"), sectionId: self.section)
+        case .appIcon:
+            return ItemListDisclosureItem(presentationData: presentationData, title: LuminaL10n.tr("App Icon"), label: "", sectionId: self.section, style: .blocks, action: {
+                arguments.pushController(luminaAppIconController(context: arguments.context))
+            })
+        case .appIconFooter:
+            return ItemListTextItem(presentationData: presentationData, text: .plain(LuminaL10n.tr("Pick from the app icons already included in LuminaGram.")), sectionId: self.section)
         }
     }
 }
@@ -210,6 +241,10 @@ private func luminaInterfaceControllerEntries(settings: LuminaSettings) -> [Lumi
     entries.append(.wideFolderTabs(settings.wideFolderTabs))
     entries.append(.rememberLastFolder(settings.rememberLastFolder))
     entries.append(.foldersFooter)
+
+    entries.append(.appIconHeader)
+    entries.append(.appIcon)
+    entries.append(.appIconFooter)
 
     return entries
 }
