@@ -1109,11 +1109,35 @@ func peerInfoScreenSettingsData(context: AccountContext, peerId: EnginePeer.Id, 
 // unavailable/deleted (caller then hides the row).
 private func peerInfoChannelCreationTimestamp(context: AccountContext, peerId: PeerId) -> Signal<Int32?, NoError> {
     let fetch: Signal<Int32?, NoError> = context.engine.messages.getMessagesLoadIfNecessary([MessageId(peerId: peerId, namespace: Namespaces.Message.Cloud, id: 1)], strategy: .cloud(skipLocal: false))
-    |> map { result -> Int32? in
-        if case let .result(messages) = result {
-            return messages.first?.timestamp
+    |> mapToSignal { result -> Signal<Int32?, GetMessagesError> in
+        guard case let .result(messages) = result, let message = messages.first else {
+            return .single(nil)
         }
-        return nil
+        let messageTimestamp: Int32? = message.timestamp
+        // Migrated supergroup: message #1 is the .channelMigratedFromGroup service
+        // message; its timestamp is the migration point, not the original creation.
+        // Use the ORIGINAL basic group's creationDate instead (matches the reference).
+        var legacyGroupId: PeerId?
+        for media in message.media {
+            if let action = media as? TelegramMediaAction, case let .channelMigratedFromGroup(_, groupId) = action.action {
+                legacyGroupId = groupId
+                break
+            }
+        }
+        guard let legacyGroupId = legacyGroupId else {
+            return .single(messageTimestamp)
+        }
+        return context.engine.data.get(TelegramEngine.EngineData.Item.Peer.Peer(id: legacyGroupId))
+        |> map { legacyPeer -> Int32? in
+            guard let legacyPeer = legacyPeer else {
+                return messageTimestamp
+            }
+            if case let .legacyGroup(group) = legacyPeer, group.creationDate > 0 {
+                return group.creationDate
+            }
+            return messageTimestamp
+        }
+        |> castError(GetMessagesError.self)
     }
     |> `catch` { _ -> Signal<Int32?, NoError> in
         return .single(nil)
