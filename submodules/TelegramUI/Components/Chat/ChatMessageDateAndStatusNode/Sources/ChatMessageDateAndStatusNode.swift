@@ -12,6 +12,7 @@ import ReactionImageComponent
 import AnimationCache
 import MultiAnimationRenderer
 import TelegramStringFormatting
+import TelegramUIPreferences
 
 private func maybeAddRotationAnimation(_ layer: CALayer, duration: Double) {
     if let _ = layer.animation(forKey: "clockFrameAnimation") {
@@ -1474,5 +1475,13 @@ public class ChatMessageDateAndStatusNode: ASDisplayNode {
 }
 
 public func shouldDisplayInlineDateReactions(message: EngineMessage, isPremium: Bool, forceInline: Bool) -> Bool {
+    // LuminaGram: Hide Reactions also suppresses the inline (date-and-status) reaction path.
+    // This is the single chokepoint every inline-reaction call site funnels through, so gating
+    // here means no inline chip is drawn and no trailing reaction space is reserved. Stock
+    // Telegram-iOS already returns false, so default behavior is unchanged; the guard keeps the
+    // intent pinned at the chokepoint even if an upstream sync makes the base return conditional.
+    if LuminaSettingsCache.shared.current().hideReactions {
+        return false
+    }
     return false
 }

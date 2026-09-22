@@ -117,6 +117,7 @@ private enum LuminaToolsEntry: ItemListNodeEntry {
     case disableNumberRounding(Bool)
     case timeWithSeconds(Bool)
     case stickerScale(Int32)
+    case hideReactions(Bool)
     case displayFooter
 
     var section: ItemListSectionId {
@@ -125,7 +126,7 @@ private enum LuminaToolsEntry: ItemListNodeEntry {
             return LuminaToolsSection.screens.rawValue
         case .storiesHeader, .storiesFullyOff, .storiesHidePostEntry, .storiesFooter:
             return LuminaToolsSection.stories.rawValue
-        case .displayHeader, .unreadDigest, .disableNumberRounding, .timeWithSeconds, .stickerScale, .displayFooter:
+        case .displayHeader, .unreadDigest, .disableNumberRounding, .timeWithSeconds, .stickerScale, .hideReactions, .displayFooter:
             return LuminaToolsSection.display.rawValue
         }
     }
@@ -158,8 +159,10 @@ private enum LuminaToolsEntry: ItemListNodeEntry {
             return 23
         case .stickerScale:
             return 24
+        case .hideReactions:
+            return 26
         case .displayFooter:
-            return 25
+            return 27
         }
     }
 
@@ -234,6 +237,14 @@ private enum LuminaToolsEntry: ItemListNodeEntry {
             return ItemListDisclosureItem(presentationData: presentationData, title: LuminaL10n.tr("Sticker Size"), label: "\(value)%", sectionId: self.section, style: .blocks, action: {
                 arguments.pickStickerScale(value)
             })
+        case let .hideReactions(value):
+            return ItemListSwitchItem(presentationData: presentationData, title: LuminaL10n.tr("Hide Reactions"), text: LuminaL10n.tr("Hide the reaction chips under messages"), value: value, sectionId: self.section, style: .blocks, updated: { value in
+                arguments.updateSettings { settings in
+                    var settings = settings
+                    settings.hideReactions = value
+                    return settings
+                }
+            })
         case .displayFooter:
             return ItemListTextItem(presentationData: presentationData, text: .plain(LuminaL10n.tr("These options and everything else under LuminaGram are stored on this device only.")), sectionId: self.section)
         }
@@ -257,6 +268,7 @@ private func luminaToolsControllerEntries(settings: LuminaSettings) -> [LuminaTo
         .disableNumberRounding(settings.disableNumberRounding),
         .timeWithSeconds(settings.timeWithSeconds),
         .stickerScale(settings.stickerScale),
+        .hideReactions(settings.hideReactions),
         .displayFooter
     ]
 }

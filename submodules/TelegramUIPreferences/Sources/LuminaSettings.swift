@@ -187,6 +187,12 @@ public struct LuminaSettings: Codable, Equatable {
     public var timeWithSeconds: Bool
     public var hideInputAiButton: Bool
 
+    // MARK: Display gates (LuminaGram)
+    //
+    // hideReactions: hide the reaction chips under messages (skips both draw AND
+    //   measure/layout, so no empty gap is left behind). Default false = stock behavior.
+    public var hideReactions: Bool
+
     public static var defaultSettings: LuminaSettings {
         return LuminaSettings(
             trMode: "manual",
@@ -240,7 +246,8 @@ public struct LuminaSettings: Codable, Equatable {
             disableNumberRounding: false,
             stickerScale: 100,
             timeWithSeconds: false,
-            hideInputAiButton: false
+            hideInputAiButton: false,
+            hideReactions: false
         )
     }
 
@@ -296,7 +303,8 @@ public struct LuminaSettings: Codable, Equatable {
         disableNumberRounding: Bool,
         stickerScale: Int32,
         timeWithSeconds: Bool,
-        hideInputAiButton: Bool
+        hideInputAiButton: Bool,
+        hideReactions: Bool
     ) {
         self.trMode = trMode
         self.trReadLang = trReadLang
@@ -350,6 +358,7 @@ public struct LuminaSettings: Codable, Equatable {
         self.stickerScale = stickerScale
         self.timeWithSeconds = timeWithSeconds
         self.hideInputAiButton = hideInputAiButton
+        self.hideReactions = hideReactions
     }
 
     public init(from decoder: Decoder) throws {
@@ -412,6 +421,7 @@ public struct LuminaSettings: Codable, Equatable {
         self.stickerScale = try container.decodeIfPresent(Int32.self, forKey: "stickerScale") ?? defaults.stickerScale
         self.timeWithSeconds = try container.decodeIfPresent(Bool.self, forKey: "timeWithSeconds") ?? defaults.timeWithSeconds
         self.hideInputAiButton = try container.decodeIfPresent(Bool.self, forKey: "hideInputAiButton") ?? defaults.hideInputAiButton
+        self.hideReactions = try container.decodeIfPresent(Bool.self, forKey: "hideReactions") ?? defaults.hideReactions
     }
 
     public func encode(to encoder: Encoder) throws {
@@ -473,6 +483,7 @@ public struct LuminaSettings: Codable, Equatable {
         try container.encode(self.stickerScale, forKey: "stickerScale")
         try container.encode(self.timeWithSeconds, forKey: "timeWithSeconds")
         try container.encode(self.hideInputAiButton, forKey: "hideInputAiButton")
+        try container.encode(self.hideReactions, forKey: "hideReactions")
     }
 }
 

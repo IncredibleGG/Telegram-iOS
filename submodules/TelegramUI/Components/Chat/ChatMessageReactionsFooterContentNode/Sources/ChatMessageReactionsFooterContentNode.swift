@@ -14,6 +14,7 @@ import WallpaperBackgroundNode
 import ChatControllerInteraction
 import ChatMessageBubbleContentNode
 import ChatMessageItemCommon
+import TelegramUIPreferences
 
 private let tagImage: UIImage? = {
     return generateTintedImage(image: UIImage(bundleImageName: "Chat/Message/ReactionTagBackground"), color: .white)?.stretchableImage(withLeftCapWidth: 8, topCapHeight: 15)
@@ -626,6 +627,17 @@ public final class ChatMessageReactionsFooterContentNode: ChatMessageBubbleConte
             }
             
             return (contentProperties, nil, CGFloat.greatestFiniteMagnitude, { constrainedSize, position in
+                if LuminaSettingsCache.shared.current().hideReactions {
+                    return (0.0, { _ in
+                        return (CGSize(width: 0.0, height: 0.0), { [weak self] animation, synchronousLoad, _ in
+                            let _ = animation
+                            let _ = synchronousLoad
+                            if let strongSelf = self {
+                                strongSelf.item = item
+                            }
+                        })
+                    })
+                }
                 let reactionsAttribute = mergedMessageReactions(attributes: item.message.attributes, isTags: item.message.areReactionsTags(accountPeerId: item.context.account.peerId)) ?? ReactionsMessageAttribute(canViewList: false, isTags: false, reactions: [], recentPeers: [], topPeers: [])
                 let buttonsUpdate = buttonsNode.prepareUpdate(
                     context: item.context,
