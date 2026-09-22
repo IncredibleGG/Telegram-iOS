@@ -696,7 +696,7 @@ func infoItems(
             // present, rendered date-only and localized; when it is 0/unavailable it shows
             // "Unknown" rather than a fabricated value. Pure local render of data the client
             // already holds - nothing here calls the server.
-            let luminaChatIdText = "\(channel.id.id._internalGetInt64Value())"
+            let luminaChatIdText = "-100\(channel.id.id._internalGetInt64Value())"
             items[currentPeerInfoSection]!.append(PeerInfoScreenLabeledValueItem(id: ItemLuminaChatId, label: "ID", text: luminaChatIdText, textColor: .accent, action: { _, _ in
                 UIPasteboard.general.string = luminaChatIdText
                 if let controller = interaction.getController() {
@@ -705,15 +705,18 @@ func infoItems(
             }, requestLayout: { animated in
                 interaction.requestLayout(animated)
             }))
-            let luminaCreationText: String
-            if channel.creationDate > 0 {
-                luminaCreationText = stringForMediumDate(timestamp: channel.creationDate, strings: presentationData.strings, dateTimeFormat: presentationData.dateTimeFormat, withTime: false)
-            } else {
-                luminaCreationText = LuminaL10n.tr("Unknown")
+            // LuminaGram: REAL creation date = timestamp of the first cloud message
+            // (message id == 1), fetched asynchronously in PeerInfoData and delivered
+            // via data.channelCreationTimestamp. Do NOT use channel.creationDate: that is
+            // the MTProto chat.date, i.e. the viewer's JOIN date, not the creation date.
+            // Hidden until the value arrives / if message #1 is unavailable or deleted
+            // (never fall back to the join date under a "Created" label).
+            if let luminaCreationTimestamp = data.channelCreationTimestamp, luminaCreationTimestamp > 0 {
+                let luminaCreationText = stringForMediumDate(timestamp: luminaCreationTimestamp, strings: presentationData.strings, dateTimeFormat: presentationData.dateTimeFormat, withTime: false)
+                items[currentPeerInfoSection]!.append(PeerInfoScreenLabeledValueItem(id: ItemLuminaChatCreationDate, label: LuminaL10n.tr("Created"), text: luminaCreationText, textColor: .primary, action: nil, requestLayout: { animated in
+                    interaction.requestLayout(animated)
+                }))
             }
-            items[currentPeerInfoSection]!.append(PeerInfoScreenLabeledValueItem(id: ItemLuminaChatCreationDate, label: LuminaL10n.tr("Created"), text: luminaCreationText, textColor: .primary, action: nil, requestLayout: { animated in
-                interaction.requestLayout(animated)
-            }))
             if let location = (data.cachedData as? CachedChannelData)?.peerGeoLocation {
                 items[.groupLocation]!.append(PeerInfoScreenHeaderItem(id: ItemLocationHeader, text: presentationData.strings.GroupInfo_Location.uppercased()))
                 
@@ -945,7 +948,7 @@ func infoItems(
         // date-only or "Unknown" when 0. Pure local render, never calls the server.
         let ItemLuminaChatId = 90001
         let ItemLuminaChatCreationDate = 90002
-        let luminaChatIdText = "\(group.id.id._internalGetInt64Value())"
+        let luminaChatIdText = "-\(group.id.id._internalGetInt64Value())"
         items[currentPeerInfoSection]!.append(PeerInfoScreenLabeledValueItem(id: ItemLuminaChatId, label: "ID", text: luminaChatIdText, textColor: .accent, action: { _, _ in
             UIPasteboard.general.string = luminaChatIdText
             if let controller = interaction.getController() {
@@ -954,15 +957,16 @@ func infoItems(
         }, requestLayout: { animated in
             interaction.requestLayout(animated)
         }))
-        let luminaCreationText: String
+        // LuminaGram: basic (legacy) group. Message ids are account-global (not
+        // per-chat), so message #1 does not apply; for basic groups group.creationDate
+        // (MTProto chat.date) IS the real creation date, so use it directly. Hidden
+        // when unavailable (0).
         if group.creationDate > 0 {
-            luminaCreationText = stringForMediumDate(timestamp: group.creationDate, strings: presentationData.strings, dateTimeFormat: presentationData.dateTimeFormat, withTime: false)
-        } else {
-            luminaCreationText = LuminaL10n.tr("Unknown")
+            let luminaCreationText = stringForMediumDate(timestamp: group.creationDate, strings: presentationData.strings, dateTimeFormat: presentationData.dateTimeFormat, withTime: false)
+            items[currentPeerInfoSection]!.append(PeerInfoScreenLabeledValueItem(id: ItemLuminaChatCreationDate, label: LuminaL10n.tr("Created"), text: luminaCreationText, textColor: .primary, action: nil, requestLayout: { animated in
+                interaction.requestLayout(animated)
+            }))
         }
-        items[currentPeerInfoSection]!.append(PeerInfoScreenLabeledValueItem(id: ItemLuminaChatCreationDate, label: LuminaL10n.tr("Created"), text: luminaCreationText, textColor: .primary, action: nil, requestLayout: { animated in
-            interaction.requestLayout(animated)
-        }))
         if let cachedData = data.cachedData as? CachedGroupData {
             let aboutText: String?
             if group.isFake {

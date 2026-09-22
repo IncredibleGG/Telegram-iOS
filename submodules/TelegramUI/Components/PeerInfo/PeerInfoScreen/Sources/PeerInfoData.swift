@@ -449,6 +449,7 @@ final class PeerInfoScreenData {
     let savedMusicState: ProfileSavedMusicContext.State?
     let managedByBot: EnginePeer?
     let businessConnectedBot: EnginePeer?
+    let channelCreationTimestamp: Int32?
     
     let _isContact: Bool
     var forceIsContact: Bool = false
@@ -506,7 +507,8 @@ final class PeerInfoScreenData {
         savedMusicContext: ProfileSavedMusicContext?,
         savedMusicState: ProfileSavedMusicContext.State?,
         managedByBot: EnginePeer?,
-        businessConnectedBot: EnginePeer?
+        businessConnectedBot: EnginePeer?,
+        channelCreationTimestamp: Int32? = nil
     ) {
         self.peer = peer
         self.chatPeer = chatPeer
@@ -553,6 +555,7 @@ final class PeerInfoScreenData {
         self.savedMusicState = savedMusicState
         self.managedByBot = managedByBot
         self.businessConnectedBot = businessConnectedBot
+        self.channelCreationTimestamp = channelCreationTimestamp
     }
 }
 
@@ -1096,6 +1099,27 @@ func peerInfoScreenSettingsData(context: AccountContext, peerId: EnginePeer.Id, 
             businessConnectedBot: businessConnectedBot
         )
     }
+}
+
+// LuminaGram: the real creation timestamp of a group/channel = the date of its
+// first cloud message (message id == 1), matching the reference client. The
+// MTProto chat.date/channel.date value is the CURRENT USER'S join date, not the
+// creation date, so we must not use it. Emits nil immediately (so it never blocks
+// the profile screen) and updates when message #1 arrives; nil if it is
+// unavailable/deleted (caller then hides the row).
+private func peerInfoChannelCreationTimestamp(context: AccountContext, peerId: PeerId) -> Signal<Int32?, NoError> {
+    let fetch: Signal<Int32?, NoError> = context.engine.messages.getMessagesLoadIfNecessary([MessageId(peerId: peerId, namespace: Namespaces.Message.Cloud, id: 1)], strategy: .cloud(skipLocal: false))
+    |> map { result -> Int32? in
+        if case let .result(messages) = result {
+            return messages.first?.timestamp
+        }
+        return nil
+    }
+    |> `catch` { _ -> Signal<Int32?, NoError> in
+        return .single(nil)
+    }
+    return .single(Int32?.none)
+    |> then(fetch)
 }
 
 func peerInfoScreenData(
@@ -1955,8 +1979,9 @@ func peerInfoScreenData(
                     linkedCommunityData = .single(nil)
                 }
                 
-                return linkedCommunityData
-                |> map { linkedCommunityData -> PeerInfoScreenData in
+                let channelCreationTimestampSignal = peerInfoChannelCreationTimestamp(context: context, peerId: peerId)
+                return combineLatest(linkedCommunityData, channelCreationTimestampSignal)
+                |> map { linkedCommunityData, channelCreationTimestamp -> PeerInfoScreenData in
                     var effectiveStatus = status
                     if let linkedPeer = linkedCommunityData?.cachedData?.linkedPeers.first(where: { $0.peerId == peerId }), linkedPeer.visible == false, let status = effectiveStatus {
                         effectiveStatus = peerInfoStatusWithHiddenCommunityPrefix(status, strings: strings)
@@ -2007,7 +2032,8 @@ func peerInfoScreenData(
                         savedMusicContext: nil,
                         savedMusicState: nil,
                         managedByBot: nil,
-                        businessConnectedBot: nil
+                        businessConnectedBot: nil,
+                        channelCreationTimestamp: channelCreationTimestamp
                     )
                 }
             }
@@ -2322,8 +2348,9 @@ func peerInfoScreenData(
                     linkedCommunityData = .single(nil)
                 }
 
-                return linkedCommunityData
-                |> map { linkedCommunityData -> PeerInfoScreenData in
+                let channelCreationTimestampSignal = peerInfoChannelCreationTimestamp(context: context, peerId: groupId)
+                return combineLatest(linkedCommunityData, channelCreationTimestampSignal)
+                |> map { linkedCommunityData, channelCreationTimestamp -> PeerInfoScreenData in
                     var effectiveStatus = status
                     if let linkedPeer = linkedCommunityData?.cachedData?.linkedPeers.first(where: { $0.peerId == groupId }), linkedPeer.visible == false, let status = effectiveStatus {
                         effectiveStatus = peerInfoStatusWithHiddenCommunityPrefix(status, strings: strings)
@@ -2374,7 +2401,8 @@ func peerInfoScreenData(
                         savedMusicContext: nil,
                         savedMusicState: nil,
                         managedByBot: nil,
-                        businessConnectedBot: nil
+                        businessConnectedBot: nil,
+                        channelCreationTimestamp: channelCreationTimestamp
                     )
                 }
             }
