@@ -252,6 +252,13 @@ public struct LuminaSettings: Codable, Equatable {
     public var ctxMenuShowSelect: Bool
     public var messageFilterKeywords: [String]
     public var confirmBeforeCall: Bool
+    // Notification fine control (LuminaGram #18). Both default false = stock behavior:
+    // when true, mutePinnedNotifications suppresses the OS notification for
+    // "X pinned a message" service messages; muteMentionReplyNotifications suppresses
+    // the OS notification for messages that @mention you or reply to your message.
+    // These only skip presenting the notification - nothing is marked read or deleted.
+    public var mutePinnedNotifications: Bool
+    public var muteMentionReplyNotifications: Bool
 
     public static var defaultSettings: LuminaSettings {
         return LuminaSettings(
@@ -325,7 +332,9 @@ public struct LuminaSettings: Codable, Equatable {
             ctxMenuShowSave: true,
             ctxMenuShowSelect: true,
             messageFilterKeywords: [],
-            confirmBeforeCall: false
+            confirmBeforeCall: false,
+            mutePinnedNotifications: false,
+            muteMentionReplyNotifications: false
         )
     }
 
@@ -400,7 +409,9 @@ public struct LuminaSettings: Codable, Equatable {
         ctxMenuShowSave: Bool,
         ctxMenuShowSelect: Bool,
         messageFilterKeywords: [String],
-        confirmBeforeCall: Bool
+        confirmBeforeCall: Bool,
+        mutePinnedNotifications: Bool,
+        muteMentionReplyNotifications: Bool
     ) {
         self.trMode = trMode
         self.trReadLang = trReadLang
@@ -473,6 +484,8 @@ public struct LuminaSettings: Codable, Equatable {
         self.ctxMenuShowSelect = ctxMenuShowSelect
         self.messageFilterKeywords = messageFilterKeywords
         self.confirmBeforeCall = confirmBeforeCall
+        self.mutePinnedNotifications = mutePinnedNotifications
+        self.muteMentionReplyNotifications = muteMentionReplyNotifications
     }
 
     public init(from decoder: Decoder) throws {
@@ -554,6 +567,8 @@ public struct LuminaSettings: Codable, Equatable {
         self.ctxMenuShowSelect = try container.decodeIfPresent(Bool.self, forKey: "ctxMenuShowSelect") ?? defaults.ctxMenuShowSelect
         self.messageFilterKeywords = try container.decodeIfPresent([String].self, forKey: "messageFilterKeywords") ?? defaults.messageFilterKeywords
         self.confirmBeforeCall = try container.decodeIfPresent(Bool.self, forKey: "confirmBeforeCall") ?? defaults.confirmBeforeCall
+        self.mutePinnedNotifications = try container.decodeIfPresent(Bool.self, forKey: "mutePinnedNotifications") ?? defaults.mutePinnedNotifications
+        self.muteMentionReplyNotifications = try container.decodeIfPresent(Bool.self, forKey: "muteMentionReplyNotifications") ?? defaults.muteMentionReplyNotifications
     }
 
     public func encode(to encoder: Encoder) throws {
@@ -634,6 +649,8 @@ public struct LuminaSettings: Codable, Equatable {
         try container.encode(self.ctxMenuShowSelect, forKey: "ctxMenuShowSelect")
         try container.encode(self.messageFilterKeywords, forKey: "messageFilterKeywords")
         try container.encode(self.confirmBeforeCall, forKey: "confirmBeforeCall")
+        try container.encode(self.mutePinnedNotifications, forKey: "mutePinnedNotifications")
+        try container.encode(self.muteMentionReplyNotifications, forKey: "muteMentionReplyNotifications")
     }
 }
 

@@ -384,6 +384,13 @@ public enum LuminaL10n {
             "Start a call with %@?": "要与 %@ 通话吗？",
             "Start a call?": "要发起通话吗？",
             "Call": "通话",
+            "Notifications": "通知",
+            "NOTIFICATIONS": "通知",
+            "Mute Pinned Messages": "静音置顶消息",
+            "Don't show a notification when someone pins a message in a chat.": "当有人在聊天中置顶消息时，不显示通知。",
+            "Mute Mentions & Replies": "静音提及和回复",
+            "Don't show a notification when you are @mentioned or someone replies to your message.": "当你被 @提及 或有人回复你的消息时，不显示通知。",
+            "These options only stop the notification from appearing on this device. Messages are not marked as read and nothing is deleted.": "这些选项只会阻止通知在本设备上出现。消息不会被标记为已读，也不会删除任何内容。",
         ],
         "zh-hant": [
             "LANGUAGES": "語言",
@@ -712,6 +719,13 @@ public enum LuminaL10n {
             "Start a call with %@?": "要與 %@ 通話嗎？",
             "Start a call?": "要發起通話嗎？",
             "Call": "通話",
+            "Notifications": "通知",
+            "NOTIFICATIONS": "通知",
+            "Mute Pinned Messages": "靜音置頂訊息",
+            "Don't show a notification when someone pins a message in a chat.": "當有人在聊天中置頂訊息時，不顯示通知。",
+            "Mute Mentions & Replies": "靜音提及與回覆",
+            "Don't show a notification when you are @mentioned or someone replies to your message.": "當你被 @提及 或有人回覆你的訊息時，不顯示通知。",
+            "These options only stop the notification from appearing on this device. Messages are not marked as read and nothing is deleted.": "這些選項只會阻止通知在本裝置上出現。訊息不會被標記為已讀，也不會刪除任何內容。",
         ],
     ]
 }

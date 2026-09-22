@@ -846,6 +846,7 @@ private final class NotificationServiceHandler {
             self.accountManager.accountRecords(),
             self.accountManager.sharedData(keys: [
                 ApplicationSpecificSharedDataKeys.inAppNotificationSettings,
+                ApplicationSpecificSharedDataKeys.luminaSettings,
                 ApplicationSpecificSharedDataKeys.voiceCallSettings,
                 ApplicationSpecificSharedDataKeys.automaticMediaDownloadSettings,
                 SharedDataKeys.loggingSettings
@@ -881,6 +882,8 @@ private final class NotificationServiceHandler {
             }
 
             let inAppNotificationSettings = sharedData.entries[ApplicationSpecificSharedDataKeys.inAppNotificationSettings]?.get(InAppNotificationSettings.self) ?? InAppNotificationSettings.defaultSettings
+            // LuminaGram #18: local notification fine-control flags (default off = stock behavior).
+            let luminaSettings = sharedData.entries[ApplicationSpecificSharedDataKeys.luminaSettings]?.get(LuminaSettings.self) ?? LuminaSettings.defaultSettings
             
             let voiceCallSettings: VoiceCallSettings
             if let value = sharedData.entries[ApplicationSpecificSharedDataKeys.voiceCallSettings]?.get(VoiceCallSettings.self) {
@@ -2002,6 +2005,31 @@ private final class NotificationServiceHandler {
                                         return stateManager.postbox.transaction { transaction -> (NotificationContent, Media?) in
                                             var content = content
                                             
+                                            // LuminaGram #18: suppress the OS notification for pinned-message
+                                            // service messages and for @mentions/replies to me when the matching
+                                            // mute is on. This only skips presenting the notification - it hands
+                                            // back empty content, the exact mechanism the maxIncomingReadId check
+                                            // above uses - and never marks anything read or drops the message.
+                                            if luminaSettings.mutePinnedNotifications || luminaSettings.muteMentionReplyNotifications, let messageId, let message = transaction.getMessage(messageId) {
+                                                var luminaSuppress = false
+                                                if luminaSettings.mutePinnedNotifications {
+                                                    for media in message.media {
+                                                        if let action = media as? TelegramMediaAction, case .pinnedMessageUpdated = action.action {
+                                                            luminaSuppress = true
+                                                            break
+                                                        }
+                                                    }
+                                                }
+                                                if !luminaSuppress && luminaSettings.muteMentionReplyNotifications {
+                                                    if message.attributes.contains(where: { $0 is ConsumablePersonalMentionMessageAttribute }) {
+                                                        luminaSuppress = true
+                                                    }
+                                                }
+                                                if luminaSuppress {
+                                                    return (NotificationContent(isLockedMessage: nil), nil)
+                                                }
+                                            }
+
                                             var parsedMedia: Media?
                                             if let messageId, let message = transaction.getMessage(messageId), !message.containsSecretMedia, !message.attributes.contains(where: { $0 is MediaSpoilerMessageAttribute }) {
                                                 if let media = message.media.first {
