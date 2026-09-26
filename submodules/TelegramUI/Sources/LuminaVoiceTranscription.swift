@@ -143,7 +143,7 @@ public enum LuminaVoiceTranscription {
                     return nil
                 }
                 let hypotheses = luminaDetectLanguageHypotheses(buffer, maximum: 4)
-                if let best = hypotheses.sorted(by: { $0.value > $1.value }).first {
+                if let best = hypotheses.sorted(by: { $0.value > $1.value }).first, best.value >= 0.65 { // LuminaGram: confidence floor; low-confidence guesses defer to the UI language
                     let code = best.key.rawValue
                     if !code.isEmpty && code != "und" {
                         return code
