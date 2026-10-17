@@ -5375,14 +5375,13 @@ public class ChatTextInputPanelNode: ChatInputPanelNode, ASEditableTextNodeDeleg
             guard let self else {
                 return
             }
-            self.interfaceInteraction?.updateTextInputStateAndMode { current, inputMode in
-                if let inputText = current.inputText.mutableCopy() as? NSMutableAttributedString {
-                    inputText.replaceCharacters(in: NSMakeRange(current.selectionRange.lowerBound, current.selectionRange.count), with: text)
-                    let updatedRange = current.selectionRange.lowerBound + (text as NSString).length
-                    return (ChatTextInputState(inputText: inputText, selectionRange: updatedRange ..< updatedRange), .text)
-                } else {
-                    return (ChatTextInputState(inputText: NSAttributedString(string: text)), inputMode)
-                }
+            self.interfaceInteraction?.updateTextInputStateAndMode { current, _ in
+                // 13.0: ChatTextInputState stores a structured ChatInputContent; rebuilding it from a
+                // mutated `inputText` copy would retype every block (heading/list/quote/code/table)
+                // as a body paragraph. replacingFlatRange keeps the structure and leaves the caret
+                // just past the inserted text.
+                let range = NSRange(location: current.selectionRange.lowerBound, length: current.selectionRange.count)
+                return (current.replacingFlatRange(range, with: text), .text)
             }
         }), nil)
     }

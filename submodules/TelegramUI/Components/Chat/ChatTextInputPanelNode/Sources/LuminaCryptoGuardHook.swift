@@ -57,17 +57,13 @@ extension ChatTextInputPanelNode {
     /// Plain-text insertion at the current selection — mirrors the existing rich-text paste
     /// branch a few lines below the hook in `chatInputTextNodeShouldPaste()` (same
     /// `updateTextInputStateAndMode` shape), kept separate here since a wallet address is always
-    /// plain text with no attributes to preserve.
+    /// plain text with no attributes to preserve. Uses `replacingFlatRange` (13.0) like that
+    /// branch does: rebuilding the state from a mutated `inputText` copy would flatten every
+    /// heading/list/quote/code block/table already in the composer into body paragraphs.
     private func luminaInsertPastedPlainText(_ text: String) {
-        let attributedString = NSAttributedString(string: text)
         self.interfaceInteraction?.updateTextInputStateAndMode { current, inputMode in
-            if let inputText = current.inputText.mutableCopy() as? NSMutableAttributedString {
-                inputText.replaceCharacters(in: NSMakeRange(current.selectionRange.lowerBound, current.selectionRange.count), with: attributedString)
-                let updatedRange = current.selectionRange.lowerBound + attributedString.length
-                return (ChatTextInputState(inputText: inputText, selectionRange: updatedRange ..< updatedRange), inputMode)
-            } else {
-                return (ChatTextInputState(inputText: attributedString), inputMode)
-            }
+            let range = NSRange(location: current.selectionRange.lowerBound, length: current.selectionRange.count)
+            return (current.replacingFlatRange(range, with: text), inputMode)
         }
     }
 }
