@@ -8,7 +8,9 @@ on:
 
 jobs:
   build:
-    runs-on: macos-15
+    # Upstream 13.0 pins Xcode 26.6 (versions.json). Only the macos-26 image ships it
+    # (macos-15 tops out at 26.3). arm64 is also required by the wasi-sdk toolchain.
+    runs-on: macos-26
 
     steps:
       - uses: actions/checkout@v2
@@ -18,15 +20,32 @@ jobs:
 
       - name: Set active Xcode path
         run: |
+          set -euo pipefail
           echo "Available Xcodes:"; ls -d /Applications/Xcode*.app || true
           XCODE_VERSION=$(cat versions.json | python3 -c 'import json,sys;obj=json.load(sys.stdin);print(obj["xcode"]);')
           echo "Requested Xcode: $XCODE_VERSION"
-          if [ -d "/Applications/Xcode_$XCODE_VERSION.app" ]; then
-            sudo xcode-select -s /Applications/Xcode_$XCODE_VERSION.app/Contents/Developer
-          else
-            echo "Requested Xcode not found; using default:"; xcode-select -p
+          XCODE_APP=""
+          for candidate in "/Applications/Xcode_$XCODE_VERSION.app" "/Applications/Xcode_$XCODE_VERSION.0.app"; do
+            if [ -d "$candidate" ]; then
+              XCODE_APP="$candidate"
+              break
+            fi
+          done
+          if [ -z "$XCODE_APP" ]; then
+            # Fail hard. Silently falling back to the image default only fails later in
+            # BuildEnvironment.py (version mismatch) or, worse, builds with the wrong SDK.
+            echo "::error::Requested Xcode $XCODE_VERSION is not installed on this runner image"
+            exit 1
+          fi
+          sudo xcode-select -s "$XCODE_APP/Contents/Developer"
+          # Same check BuildEnvironment.py performs: CFBundleShortVersionString of the selected Xcode.
+          ACTUAL_VERSION=$(/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" "$(xcode-select -p)/../Info.plist")
+          if [ "$ACTUAL_VERSION" != "$XCODE_VERSION" ]; then
+            echo "::error::Selected $XCODE_APP reports version $ACTUAL_VERSION, expected $XCODE_VERSION"
+            exit 1
           fi
           xcodebuild -version
+          df -h / || true
 
       - name: Create canonical source directory
         run: |
