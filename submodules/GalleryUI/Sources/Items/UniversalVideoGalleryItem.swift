@@ -3078,7 +3078,7 @@ final class UniversalVideoGalleryItemNode: ZoomableContentGalleryItemNode {
                         
                         baseNavigationController?.view.endEditing(true)
                         
-                        (baseNavigationController?.topViewController as? ViewController)?.present(gallery, in: .window(.root), with: GalleryControllerPresentationArguments(transitionArguments: { [weak overlayNode] id, media in
+                        (baseNavigationController?.topViewController as? ViewController)?.present(gallery, in: .window(.root), with: GalleryControllerPresentationArguments(transitionArguments: { [weak overlayNode, context] id, media in
                             if let overlayNode = overlayNode, let overlaySupernode = overlayNode.supernode {
                                 return GalleryTransitionArguments(transitionNode: (overlayNode, overlayNode.bounds, { [weak overlayNode] in
                                     return (overlayNode?.view.snapshotContentTree(), nil)
@@ -3100,7 +3100,7 @@ final class UniversalVideoGalleryItemNode: ZoomableContentGalleryItemNode {
                         }))
                     case let .webPage(_, _, expandFromPip):
                         if let expandFromPip = expandFromPip, let baseNavigationController = baseNavigationController {
-                            expandFromPip({ [weak overlayNode] in
+                            expandFromPip({ [weak overlayNode, context] in
                                 if let overlayNode = overlayNode, let overlaySupernode = overlayNode.supernode {
                                     return GalleryTransitionArguments(transitionNode: (overlayNode, overlayNode.bounds, { [weak overlayNode] in
                                         return (overlayNode?.view.snapshotContentTree(), nil)
@@ -3762,7 +3762,7 @@ final class UniversalVideoGalleryItemNode: ZoomableContentGalleryItemNode {
                                     c?.popItems()
                                 })))
                                 
-                                let addItem: (Int?, FileMediaReference) -> Void = { quality, qualityFile in
+                                let addItem: (Int?, FileMediaReference) -> Void = { [self] quality, qualityFile in
                                     guard let qualityFileSize = qualityFile.media.size else {
                                         return
                                     }

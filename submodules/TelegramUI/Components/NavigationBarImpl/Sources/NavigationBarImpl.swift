@@ -973,7 +973,9 @@ public final class NavigationBarImpl: ASDisplayNode, NavigationBar {
         var rightTitleInset: CGFloat = rightInset
         
         var leftButtonsWidth: CGFloat = 0.0
+        var leftButtonCount = 0
         if self.backButtonNodeImpl.view.superview != nil {
+            leftButtonCount = 1
             let backButtonSize = self.backButtonNodeImpl.updateLayout(constrainedSize: CGSize(width: size.width, height: 44.0), isLandscape: isLandscape, isLeftAligned: true)
             leftTitleInset = backButtonSize.width + backButtonInset
             
@@ -1035,6 +1037,7 @@ public final class NavigationBarImpl: ASDisplayNode, NavigationBar {
             if !self.leftButtonNodeImpl.isEmpty {
                 leftButtonsWidth += leftButtonSize.width
             }
+            leftButtonCount = self.leftButtonNodeImpl.visibleItemCount
         }
         
         let badgeSize = self.badgeNode.measure(CGSize(width: 200.0, height: 100.0))
@@ -1047,6 +1050,7 @@ public final class NavigationBarImpl: ASDisplayNode, NavigationBar {
         }
         
         var rightButtonsWidth: CGFloat = 0.0
+        var rightButtonCount = 0
         if self.rightButtonNodeImpl.view.superview != nil {
             switch self.rightButtonNodeImpl.commonContentType {
             case .accent:
@@ -1064,6 +1068,7 @@ public final class NavigationBarImpl: ASDisplayNode, NavigationBar {
             if !self.rightButtonNodeImpl.isEmpty {
                 rightButtonsWidth += rightButtonSize.width
             }
+            rightButtonCount = self.rightButtonNodeImpl.visibleItemCount
             self.rightButtonNodeImpl.alpha = 1.0
             
             var transition = transition
@@ -1110,6 +1115,7 @@ public final class NavigationBarImpl: ASDisplayNode, NavigationBar {
             }
             
             leftButtonsBackgroundView.background.update(size: leftButtonsBackgroundFrame.size, cornerRadius: leftButtonsBackgroundFrame.height * 0.5, isDark: self.presentationData.theme.overallDarkAppearance, tintColor: leftButtonsColor, isInteractive: true, isVisible: leftButtonsWidth != 0.0, transition: leftButtonsBackgroundTransition)
+            leftButtonsBackgroundView.background.morphsIntoContextMenu = leftButtonCount == 1
         }
         
         if let rightButtonsBackgroundView = self.rightButtonsBackgroundView {
@@ -1150,6 +1156,7 @@ public final class NavigationBarImpl: ASDisplayNode, NavigationBar {
             } else {
                 rightButtonsBackgroundView.background.isHidden = true
             }
+            rightButtonsBackgroundView.background.morphsIntoContextMenu = rightButtonCount == 1
         }
         
         if let luminaTranslateButtonsBackgroundView = self.luminaTranslateButtonsBackgroundView {
