@@ -47,6 +47,50 @@ jobs:
           xcodebuild -version
           df -h / || true
 
+      - name: Prepare Metal toolchain
+        # Since Xcode 26 the Metal toolchain is an optional component that lives in a cryptex DMG
+        # whose mount does not survive a reboot. A fresh runner VM remounts it lazily, which races
+        # when bazel starts many MetalCompile actions at once: random shaders die with "cannot
+        # execute tool 'metal' due to missing Metal Toolchain" (upstream 4794457664 hit this in
+        # 2 of 8 builds; they fixed it only in TartBuild.py). Mirror that fix here: mount once,
+        # serially, before bazel runs; download the component if the image lacks it; and fail
+        # hard if the tools still do not run, instead of dying halfway through a 2h build.
+        timeout-minutes: 30
+        run: |
+          set -uo pipefail
+          mount_metal_toolchain() {
+            if [ ! -d /Volumes/MetalToolchainCryptex ]; then
+              METAL_DMG="$(ls -t /System/Library/AssetsV2/com_apple_MobileAsset_MetalToolchain/*.asset/AssetData/Restore/*.dmg 2>/dev/null | head -n 1 || true)"
+              if [ -n "$METAL_DMG" ]; then
+                echo "Mounting $METAL_DMG"
+                hdiutil attach "$METAL_DMG" -mountpoint /Volumes/MetalToolchainCryptex -nobrowse -quiet \
+                  || sudo hdiutil attach "$METAL_DMG" -mountpoint /Volumes/MetalToolchainCryptex -nobrowse -quiet \
+                  || true
+              fi
+            fi
+            # Once mounted, xcrun resolves metallib/air-lld inside the cryptex, but `metal` itself is
+            # shadowed by a stub in XcodeDefault.xctoolchain that only prints the error above, so point
+            # that one name at the real compiler (same as upstream TartBuild.py).
+            METAL_REAL=/Volumes/MetalToolchainCryptex/Metal.xctoolchain/usr/bin/metal
+            if [ -x "$METAL_REAL" ] && ! xcrun metal --version >/dev/null 2>&1; then
+              sudo ln -sf "$METAL_REAL" "$(xcode-select -p)/Toolchains/XcodeDefault.xctoolchain/usr/bin/metal" || true
+            fi
+          }
+          metal_ok() {
+            xcrun metal --version && xcrun -f metallib
+          }
+          xcodebuild -showComponent MetalToolchain || true
+          mount_metal_toolchain
+          if ! metal_ok; then
+            echo "Metal toolchain not usable yet; downloading the MetalToolchain component"
+            xcodebuild -downloadComponent MetalToolchain || true
+            mount_metal_toolchain
+          fi
+          if ! metal_ok; then
+            echo "::error::Metal toolchain is not usable (xcrun metal / xcrun -f metallib failed); shader targets would fail mid-build"
+            exit 1
+          fi
+
       - name: Create canonical source directory
         run: |
           set -x
