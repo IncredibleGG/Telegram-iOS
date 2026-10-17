@@ -278,14 +278,10 @@ public enum LuminaFileGuard {
             return nil
         }
         defer { try? handle.close() }
-        let head: Data
-        if #available(iOS 13.4, *) {
-            guard let h = try? handle.read(upToCount: 8) else {
-                return nil
-            }
-            head = h
-        } else {
-            head = handle.readData(ofLength: 8)
+        // iOS 15 is the minimum deployment target (upstream 13.0), so read(upToCount:) (iOS 13.4+)
+        // is always available; the old readData(ofLength:) fallback was dead code.
+        guard let head = try? handle.read(upToCount: 8) else {
+            return nil
         }
         guard head.count >= 4 else {
             return nil

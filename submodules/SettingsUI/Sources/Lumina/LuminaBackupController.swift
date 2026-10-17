@@ -198,12 +198,9 @@ public func luminaBackupController(context: AccountContext) -> ViewController {
         })
         pickerHandler = handler
         _ = pickerHandler // retain-only: read-back to satisfy -warnings-as-errors
-        let pickerController: UIDocumentPickerViewController
-        if #available(iOS 14.0, *) {
-            pickerController = UIDocumentPickerViewController(forOpeningContentTypes: [.data])
-        } else {
-            pickerController = UIDocumentPickerViewController(documentTypes: ["public.data"], in: .open)
-        }
+        // iOS 15 is the minimum deployment target (upstream 13.0): the content-type initializer
+        // (iOS 14+) is always available, so the deprecated init(documentTypes:in:) fallback is gone.
+        let pickerController = UIDocumentPickerViewController(forOpeningContentTypes: [.data])
         pickerController.delegate = handler
         context.sharedContext.applicationBindings.presentNativeController(pickerController)
     })

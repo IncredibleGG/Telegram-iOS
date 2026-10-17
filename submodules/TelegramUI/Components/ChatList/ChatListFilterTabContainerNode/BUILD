@@ -16,6 +16,7 @@ swift_library(
         "//submodules/TelegramPresentationData",
         "//submodules/TelegramUI/Components/TextNodeWithEntities",
         "//submodules/AccountContext",
+        "//submodules/TelegramUIPreferences:TelegramUIPreferences",
         "//submodules/ComponentFlow",
         "//submodules/Components/ComponentDisplayAdapters",
         "//submodules/TelegramUI/Components/GlassBackgroundComponent",
