@@ -62,7 +62,10 @@ public func luminaTranslateMessagesBeforeSend(context: AccountContext, peerId: E
             // "auto" = the recipient's language, guessed from the same detector dual-language
             // display already relies on: the dominant detected language of this peer's own
             // recent incoming messages (ChatTranslation.swift's chatTranslationState).
-            targetLangSignal = chatTranslationState(context: context, peerId: peerId, threadId: nil)
+            // LuminaGram: read the ungated state here - this only picks the target language for
+            // the user's own outgoing text, so it must keep working in the chats the automatic
+            // translation gate excludes (official/support accounts, BotFather, ...).
+            targetLangSignal = luminaChatTranslationStateUnchecked(context: context, peerId: peerId, threadId: nil)
             |> take(1)
             |> map { state -> String in
                 if let fromLang = state?.fromLang, !fromLang.isEmpty {

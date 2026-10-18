@@ -335,13 +335,13 @@ public func translateMessageIds(context: AccountContext, messageIds: [EngineMess
 // re-checks every message, so a stale cached state cannot leak either.
 public func chatTranslationState(context: AccountContext, peerId: EnginePeer.Id, threadId: Int64?) -> Signal<ChatTranslationState?, NoError> {
     if luminaIsAutoTranslateExcludedChat(accountPeerId: context.account.peerId, peerId: peerId, peer: nil) {
-        return .single(nil)
+        return luminaChatLanguageScanOnly(context: context, peerId: peerId, threadId: threadId)
     }
     if peerId.namespace == Namespaces.Peer.CloudUser {
         return luminaAutoTranslateExcludedChat(context: context, peerId: peerId)
         |> mapToSignal { excluded -> Signal<ChatTranslationState?, NoError> in
             if excluded {
-                return .single(nil)
+                return luminaChatLanguageScanOnly(context: context, peerId: peerId, threadId: threadId)
             }
             return luminaChatTranslationStateUnchecked(context: context, peerId: peerId, threadId: threadId)
         }
@@ -349,7 +349,25 @@ public func chatTranslationState(context: AccountContext, peerId: EnginePeer.Id,
     return luminaChatTranslationStateUnchecked(context: context, peerId: peerId, threadId: threadId)
 }
 
-private func luminaChatTranslationStateUnchecked(context: AccountContext, peerId: EnginePeer.Id, threadId: Int64?) -> Signal<ChatTranslationState?, NoError> {
+// LuminaGram: excluded chats still run the on-device language scan (NLLanguageRecognizer, nothing
+// leaves the device) and cache the detected language exactly as before, because the "auto" target
+// of translate-before-send reads that cache (LuminaTranslateBeforeSend.swift). The state itself is
+// never handed to a caller - every value is replaced by a single nil - so no automatic translation
+// can start from it.
+private func luminaChatLanguageScanOnly(context: AccountContext, peerId: EnginePeer.Id, threadId: Int64?) -> Signal<ChatTranslationState?, NoError> {
+    return luminaChatTranslationStateUnchecked(context: context, peerId: peerId, threadId: threadId)
+    |> map { _ -> ChatTranslationState? in
+        return nil
+    }
+    |> distinctUntilChanged(isEqual: { _, _ in
+        return true
+    })
+}
+
+// LuminaGram: the ungated state. Only chatTranslationState above may pass it to anything that
+// translates. luminaTranslateMessagesBeforeSend reads it solely to guess the recipient language
+// for its "auto" target; that guess is made on-device and sends no chat content anywhere.
+func luminaChatTranslationStateUnchecked(context: AccountContext, peerId: EnginePeer.Id, threadId: Int64?) -> Signal<ChatTranslationState?, NoError> {
     if peerId.id == EnginePeer.Id.Id._internalFromInt64Value(777000) {
         return .single(nil)
     }
