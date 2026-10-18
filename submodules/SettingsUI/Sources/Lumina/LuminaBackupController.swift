@@ -10,6 +10,7 @@ import ItemListUI
 import PresentationDataUtils
 import AccountContext
 import AlertUI
+import TranslateUI
 
 // LuminaGram: encrypted local backup (.lgbak) - export/import UI over LuminaBackup.swift
 // (submodules/TelegramUIPreferences/Sources/LuminaBackup.swift), which does the actual
@@ -125,6 +126,48 @@ private func luminaBackupControllerEntries(state: LuminaBackupState) -> [LuminaB
     ]
 }
 
+// LuminaGram: an imported backup must never silently re-point translation / AI traffic. The
+// LLM base URL is shared by the LLM translation engine and Explain, and the user's saved LLM key
+// (Keychain, never in the backup) is sent to whatever host it names - so a backup that changes
+// that endpoint, or switches translation to the custom-endpoint (LLM) provider, is confirmed
+// first, listing the destination host. Declining still imports everything else and keeps the
+// current provider selection, endpoint, model and prompt. API keys are not part of an iOS backup
+// (LuminaKeychain), so an import can never set or replace a key. Export is unchanged.
+private func luminaBackupEffectiveLLMEndpoint(_ baseUrl: String) -> String {
+    let trimmed = baseUrl.trimmingCharacters(in: .whitespacesAndNewlines)
+    return LuminaLLMDefaults.trimTrailingSlash(trimmed.isEmpty ? LuminaLLMDefaults.baseUrl : trimmed)
+}
+
+private func luminaBackupDisplayHost(_ endpoint: String) -> String {
+    if let host = URL(string: endpoint)?.host, !host.isEmpty {
+        return host
+    }
+    // Not an absolute URL: show the raw value (shortened) so the user still sees where it points.
+    return endpoint.count > 80 ? String(endpoint.prefix(80)) + "…" : endpoint
+}
+
+// The destination host(s) the imported settings would newly send translation / Explain requests
+// to, or nil when the import leaves the provider endpoint and custom-endpoint selection as is.
+private func luminaBackupProviderEndpointHosts(current: LuminaSettings, imported: LuminaSettings) -> [String]? {
+    let currentEndpoint = luminaBackupEffectiveLLMEndpoint(current.translateBaseUrl)
+    let importedEndpoint = luminaBackupEffectiveLLMEndpoint(imported.translateBaseUrl)
+    let endpointChanged = currentEndpoint != importedEndpoint
+    let selectsCustomEndpoint = imported.translateEngine == "llm" && current.translateEngine != "llm"
+    guard endpointChanged || selectsCustomEndpoint else {
+        return nil
+    }
+    return [luminaBackupDisplayHost(importedEndpoint)]
+}
+
+private func luminaBackupKeepingCurrentProvider(_ imported: LuminaSettings, current: LuminaSettings) -> LuminaSettings {
+    var result = imported
+    result.translateEngine = current.translateEngine
+    result.translateBaseUrl = current.translateBaseUrl
+    result.translateModel = current.translateModel
+    result.translatePrompt = current.translatePrompt
+    return result
+}
+
 public func luminaBackupController(context: AccountContext) -> ViewController {
     let initialState = LuminaBackupState(passphrase: "")
     let stateValue = Atomic(value: initialState)
@@ -141,6 +184,13 @@ public func luminaBackupController(context: AccountContext) -> ViewController {
         presentControllerImpl?(textAlertController(context: context, title: nil, text: text, actions: [
             TextAlertAction(type: .defaultAction, title: context.sharedContext.currentPresentationData.with { $0 }.strings.Common_OK, action: {})
         ]))
+    }
+
+    func applyImportedSettings(_ imported: LuminaSettings, keepCurrentProvider: Bool) {
+        let _ = updateLuminaSettingsInteractively(accountManager: context.sharedContext.accountManager, { current in
+            return keepCurrentProvider ? luminaBackupKeepingCurrentProvider(imported, current: current) : imported
+        }).start()
+        presentError(keepCurrentProvider ? LuminaL10n.tr("Backup restored. Your current translation provider was kept.") : LuminaL10n.tr("Backup restored."))
     }
 
     let arguments = LuminaBackupControllerArguments(updatePassphrase: { text in
@@ -188,10 +238,26 @@ public func luminaBackupController(context: AccountContext) -> ViewController {
             do {
                 let data = try Data(contentsOf: url)
                 let settings = try LuminaBackup.importData(LuminaSettings.self, data: data, passphrase: passphrase)
-                let _ = updateLuminaSettingsInteractively(accountManager: context.sharedContext.accountManager, { _ in
-                    return settings
-                }).start()
-                presentError(LuminaL10n.tr("Backup restored."))
+                let _ = (context.sharedContext.accountManager.sharedData(keys: [ApplicationSpecificSharedDataKeys.luminaSettings])
+                |> take(1)
+                |> deliverOnMainQueue).start(next: { sharedData in
+                    let current = sharedData.entries[ApplicationSpecificSharedDataKeys.luminaSettings]?.get(LuminaSettings.self) ?? .defaultSettings
+                    guard let hosts = luminaBackupProviderEndpointHosts(current: current, imported: settings) else {
+                        applyImportedSettings(settings, keepCurrentProvider: false)
+                        return
+                    }
+                    let text = LuminaL10n.tr("This backup changes where translation and Explain requests are sent:")
+                        + "\n\n" + hosts.joined(separator: "\n") + "\n\n"
+                        + LuminaL10n.tr("Messages you translate or explain, and your saved LLM API key, would be sent to this server. Use it only if you trust it.")
+                    presentControllerImpl?(textAlertController(context: context, title: LuminaL10n.tr("Translation Provider"), text: text, actions: [
+                        TextAlertAction(type: .genericAction, title: LuminaL10n.tr("Use Backup's Provider"), action: {
+                            applyImportedSettings(settings, keepCurrentProvider: false)
+                        }),
+                        TextAlertAction(type: .defaultAction, title: LuminaL10n.tr("Keep Current Provider"), action: {
+                            applyImportedSettings(settings, keepCurrentProvider: true)
+                        })
+                    ], actionLayout: .vertical, dismissOnOutsideTap: false))
+                })
             } catch {
                 presentError(LuminaL10n.tr("Could not restore the backup. Check the passphrase and try again."))
             }

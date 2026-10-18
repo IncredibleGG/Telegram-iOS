@@ -238,10 +238,20 @@ public enum LuminaVoiceTranscription {
 
         writeTranscript(context: context, messageId: message.id, text: trimmed)
 
-        let _ = (luminaSettings(context: context)
-        |> take(1)
-        |> deliverOnMainQueue).start(next: { settings in
+        // LuminaGram: the transcript's auto-translate is an automatic flow - never send a
+        // transcript from Saved Messages, 777000 / verification codes or an official Telegram
+        // account to the translation provider (chat, author and forward source are all checked;
+        // the chat peer is resolved so the support flag counts even for my own voice notes there).
+        // The on-device transcript itself is kept either way.
+        let _ = (combineLatest(
+            luminaSettings(context: context) |> take(1),
+            luminaAutoTranslateExcludedChat(context: context, peerId: message.id.peerId)
+        )
+        |> deliverOnMainQueue).start(next: { settings, chatExcluded in
             guard settings.autoTranslateTranscript else {
+                return
+            }
+            guard !chatExcluded, !luminaIsAutoTranslateExcludedMessage(accountPeerId: context.account.peerId, message: message) else {
                 return
             }
             resolveReadingLanguage(context: context, peerId: message.id.peerId, settings: settings, completion: { targetLang in

@@ -199,10 +199,17 @@ public func translateMessageIds(context: AccountContext, messageIds: [EngineMess
     return context.account.postbox.transaction { transaction -> Signal<Never, NoError> in
         var messageIdsToTranslate: [EngineMessage.Id] = []
         var messageIdsSet = Set<EngineMessage.Id>()
+        let accountPeerId = context.account.peerId
         for messageId in messageIds {
+            // LuminaGram: batch (automatic) translation never sends content from Saved Messages,
+            // 777000 / verification codes or official Telegram accounts - neither the chat itself
+            // nor a message authored by / forwarded from such an account.
+            if luminaIsAutoTranslateExcludedChat(accountPeerId: accountPeerId, peerId: messageId.peerId, peer: transaction.getPeer(messageId.peerId)) {
+                continue
+            }
             if let message = transaction.getMessage(messageId) {
                 if let replyAttribute = message.attributes.first(where: { $0 is ReplyMessageAttribute }) as? ReplyMessageAttribute, let replyMessage = message.associatedMessages[replyAttribute.messageId] {
-                    if !replyMessage.text.isEmpty {
+                    if !replyMessage.text.isEmpty && !luminaIsAutoTranslateExcludedMessage(accountPeerId: accountPeerId, message: replyMessage) {
                         if let translation = replyMessage.attributes.first(where: { $0 is TranslationMessageAttribute }) as? TranslationMessageAttribute, translation.toLang == toLang {
                         } else {
                             if !messageIdsSet.contains(replyMessage.id) {
@@ -213,6 +220,9 @@ public func translateMessageIds(context: AccountContext, messageIds: [EngineMess
                     }
                 }
                 guard message.author?.id != context.account.peerId else {
+                    continue
+                }
+                if luminaIsAutoTranslateExcludedMessage(accountPeerId: accountPeerId, message: message) {
                     continue
                 }
                 if let translation = message.attributes.first(where: { $0 is TranslationMessageAttribute }) as? TranslationMessageAttribute, translation.toLang == toLang {
@@ -318,7 +328,28 @@ public func translateMessageIds(context: AccountContext, messageIds: [EngineMess
     } |> switchToLatest
 }
 
+// LuminaGram: Saved Messages, 777000 / verification codes and official Telegram accounts never
+// get a chat translation state, so the translate bar, whole-chat translation, channel
+// auto-translate and the pinned-message translation can never start there (see
+// luminaIsAutoTranslateExcludedChat in LuminaTranslateGating.swift). translateMessageIds above
+// re-checks every message, so a stale cached state cannot leak either.
 public func chatTranslationState(context: AccountContext, peerId: EnginePeer.Id, threadId: Int64?) -> Signal<ChatTranslationState?, NoError> {
+    if luminaIsAutoTranslateExcludedChat(accountPeerId: context.account.peerId, peerId: peerId, peer: nil) {
+        return .single(nil)
+    }
+    if peerId.namespace == Namespaces.Peer.CloudUser {
+        return luminaAutoTranslateExcludedChat(context: context, peerId: peerId)
+        |> mapToSignal { excluded -> Signal<ChatTranslationState?, NoError> in
+            if excluded {
+                return .single(nil)
+            }
+            return luminaChatTranslationStateUnchecked(context: context, peerId: peerId, threadId: threadId)
+        }
+    }
+    return luminaChatTranslationStateUnchecked(context: context, peerId: peerId, threadId: threadId)
+}
+
+private func luminaChatTranslationStateUnchecked(context: AccountContext, peerId: EnginePeer.Id, threadId: Int64?) -> Signal<ChatTranslationState?, NoError> {
     if peerId.id == EnginePeer.Id.Id._internalFromInt64Value(777000) {
         return .single(nil)
     }

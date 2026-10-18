@@ -14,11 +14,62 @@ import TelegramUIPreferences
 
 private let luminaTranslateHTTPTimeout: TimeInterval = 15.0
 
+// LuminaGram: requests that carry an API key / Authorization header must not follow a redirect to
+// a different host, or from https down to http - URLSession re-sends the request's custom headers
+// (the key included) to the redirect target. Such a redirect is refused and surfaces as an error.
+// Same-host redirects, http->https upgrades on the same host, and plain-http endpoints the user
+// typed in themselves (some relays use http) keep working. Requests without credentials are
+// unaffected.
+private let luminaCredentialHeaderNames: Set<String> = ["authorization", "proxy-authorization", "x-goog-api-key", "x-api-key", "api-key"]
+
+private func luminaRequestCarriesCredential(_ request: URLRequest?) -> Bool {
+    guard let fields = request?.allHTTPHeaderFields else {
+        return false
+    }
+    return fields.keys.contains(where: { luminaCredentialHeaderNames.contains($0.lowercased()) })
+}
+
+private func luminaIsAllowedCredentialRedirect(from source: URL?, to target: URL?) -> Bool {
+    guard let source, let target, let sourceHost = source.host?.lowercased(), let targetHost = target.host?.lowercased(), !sourceHost.isEmpty else {
+        return false
+    }
+    guard sourceHost == targetHost else {
+        return false
+    }
+    let sourceScheme = source.scheme?.lowercased() ?? ""
+    let targetScheme = target.scheme?.lowercased() ?? ""
+    if targetScheme == "https" {
+        return true
+    }
+    // https -> http is a downgrade; http -> http stays allowed for a user-entered http endpoint.
+    return targetScheme == "http" && sourceScheme == "http"
+}
+
+private final class LuminaCredentialRedirectGuard: NSObject, URLSessionTaskDelegate {
+    func urlSession(_ session: URLSession, task: URLSessionTask, willPerformHTTPRedirection response: HTTPURLResponse, newRequest request: URLRequest, completionHandler: @escaping (URLRequest?) -> Void) {
+        guard luminaRequestCarriesCredential(task.originalRequest) else {
+            completionHandler(request)
+            return
+        }
+        if luminaIsAllowedCredentialRedirect(from: task.originalRequest?.url, to: request.url) {
+            completionHandler(request)
+        } else {
+            // nil = do not follow; the task completes with the 3xx response, reported below.
+            completionHandler(nil)
+        }
+    }
+}
+
+// One shared session (a URLSession retains its delegate, so it must not be created per request).
+// .default matches URLSession.shared's cookie/cache behaviour; only the redirect policy differs.
+private let luminaHTTPSession: URLSession = URLSession(configuration: .default, delegate: LuminaCredentialRedirectGuard(), delegateQueue: nil)
+
 // Shared HTTP transport for the network-backed engines (DeepL, LLM). Mirrors this fork's
 // existing alternativeTranslateText helper (Translate.swift) — off-queue URLSession request,
 // an explicit 15s timeout (matching Android's LuminaTranslatorUtil and desktop's
 // kRequestTimeoutMs), a Signal that resolves at most once. Security: never log request
-// headers, bodies or the raw response — they may carry the user's API key.
+// headers, bodies or the raw response — they may carry the user's API key. Errors carry only a
+// generic category plus the HTTP status / transport error code, never URLs or response text.
 func luminaHTTPRequest(url: URL, method: String, headers: [String: String], body: Data?) -> Signal<Data, LuminaTranslateError> {
     return Signal { subscriber in
         var task: URLSessionDataTask?
@@ -30,13 +81,18 @@ func luminaHTTPRequest(url: URL, method: String, headers: [String: String], body
                 request.setValue(value, forHTTPHeaderField: key)
             }
             request.httpBody = body
-            task = URLSession.shared.dataTask(with: request) { data, response, error in
+            task = luminaHTTPSession.dataTask(with: request) { data, response, error in
                 if let error {
-                    subscriber.putError(.network((error as NSError).localizedDescription))
+                    subscriber.putError(.network("transport error \((error as NSError).code)"))
                     return
                 }
                 guard let httpResponse = response as? HTTPURLResponse else {
                     subscriber.putError(.network(nil))
+                    return
+                }
+                if (300 ..< 400).contains(httpResponse.statusCode) {
+                    // Only reached when LuminaCredentialRedirectGuard refused the redirect.
+                    subscriber.putError(.network("redirect blocked, HTTP \(httpResponse.statusCode)"))
                     return
                 }
                 if httpResponse.statusCode >= 400 {
