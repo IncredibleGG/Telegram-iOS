@@ -100,7 +100,7 @@ public func luminaExplainMessage(context: AccountContext, present: @escaping (Vi
                 let reply = first["message"] as? [String: Any],
                 let content = reply["content"] as? String
             else {
-                return .fail(.badResponse)
+                return .fail(luminaLLMReplyError(data, model: model))
             }
             let trimmed = content.trimmingCharacters(in: .whitespacesAndNewlines)
             if trimmed.isEmpty {

@@ -70,9 +70,9 @@ private let luminaHTTPSession: URLSession = URLSession(configuration: .default, 
 // kRequestTimeoutMs), a Signal that resolves at most once. Security: never log request
 // headers, bodies or the raw response — they may carry the user's API key. Errors carry only a
 // generic category plus the HTTP status / transport error code, never URLs or response text.
-// `model` is the LLM model name the request asked for; when set, an HTTP 400 / 404 whose JSON
-// error says that model does not exist becomes .modelNotFound(model). The error body is only
-// inspected for that classification and then dropped.
+// `model` is the LLM model name the request asked for; when set, an error reply whose JSON says
+// that model does not exist becomes .modelNotFound(model) (see luminaErrorBodyNamesMissingModel).
+// The error body is only inspected for that classification and then dropped.
 func luminaHTTPRequest(url: URL, method: String, headers: [String: String], body: Data?, model: String? = nil) -> Signal<Data, LuminaTranslateError> {
     return Signal { subscriber in
         var task: URLSessionDataTask?
@@ -117,20 +117,19 @@ func luminaHTTPRequest(url: URL, method: String, headers: [String: String], body
     }
 }
 
-// Status -> category, same table on every platform: 401/403 key rejected, 402/429 (+ DeepL's 456)
-// quota / too many requests, 400/404 naming a missing model -> model not found, 5xx temporary
-// service error, anything else a plain HTTP status.
-private func luminaClassifyHTTPError(statusCode: Int, body: Data?, model: String?) -> LuminaTranslateError {
+// Status -> category, same table as Android's LuminaLlm.statusText: an error body that says the
+// requested model does not exist -> model not found (checked first), 401/403 key rejected,
+// 402/429 (+ DeepL's 456) quota / too many requests, 5xx temporary service error, anything else
+// a plain HTTP status.
+func luminaClassifyHTTPError(statusCode: Int, body: Data?, model: String?) -> LuminaTranslateError {
+    if let model, luminaErrorBodyNamesMissingModel(body, statusCode: statusCode) {
+        return .modelNotFound(model)
+    }
     switch statusCode {
     case 401, 403:
         return .keyRejected
     case 402, 429, 456:
         return .rateLimited
-    case 400, 404:
-        if let model, luminaErrorBodyNamesMissingModel(body) {
-            return .modelNotFound(model)
-        }
-        return .httpStatus(statusCode)
     case 500 ..< 600:
         return .serverError(statusCode)
     default:
@@ -138,31 +137,51 @@ private func luminaClassifyHTTPError(statusCode: Int, body: Data?, model: String
     }
 }
 
-// OpenAI-style error bodies: {"error":{"message":..,"type":..,"code":..}}. Relays and other
-// providers vary: Ollama sends {"error":"model \"x\" not found"}, Gemini's compat endpoint wraps
-// the object in an array, some gateways put type/code/message at the top level. A model error
-// is either a type/code containing "model_not_found", or a message that mentions the model and
-// says it is not found / does not exist.
-private func luminaErrorBodyNamesMissingModel(_ body: Data?) -> Bool {
+// A JSON scalar as text: strings as they are, numbers as their decimal form, anything else "".
+func luminaJSONString(_ value: Any?) -> String {
+    if let value = value as? String {
+        return value
+    }
+    if let value = value as? NSNumber {
+        return value.stringValue
+    }
+    return ""
+}
+
+// OpenAI-style error bodies: {"error":{"message":..,"type":..,"code":..,"param":..}}. Relays and
+// other providers vary: Ollama sends {"error":"model \"x\" not found"}, Gemini's compat endpoint
+// wraps the object in an array, some gateways put type/code/message at the top level. Same rule
+// as Android's LuminaLlm.isModelNotFoundBody: a type/code naming model_not_found counts for any
+// status; the looser checks (param is "model", or the message mentions the model and says it is
+// not found / does not exist / is not supported) only for 400, 404 or an error object in a 2xx
+// reply (statusCode 0). The body is only classified here, never kept, logged or shown.
+func luminaErrorBodyNamesMissingModel(_ body: Data?, statusCode: Int) -> Bool {
     guard let body, !body.isEmpty, body.count <= 64 * 1024, let json = try? JSONSerialization.jsonObject(with: body) else {
         return false
     }
     var codes: [String] = []
+    var params: [String] = []
     var messages: [String] = []
     func collect(_ object: Any?) {
         if let dict = object as? [String: Any] {
             for key in ["type", "code", "status"] {
-                if let value = dict[key] as? String {
+                let value = luminaJSONString(dict[key])
+                if !value.isEmpty {
                     codes.append(value.lowercased())
                 }
             }
+            let param = luminaJSONString(dict["param"])
+            if !param.isEmpty {
+                params.append(param.lowercased())
+            }
             for key in ["message", "detail"] {
-                if let value = dict[key] as? String {
-                    messages.append(value.lowercased())
+                let value = luminaJSONString(dict[key])
+                if !value.isEmpty {
+                    messages.append(value)
                 }
             }
         } else if let value = object as? String {
-            messages.append(value.lowercased())
+            messages.append(value)
         }
     }
     var root: [String: Any]?
@@ -176,13 +195,39 @@ private func luminaErrorBodyNamesMissingModel(_ body: Data?) -> Bool {
     }
     collect(root["error"])
     collect(root)
-    if codes.contains(where: { $0.contains("model_not_found") }) {
+    if codes.contains(where: { $0.contains("model_not_found") || $0.contains("model_not_exist") || $0.contains("modelnotfound") }) {
         return true
     }
-    let notFoundMarkers = ["not found", "not exist", "no such model", "unknown model", "invalid model"]
+    if statusCode > 0 && statusCode != 400 && statusCode != 404 {
+        return false
+    }
+    if params.contains("model") {
+        return true
+    }
+    let notFoundMarkers = ["not found", "does not exist", "not exist", "no such model", "unknown model", "invalid model", "model not available"]
     return messages.contains(where: { message in
-        return message.contains("model") && notFoundMarkers.contains(where: { message.contains($0) })
+        let lower = message.lowercased()
+        if lower.contains("model") {
+            if notFoundMarkers.contains(where: { lower.contains($0) }) {
+                return true
+            }
+            if (lower.hasPrefix("model ") || lower.hasPrefix("the model ")) && lower.contains("not supported") {
+                return true
+            }
+        }
+        return message.contains("模型") && ["不存在", "不支持", "不支援", "无可用", "無可用"].contains(where: { message.contains($0) })
     })
+}
+
+// A 2xx chat/completions reply without a usable "choices" result. Some relays answer 200 with
+// {"error": ...} instead: when that error says the model does not exist it is reported as such,
+// anything else is an unreadable reply (same rule as Android's LuminaLlm.errorInReply). Only
+// classified here; the body is never kept, logged or shown.
+func luminaLLMReplyError(_ data: Data, model: String) -> LuminaTranslateError {
+    if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any], json["choices"] == nil, json["error"] != nil, luminaErrorBodyNamesMissingModel(data, statusCode: 0) {
+        return .modelNotFound(model)
+    }
+    return .badResponse
 }
 
 // MARK: - Telegram (default; wraps the existing MTProto messages.translateText RPC)
@@ -403,7 +448,7 @@ final class LuminaLLMEngine: LuminaTranslatorEngine {
                     let message = first["message"] as? [String: Any],
                     let content = message["content"] as? String
                 else {
-                    return .fail(.badResponse)
+                    return .fail(luminaLLMReplyError(data, model: model))
                 }
                 return .single(LuminaTranslationResult(text: content.trimmingCharacters(in: .whitespacesAndNewlines), detectedSourceLang: nil))
             }

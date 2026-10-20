@@ -21,7 +21,8 @@ public enum LuminaTranslateError: Error {
     case rateLimited
     // HTTP 401 / 403: the provider rejected the API key.
     case keyRejected
-    // HTTP 400 / 404 whose JSON error says the requested model does not exist. Carries the model
+    // An error reply whose JSON says the requested model does not exist (model_not_found for any
+    // status; a "model ... not found" message for 400 / 404 / a 2xx error object). Carries the model
     // name the user typed (from settings) so the message can name it - never response text.
     case modelNotFound(String)
     // HTTP 5xx: the provider had a temporary error.
@@ -59,6 +60,11 @@ public func luminaTranslateErrorText(_ error: LuminaTranslateError, usesBaseUrl:
     case .serverError:
         return LuminaL10n.tr("The service had a temporary error. Try again later.")
     case let .httpStatus(code):
+        if code == 404 && usesBaseUrl {
+            // A 404 that does not name a missing model: the base URL points at the wrong place
+            // (Android's LuminaLlmErrEndpoint).
+            return LuminaL10n.tr("Nothing found at this address (HTTP 404). Check the base URL; it usually ends in /v1.")
+        }
         return LuminaL10n.tr("The service rejected the request (HTTP %@). Check the provider settings.").replacingOccurrences(of: "%@", with: "\(code)")
     case .badResponse:
         if usesBaseUrl {

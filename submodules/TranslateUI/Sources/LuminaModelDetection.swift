@@ -12,22 +12,23 @@ import OverlayStatusController
 // and desktop. Calls GET {baseURL}/models through luminaHTTPRequest, so it uses the same
 // Authorization header and the same transport rules as every other LLM request: 15s timeout, a
 // request carrying the key never follows a redirect to another host or from https down to http,
-// and user-entered http:// endpoints keep working. The returned data[].id list is shown as a
-// picker; choosing one saves it as the model (LuminaSettings.translateModel, shared by the LLM
-// translation engine and Explain).
+// and user-entered http:// endpoints keep working. The returned data[].id list (also models[] or
+// a bare array, like Android) is shown as a picker; choosing one saves it as the model
+// (LuminaSettings.translateModel, shared by the LLM translation engine and Explain).
 
 public enum LuminaModelListError {
     // No LLM key in the Keychain.
     case noKey
-    // HTTP 401 / 403.
+    // HTTP 401 / 403 (or a 200 reply whose error object says so).
     case keyRejected
-    // HTTP 404 / 405, or a reply that is not an OpenAI-style model list.
+    // HTTP 404 / 405 (or a 200 reply whose error object says so).
     case noModelList
     // Transport failure, timeout, TLS, refused redirect or an unusable base URL.
     case cannotConnect
     // A valid list with no usable ids.
     case empty
-    // Anything else (quota, 5xx, other statuses): the shared provider error text.
+    // Anything else (quota, 5xx, other statuses, a reply that is not JSON): the shared provider
+    // error text.
     case other(LuminaTranslateError)
 }
 
@@ -48,22 +49,82 @@ public func luminaModelListErrorText(_ error: LuminaModelListError) -> String {
     }
 }
 
+// Picker order, the same rule as Android's LuminaLlm.orderModels (the baseline):
 // Ids that are clearly not chat models (image, speech, embedding, moderation, realtime). They are
 // hidden unless hiding them would leave nothing, in which case everything is shown.
 private let luminaNonChatModelMarkers: [String] = ["image", "dall-e", "tts", "whisper", "embedding", "moderation", "transcribe", "audio", "realtime"]
 
 // Families that are almost always chat-completion models; these are listed first.
-private let luminaChatModelMarkers: [String] = ["gpt", "chat", "claude", "gemini", "gemma", "deepseek", "qwen", "llama", "mistral", "mixtral", "glm", "kimi", "moonshot", "grok", "sonnet", "opus", "haiku", "command", "doubao", "ernie", "hunyuan", "minimax", "yi-", "phi-", "instruct"]
+private let luminaChatModelMarkers: [String] = ["gpt", "chat", "claude", "gemini", "gemma", "deepseek", "qwen", "llama", "mistral", "mixtral", "glm", "kimi", "moonshot", "grok", "command", "sonnet", "opus", "haiku", "doubao", "ernie", "hunyuan", "minimax", "yi-", "turbo"]
 
-private func luminaIsLikelyChatModel(_ id: String) -> Bool {
-    let lower = id.lowercased()
-    if lower.hasPrefix("o1") || lower.hasPrefix("o3") || lower.hasPrefix("o4") {
-        return true
+// Chat-capable but rarely what a translator wants (coding / review / search / reserve pools):
+// listed last.
+private let luminaLessLikelyModelMarkers: [String] = ["codex", "review", "reserve", "search", "computer-use", "guard"]
+
+// 0 = likely chat model, 1 = unknown, 2 = less likely.
+private func luminaModelRank(_ lower: String) -> Int {
+    if luminaLessLikelyModelMarkers.contains(where: { lower.contains($0) }) {
+        return 2
     }
-    return luminaChatModelMarkers.contains(where: { lower.contains($0) })
+    if luminaChatModelMarkers.contains(where: { lower.contains($0) }) || lower.hasPrefix("o1") || lower.hasPrefix("o3") || lower.hasPrefix("o4") {
+        return 0
+    }
+    return 1
 }
 
-// De-duplicated, likely chat models first, each group in natural (numeric-aware) order.
+// Digit runs compare by value ("gpt-10" > "gpt-9"), everything else by UTF-16 unit; when one
+// string is a prefix of the other the shorter sorts first. Port of Android's
+// LuminaLlm.naturalCompare: negative when a < b, 0 when equal, positive when a > b.
+func luminaNaturalCompare(_ a: String, _ b: String) -> Int {
+    let a = Array(a.utf16)
+    let b = Array(b.utf16)
+    func isDigit(_ unit: UInt16) -> Bool {
+        return unit >= 0x30 && unit <= 0x39
+    }
+    var i = 0
+    var j = 0
+    while i < a.count && j < b.count {
+        let ca = a[i]
+        let cb = b[j]
+        if isDigit(ca) && isDigit(cb) {
+            var ei = i
+            while ei < a.count && isDigit(a[ei]) {
+                ei += 1
+            }
+            var ej = j
+            while ej < b.count && isDigit(b[ej]) {
+                ej += 1
+            }
+            // Leading zeros do not count, but a run keeps at least one digit.
+            var si = i
+            while si < ei - 1 && a[si] == 0x30 {
+                si += 1
+            }
+            var sj = j
+            while sj < ej - 1 && b[sj] == 0x30 {
+                sj += 1
+            }
+            if ei - si != ej - sj {
+                return (ei - si) - (ej - sj)
+            }
+            for k in 0 ..< (ei - si) where a[si + k] != b[sj + k] {
+                return Int(a[si + k]) - Int(b[sj + k])
+            }
+            i = ei
+            j = ej
+        } else {
+            if ca != cb {
+                return Int(ca) - Int(cb)
+            }
+            i += 1
+            j += 1
+        }
+    }
+    return (a.count - i) - (b.count - j)
+}
+
+// De-duplicated, likely chat models first, then unknown ids, then the less likely ones; within a
+// group the newest-looking version first (reverse natural order).
 public func luminaOrderModelIds(_ ids: [String]) -> [String] {
     var seen = Set<String>()
     var unique: [String] = []
@@ -80,12 +141,131 @@ public func luminaOrderModelIds(_ ids: [String]) -> [String] {
         return !luminaNonChatModelMarkers.contains(where: { lower.contains($0) })
     }
     let pool = visible.isEmpty ? unique : visible
-    let naturalOrder: (String, String) -> Bool = { lhs, rhs in
-        return lhs.localizedStandardCompare(rhs) == .orderedAscending
+    let keyed = pool.enumerated().map { item -> (offset: Int, rank: Int, lower: String, id: String) in
+        let lower = item.element.lowercased()
+        return (offset: item.offset, rank: luminaModelRank(lower), lower: lower, id: item.element)
     }
-    let chat = pool.filter(luminaIsLikelyChatModel).sorted(by: naturalOrder)
-    let others = pool.filter { !luminaIsLikelyChatModel($0) }.sorted(by: naturalOrder)
-    return chat + others
+    let sorted = keyed.sorted { lhs, rhs in
+        if lhs.rank != rhs.rank {
+            return lhs.rank < rhs.rank
+        }
+        let order = luminaNaturalCompare(rhs.lower, lhs.lower)
+        if order != 0 {
+            return order < 0
+        }
+        return lhs.offset < rhs.offset
+    }
+    return sorted.map { $0.id }
+}
+
+private enum LuminaModelListReply {
+    case ids([String])
+    case failure(LuminaModelListError)
+}
+
+// An HTTP-like status (400...599) embedded in a JSON error object, or 0.
+private func luminaEmbeddedStatus(_ value: Any?) -> Int {
+    var status = 0
+    if let number = value as? NSNumber {
+        status = number.intValue
+    } else if let text = value as? String {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed.count == 3, let parsed = Int(trimmed) {
+            status = parsed
+        }
+    }
+    return (400 ... 599).contains(status) ? status : 0
+}
+
+// A 2xx /models reply that carries {"error": ...} instead of a list (some relays answer 200 that
+// way), mapped like an HTTP error of the model listing. Same rule as Android's
+// LuminaLlm.modelsErrorInReply; the body is only classified, nothing from it is shown.
+private func luminaModelsErrorInReply(_ json: [String: Any]) -> LuminaModelListError {
+    let errorObject = json["error"]
+    let errorDict = errorObject as? [String: Any]
+    var status = 0
+    if let errorDict {
+        status = luminaEmbeddedStatus(errorDict["code"])
+        if status == 0 {
+            status = luminaEmbeddedStatus(errorDict["status"])
+        }
+    }
+    if status == 0 {
+        status = luminaEmbeddedStatus(json["status"])
+    }
+    if status == 0 {
+        status = luminaEmbeddedStatus(json["code"])
+    }
+    if status == 404 || status == 405 {
+        return .noModelList
+    }
+    if status > 0 {
+        let error = luminaClassifyHTTPError(statusCode: status, body: nil, model: nil)
+        if case .keyRejected = error {
+            return .keyRejected
+        }
+        return .other(error)
+    }
+    var hint = ""
+    if let errorDict {
+        hint = [luminaJSONString(errorDict["type"]), luminaJSONString(errorDict["code"]), luminaJSONString(errorDict["message"])].joined(separator: " ")
+    } else if let text = errorObject as? String {
+        hint = text
+    }
+    hint = hint.lowercased()
+    let keyMarkers = ["api key", "api_key", "apikey", "unauthorized", "unauthenticated", "authentication", "invalid token", "invalid_token", "forbidden", "permission"]
+    if keyMarkers.contains(where: { hint.contains($0) }) {
+        return .keyRejected
+    }
+    let quotaMarkers = ["quota", "rate limit", "rate_limit", "insufficient", "balance"]
+    if quotaMarkers.contains(where: { hint.contains($0) }) {
+        return .other(.rateLimited)
+    }
+    return .other(.badResponse)
+}
+
+// Reads a 2xx /models reply: an OpenAI-style {"data":[...]}, {"models":[...]} or a bare array,
+// whose entries are strings or objects with "id" (or "name"). A reply that is not JSON cannot be
+// read; a JSON object with no list is an empty list. Same rules as Android's
+// LuminaLlm.parseModelIds; only the model ids are kept.
+private func luminaParseModelListReply(_ data: Data) -> LuminaModelListReply {
+    guard let json = try? JSONSerialization.jsonObject(with: data) else {
+        return .failure(.other(.badResponse))
+    }
+    let list: [Any]
+    if let array = json as? [Any] {
+        list = array
+    } else if let dict = json as? [String: Any] {
+        if dict["error"] != nil && dict["data"] == nil && dict["models"] == nil {
+            return .failure(luminaModelsErrorInReply(dict))
+        }
+        if let items = dict["data"] as? [Any] {
+            list = items
+        } else if let items = dict["models"] as? [Any] {
+            list = items
+        } else {
+            list = []
+        }
+    } else {
+        return .failure(.other(.badResponse))
+    }
+    var ids: [String] = []
+    for item in list {
+        var id = ""
+        if let text = item as? String {
+            id = text
+        } else if let entry = item as? [String: Any] {
+            id = luminaJSONString(entry["id"])
+            if id.isEmpty {
+                id = luminaJSONString(entry["name"])
+            }
+        }
+        id = id.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !id.isEmpty && id.count <= 200 {
+            ids.append(id)
+        }
+    }
+    return .ids(ids)
 }
 
 // Fetches and orders the model list for the configured LLM base URL and key. `current` is the
@@ -127,14 +307,12 @@ public func luminaFetchLLMModels(context: AccountContext) -> Signal<(models: [St
             }
         }
         |> mapToSignal { data -> Signal<(models: [String], current: String), LuminaModelListError> in
-            guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any], let list = json["data"] as? [Any] else {
-                return .fail(.noModelList)
-            }
-            let ids: [String] = list.compactMap { item -> String? in
-                if let entry = item as? [String: Any] {
-                    return entry["id"] as? String
-                }
-                return item as? String
+            let ids: [String]
+            switch luminaParseModelListReply(data) {
+            case let .ids(value):
+                ids = value
+            case let .failure(error):
+                return .fail(error)
             }
             let ordered = luminaOrderModelIds(ids)
             if ordered.isEmpty {
