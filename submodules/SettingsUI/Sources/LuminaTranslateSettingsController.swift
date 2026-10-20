@@ -22,6 +22,7 @@ import TranslateUI
 // LuminaSettings — see LuminaKeychain.swift's header), read fresh on every entries rebuild and
 // written on every keystroke via LuminaKeychain.set, which needs no promise/state of its own.
 public func luminaTranslateSettingsController(context: AccountContext) -> ViewController {
+    var presentControllerImpl: ((ViewController) -> Void)?
     let arguments = LuminaTranslateSettingsControllerArguments(
         updateSettings: { f in
             let _ = updateLuminaSettingsInteractively(accountManager: context.sharedContext.accountManager, f).start()
@@ -33,7 +34,14 @@ public func luminaTranslateSettingsController(context: AccountContext) -> ViewCo
             LuminaKeychain.set(value, forKey: LuminaKeychainKey.translateProviderAPIKey(providerId: "llm"))
         },
         testProvider: {
-            luminaTestCurrentProvider(context: context)
+            luminaTestCurrentProvider(context: context, present: { c in
+                presentControllerImpl?(c)
+            })
+        },
+        detectModels: {
+            luminaPresentModelDetection(context: context, present: { c in
+                presentControllerImpl?(c)
+            })
         }
     )
 
@@ -49,7 +57,11 @@ public func luminaTranslateSettingsController(context: AccountContext) -> ViewCo
         return (controllerState, (listState, arguments))
     }
 
-    return ItemListController(context: context, state: signal)
+    let controller = ItemListController(context: context, state: signal)
+    presentControllerImpl = { [weak controller] c in
+        controller?.present(c, in: .window(.root))
+    }
+    return controller
 }
 
 private final class LuminaTranslateSettingsControllerArguments {
@@ -57,12 +69,14 @@ private final class LuminaTranslateSettingsControllerArguments {
     let updateDeepLKey: (String) -> Void
     let updateLLMKey: (String) -> Void
     let testProvider: () -> Void
+    let detectModels: () -> Void
 
-    init(updateSettings: @escaping (@escaping (LuminaSettings) -> LuminaSettings) -> Void, updateDeepLKey: @escaping (String) -> Void, updateLLMKey: @escaping (String) -> Void, testProvider: @escaping () -> Void) {
+    init(updateSettings: @escaping (@escaping (LuminaSettings) -> LuminaSettings) -> Void, updateDeepLKey: @escaping (String) -> Void, updateLLMKey: @escaping (String) -> Void, testProvider: @escaping () -> Void, detectModels: @escaping () -> Void) {
         self.updateSettings = updateSettings
         self.updateDeepLKey = updateDeepLKey
         self.updateLLMKey = updateLLMKey
         self.testProvider = testProvider
+        self.detectModels = detectModels
     }
 }
 
@@ -106,6 +120,7 @@ private enum LuminaTranslateSettingsEntry: ItemListNodeEntry {
     case providerOption(index: Int, id: String, name: String, selected: Bool)
     case providerBaseUrl(String)
     case providerModel(String)
+    case providerDetectModels
     case providerPrompt(String)
     case providerDeepLKey(String)
     case providerLLMKey(String)
@@ -128,7 +143,7 @@ private enum LuminaTranslateSettingsEntry: ItemListNodeEntry {
             return LuminaTranslateSettingsSection.beforeSend.rawValue
         case .explainHeader, .explainMessage:
             return LuminaTranslateSettingsSection.explain.rawValue
-        case .providerHeader, .providerOption, .providerBaseUrl, .providerModel, .providerPrompt, .providerDeepLKey, .providerLLMKey, .providerTest, .providerFooter:
+        case .providerHeader, .providerOption, .providerBaseUrl, .providerModel, .providerDetectModels, .providerPrompt, .providerDeepLKey, .providerLLMKey, .providerTest, .providerFooter:
             return LuminaTranslateSettingsSection.provider.rawValue
         case .glossaryHeader, .glossaryTerms, .glossaryFooter:
             return LuminaTranslateSettingsSection.glossary.rawValue
@@ -161,14 +176,15 @@ private enum LuminaTranslateSettingsEntry: ItemListNodeEntry {
         case let .providerOption(index, _, _, _): return Int32(100 + index)
         case .providerBaseUrl: return 120
         case .providerModel: return 121
-        case .providerPrompt: return 122
-        case .providerDeepLKey: return 123
-        case .providerLLMKey: return 124
-        case .providerTest: return 125
-        case .providerFooter: return 126
-        case .glossaryHeader: return 127
-        case .glossaryTerms: return 128
-        case .glossaryFooter: return 129
+        case .providerDetectModels: return 122
+        case .providerPrompt: return 123
+        case .providerDeepLKey: return 124
+        case .providerLLMKey: return 125
+        case .providerTest: return 126
+        case .providerFooter: return 127
+        case .glossaryHeader: return 128
+        case .glossaryTerms: return 129
+        case .glossaryFooter: return 130
         }
     }
 
@@ -328,6 +344,12 @@ private enum LuminaTranslateSettingsEntry: ItemListNodeEntry {
                     return settings
                 }
             }, action: {})
+        case .providerDetectModels:
+            // LuminaGram: lists the models the LLM service actually offers (GET {base URL}/models)
+            // and saves the one picked, so a mistyped or unknown model name is easy to fix.
+            return ItemListActionItem(presentationData: presentationData, systemStyle: .glass, title: LuminaL10n.tr("Detect Models"), kind: .generic, alignment: .natural, sectionId: self.section, style: .blocks, action: {
+                arguments.detectModels()
+            })
         case let .providerPrompt(value):
             return ItemListMultilineInputItem(presentationData: presentationData, systemStyle: .glass, text: value, placeholder: LuminaLLMDefaults.prompt, maxLength: nil, sectionId: self.section, style: .blocks, capitalization: true, autocorrection: true, textUpdated: { value in
                 arguments.updateSettings { settings in
@@ -410,6 +432,7 @@ private func luminaTranslateSettingsControllerEntries(settings: LuminaSettings) 
     }
     entries.append(.providerBaseUrl(settings.translateBaseUrl))
     entries.append(.providerModel(settings.translateModel))
+    entries.append(.providerDetectModels)
     entries.append(.providerPrompt(settings.translatePrompt))
     entries.append(.providerDeepLKey(LuminaKeychain.get(LuminaKeychainKey.translateProviderAPIKey(providerId: "deepl")) ?? ""))
     entries.append(.providerLLMKey(LuminaKeychain.get(LuminaKeychainKey.translateProviderAPIKey(providerId: "llm")) ?? ""))
@@ -423,27 +446,30 @@ private func luminaTranslateSettingsControllerEntries(settings: LuminaSettings) 
     return entries
 }
 
-private func luminaTestCurrentProvider(context: AccountContext) {
+// LuminaGram: a failed test names the actual cause (key rejected, model not found, quota, service
+// error, cannot connect) via luminaTranslateErrorText - never the key, URL or response body. A
+// missing model offers "Detect Models" straight from the alert.
+private func luminaTestCurrentProvider(context: AccountContext, present: @escaping (ViewController) -> Void) {
     let _ = (LuminaTranslatorRegistry.current(context: context)
-    |> mapToSignal { engine -> Signal<LuminaTranslationResult?, NoError> in
+    |> mapToSignal { engine -> Signal<(result: LuminaTranslationResult?, error: LuminaTranslateError?, usesBaseUrl: Bool), NoError> in
+        let usesBaseUrl = engine.needsBaseUrl
         return engine.translate(text: "Hello, world!", toLang: "es", peerId: nil, context: context)
-        |> map { result -> LuminaTranslationResult? in
-            return result
+        |> map { result -> (result: LuminaTranslationResult?, error: LuminaTranslateError?, usesBaseUrl: Bool) in
+            return (result: result, error: nil, usesBaseUrl: usesBaseUrl)
         }
-        |> `catch` { _ -> Signal<LuminaTranslationResult?, NoError> in
-            return .single(nil)
+        |> `catch` { error -> Signal<(result: LuminaTranslationResult?, error: LuminaTranslateError?, usesBaseUrl: Bool), NoError> in
+            return .single((result: nil, error: error, usesBaseUrl: usesBaseUrl))
         }
     }
-    |> deliverOnMainQueue).start(next: { result in
+    |> take(1)
+    |> deliverOnMainQueue).start(next: { outcome in
         let presentationData = context.sharedContext.currentPresentationData.with { $0 }
-        let text: String
-        if let result {
-            text = "\"Hello, world!\" → \"\(result.text)\""
+        if let result = outcome.result {
+            present(textAlertController(context: context, title: LuminaL10n.tr("Test Provider"), text: "\"Hello, world!\" → \"\(result.text)\"", actions: [
+                TextAlertAction(type: .defaultAction, title: presentationData.strings.Common_OK, action: {})
+            ]))
         } else {
-            text = LuminaL10n.tr("The test translation failed. Check the provider's API key and settings.")
+            present(luminaProviderErrorAlert(context: context, title: LuminaL10n.tr("Test Provider"), error: outcome.error ?? .network(nil), usesBaseUrl: outcome.usesBaseUrl, present: present))
         }
-        context.sharedContext.presentGlobalController(textAlertController(context: context, title: LuminaL10n.tr("Test Provider"), text: text, actions: [
-            TextAlertAction(type: .defaultAction, title: presentationData.strings.Common_OK, action: {})
-        ]), nil)
     })
 }

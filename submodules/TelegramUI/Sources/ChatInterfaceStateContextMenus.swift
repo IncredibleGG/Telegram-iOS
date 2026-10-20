@@ -1504,16 +1504,21 @@ func contextMenuForChatPresentationInterfaceState(chatPresentationInterfaceState
 
                 // LuminaGram: explain-a-message — sends messageText to the user's own LLM engine
                 // and shows the result in a sheet. Gated on LuminaSettings.explainMessage (default
-                // ON); the row itself is not shown when the setting is off.
+                // ON); the row itself is not shown when the setting is off. The message (the one
+                // carrying the text in an album) and the open thread / topic let Explain add the
+                // surrounding conversation as context; luminaExplainMessage itself leaves it out
+                // in secret chats and protected dialogs.
                 let luminaSettings = LuminaSettingsCache.shared.current()
                 if luminaSettings.explainMessage, !messageText.isEmpty {
+                    let luminaExplainTarget = messages.first(where: { !$0.text.isEmpty }) ?? message
+                    let luminaExplainThreadId = chatPresentationInterfaceState.chatLocation.threadId
                     actions.append(.action(ContextMenuActionItem(text: LuminaL10n.tr("Explain"), icon: { theme in
                         return generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/Translate"), color: theme.actionSheet.primaryTextColor)
                     }, action: { c, _ in
                         c?.dismiss(completion: {
                             luminaExplainMessage(context: context, present: { vc in
                                 controllerInteraction.presentController(vc, nil)
-                            }, text: messageText)
+                            }, text: messageText, message: luminaExplainTarget, threadId: luminaExplainThreadId)
                         })
                     })))
                 }

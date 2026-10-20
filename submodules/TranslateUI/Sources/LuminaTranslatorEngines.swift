@@ -70,7 +70,10 @@ private let luminaHTTPSession: URLSession = URLSession(configuration: .default, 
 // kRequestTimeoutMs), a Signal that resolves at most once. Security: never log request
 // headers, bodies or the raw response — they may carry the user's API key. Errors carry only a
 // generic category plus the HTTP status / transport error code, never URLs or response text.
-func luminaHTTPRequest(url: URL, method: String, headers: [String: String], body: Data?) -> Signal<Data, LuminaTranslateError> {
+// `model` is the LLM model name the request asked for; when set, an HTTP 400 / 404 whose JSON
+// error says that model does not exist becomes .modelNotFound(model). The error body is only
+// inspected for that classification and then dropped.
+func luminaHTTPRequest(url: URL, method: String, headers: [String: String], body: Data?, model: String? = nil) -> Signal<Data, LuminaTranslateError> {
     return Signal { subscriber in
         var task: URLSessionDataTask?
         Queue.concurrentDefaultQueue().async {
@@ -96,10 +99,7 @@ func luminaHTTPRequest(url: URL, method: String, headers: [String: String], body
                     return
                 }
                 if httpResponse.statusCode >= 400 {
-                    // 429 (standard rate limit), 456 (DeepL quota) and 403 (some LLM gateways'
-                    // quota code) all read as "try again later" rather than "broken".
-                    let rateLimited = httpResponse.statusCode == 429 || httpResponse.statusCode == 456 || httpResponse.statusCode == 403
-                    subscriber.putError(rateLimited ? .rateLimited : .network("HTTP \(httpResponse.statusCode)"))
+                    subscriber.putError(luminaClassifyHTTPError(statusCode: httpResponse.statusCode, body: data, model: model))
                     return
                 }
                 guard let data else {
@@ -115,6 +115,74 @@ func luminaHTTPRequest(url: URL, method: String, headers: [String: String], body
             task?.cancel()
         }
     }
+}
+
+// Status -> category, same table on every platform: 401/403 key rejected, 402/429 (+ DeepL's 456)
+// quota / too many requests, 400/404 naming a missing model -> model not found, 5xx temporary
+// service error, anything else a plain HTTP status.
+private func luminaClassifyHTTPError(statusCode: Int, body: Data?, model: String?) -> LuminaTranslateError {
+    switch statusCode {
+    case 401, 403:
+        return .keyRejected
+    case 402, 429, 456:
+        return .rateLimited
+    case 400, 404:
+        if let model, luminaErrorBodyNamesMissingModel(body) {
+            return .modelNotFound(model)
+        }
+        return .httpStatus(statusCode)
+    case 500 ..< 600:
+        return .serverError(statusCode)
+    default:
+        return .httpStatus(statusCode)
+    }
+}
+
+// OpenAI-style error bodies: {"error":{"message":..,"type":..,"code":..}}. Relays and other
+// providers vary: Ollama sends {"error":"model \"x\" not found"}, Gemini's compat endpoint wraps
+// the object in an array, some gateways put type/code/message at the top level. A model error
+// is either a type/code containing "model_not_found", or a message that mentions the model and
+// says it is not found / does not exist.
+private func luminaErrorBodyNamesMissingModel(_ body: Data?) -> Bool {
+    guard let body, !body.isEmpty, body.count <= 64 * 1024, let json = try? JSONSerialization.jsonObject(with: body) else {
+        return false
+    }
+    var codes: [String] = []
+    var messages: [String] = []
+    func collect(_ object: Any?) {
+        if let dict = object as? [String: Any] {
+            for key in ["type", "code", "status"] {
+                if let value = dict[key] as? String {
+                    codes.append(value.lowercased())
+                }
+            }
+            for key in ["message", "detail"] {
+                if let value = dict[key] as? String {
+                    messages.append(value.lowercased())
+                }
+            }
+        } else if let value = object as? String {
+            messages.append(value.lowercased())
+        }
+    }
+    var root: [String: Any]?
+    if let dict = json as? [String: Any] {
+        root = dict
+    } else if let array = json as? [Any], let first = array.first as? [String: Any] {
+        root = first
+    }
+    guard let root else {
+        return false
+    }
+    collect(root["error"])
+    collect(root)
+    if codes.contains(where: { $0.contains("model_not_found") }) {
+        return true
+    }
+    let notFoundMarkers = ["not found", "not exist", "no such model", "unknown model", "invalid model"]
+    return messages.contains(where: { message in
+        return message.contains("model") && notFoundMarkers.contains(where: { message.contains($0) })
+    })
 }
 
 // MARK: - Telegram (default; wraps the existing MTProto messages.translateText RPC)
@@ -244,7 +312,7 @@ final class LuminaDeepLEngine: LuminaTranslatorEngine {
                     let first = translations.first,
                     let translated = first["text"] as? String
                 else {
-                    return .fail(.network("bad response"))
+                    return .fail(.badResponse)
                 }
                 return .single(LuminaTranslationResult(text: translated, detectedSourceLang: first["detected_source_language"] as? String))
             }
@@ -268,6 +336,19 @@ public enum LuminaLLMDefaults {
         }
         return s
     }
+
+    // The base URL / model every LLM request uses (translation, Explain, Detect Models): the
+    // stored value without surrounding whitespace (a pasted URL or model often carries a stray
+    // space or newline), the default when empty, and no trailing slash on the URL.
+    public static func resolvedBaseUrl(_ stored: String) -> String {
+        let trimmed = stored.trimmingCharacters(in: .whitespacesAndNewlines)
+        return self.trimTrailingSlash(trimmed.isEmpty ? self.baseUrl : trimmed)
+    }
+
+    public static func resolvedModel(_ stored: String) -> String {
+        let trimmed = stored.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? self.model : trimmed
+    }
 }
 
 final class LuminaLLMEngine: LuminaTranslatorEngine {
@@ -286,8 +367,8 @@ final class LuminaLLMEngine: LuminaTranslatorEngine {
         return luminaCurrentSettings(context: context)
         |> castError(LuminaTranslateError.self)
         |> mapToSignal { settings -> Signal<LuminaTranslationResult, LuminaTranslateError> in
-            let base = LuminaLLMDefaults.trimTrailingSlash(settings.translateBaseUrl.isEmpty ? LuminaLLMDefaults.baseUrl : settings.translateBaseUrl)
-            let model = settings.translateModel.isEmpty ? LuminaLLMDefaults.model : settings.translateModel
+            let base = LuminaLLMDefaults.resolvedBaseUrl(settings.translateBaseUrl)
+            let model = LuminaLLMDefaults.resolvedModel(settings.translateModel)
             var prompt = settings.translatePrompt.isEmpty ? LuminaLLMDefaults.prompt : settings.translatePrompt
             prompt = prompt.replacingOccurrences(of: "{lang}", with: LuminaLang.name(toLang))
             // The chat's register (client/friend/elder/…) is layered ON TOP of the user's own
@@ -313,7 +394,7 @@ final class LuminaLLMEngine: LuminaTranslatorEngine {
                 "Authorization": "Bearer \(key)",
                 "Content-Type": "application/json"
             ]
-            return luminaHTTPRequest(url: url, method: "POST", headers: headers, body: body)
+            return luminaHTTPRequest(url: url, method: "POST", headers: headers, body: body, model: model)
             |> mapToSignal { data -> Signal<LuminaTranslationResult, LuminaTranslateError> in
                 guard
                     let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
@@ -322,7 +403,7 @@ final class LuminaLLMEngine: LuminaTranslatorEngine {
                     let message = first["message"] as? [String: Any],
                     let content = message["content"] as? String
                 else {
-                    return .fail(.network("bad response"))
+                    return .fail(.badResponse)
                 }
                 return .single(LuminaTranslationResult(text: content.trimmingCharacters(in: .whitespacesAndNewlines), detectedSourceLang: nil))
             }

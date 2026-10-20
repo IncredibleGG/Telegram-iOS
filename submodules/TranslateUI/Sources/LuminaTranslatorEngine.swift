@@ -17,11 +17,62 @@ import TelegramUIPreferences
 public enum LuminaTranslateError: Error {
     // No API key configured in LuminaKeychain for this provider.
     case noKey
-    // HTTP 429 / provider quota rejection.
+    // HTTP 402 / 429 (and DeepL's 456 quota code): quota used up or too many requests.
     case rateLimited
-    // Any other transport or non-2xx failure. message is for logging only, never shown
-    // verbatim to the user (may echo provider error text).
+    // HTTP 401 / 403: the provider rejected the API key.
+    case keyRejected
+    // HTTP 400 / 404 whose JSON error says the requested model does not exist. Carries the model
+    // name the user typed (from settings) so the message can name it - never response text.
+    case modelNotFound(String)
+    // HTTP 5xx: the provider had a temporary error.
+    case serverError(Int)
+    // Any other non-2xx status (400, 404 / 405 without a model error, 422, ...).
+    case httpStatus(Int)
+    // A 2xx response the engine could not parse (wrong base URL, not an OpenAI-shaped reply).
+    case badResponse
+    // Transport failure: no connection, timeout, TLS, a refused redirect. message is for logging
+    // only, never shown to the user.
     case network(String?)
+
+    public var isModelNotFound: Bool {
+        if case .modelNotFound = self {
+            return true
+        }
+        return false
+    }
+}
+
+// LuminaGram: the one place a LuminaTranslateError becomes user-facing text (Test Provider,
+// Explain, model detection). Never includes the API key, the request URL or any response body;
+// the only user data it repeats is the model name the user typed. `usesBaseUrl` is true for the
+// LLM provider, whose connection problems usually come from the base URL.
+public func luminaTranslateErrorText(_ error: LuminaTranslateError, usesBaseUrl: Bool) -> String {
+    switch error {
+    case .noKey:
+        return LuminaL10n.tr("Enter the API key first.")
+    case .rateLimited:
+        return LuminaL10n.tr("Quota used up or too many requests. Try again later, or check your plan with the provider.")
+    case .keyRejected:
+        return LuminaL10n.tr("The service rejected the API key. Check that the key is correct.")
+    case let .modelNotFound(model):
+        return LuminaL10n.tr("The model \"%@\" does not exist on this service. Tap \"Detect Models\" to pick one.").replacingOccurrences(of: "%@", with: model)
+    case .serverError:
+        return LuminaL10n.tr("The service had a temporary error. Try again later.")
+    case let .httpStatus(code):
+        return LuminaL10n.tr("The service rejected the request (HTTP %@). Check the provider settings.").replacingOccurrences(of: "%@", with: "\(code)")
+    case .badResponse:
+        if usesBaseUrl {
+            return LuminaL10n.tr("The service sent a reply LuminaGram cannot read. Check the base URL.")
+        } else {
+            return LuminaL10n.tr("The service sent a reply LuminaGram cannot read. Try again later.")
+        }
+    case .network:
+        if usesBaseUrl {
+            return LuminaL10n.tr("Cannot connect. Check the base URL and your network.")
+        } else {
+            return LuminaL10n.tr("Cannot connect. Check your network.")
+        }
+    }
 }
 
 public struct LuminaTranslationResult {

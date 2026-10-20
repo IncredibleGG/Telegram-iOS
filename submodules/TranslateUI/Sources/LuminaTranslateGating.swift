@@ -42,8 +42,10 @@ public func luminaAdditionalIgnoredTranslationLanguages(settings: LuminaSettings
 // this - the user chose to send that one message.
 //
 // Well-known Telegram system users (CloudUser namespace): 777000 service notifications,
-// 333000 its legacy alias, 42777 Telegram, 93372553 BotFather, 489000 verification codes.
-private let luminaAutoTranslateSystemUserIds: Set<Int64> = [777000, 333000, 42777, 93372553, 489000]
+// 333000 its legacy alias, 42777 Telegram, 93372553 BotFather, 489000 verification codes,
+// 489001 the OAuth / login-code account (Android's UserObject.VERIFY / OAUTH, same list as
+// LuminaPrivacyGate.isOfficialUserId there).
+private let luminaAutoTranslateSystemUserIds: Set<Int64> = [777000, 333000, 42777, 93372553, 489000, 489001]
 
 public func luminaIsTelegramSystemUser(_ peerId: PeerId) -> Bool {
     return peerId.namespace == Namespaces.Peer.CloudUser && luminaAutoTranslateSystemUserIds.contains(peerId.id._internalGetInt64Value())
@@ -104,4 +106,15 @@ public func luminaAutoTranslateExcludedChat(context: AccountContext, peerId: Eng
     |> map { peer -> Bool in
         return luminaIsAutoTranslateExcludedChat(accountPeerId: accountPeerId, peerId: peerId, peer: peer?._asPeer())
     }
+}
+
+// LuminaGram: Explain may add surrounding messages from the same chat as context. That context is
+// never gathered in a secret chat or in a protected dialog (the same list as the automatic-
+// translation exclusion above, mirroring Android's LuminaPrivacyGate.isProtectedDialog): there
+// Explain sends only the message the user picked, exactly as before.
+public func luminaIsExplainContextExcludedChat(accountPeerId: PeerId, peerId: PeerId, peer: Peer?) -> Bool {
+    if peerId.namespace == Namespaces.Peer.SecretChat {
+        return true
+    }
+    return luminaIsAutoTranslateExcludedChat(accountPeerId: accountPeerId, peerId: peerId, peer: peer)
 }

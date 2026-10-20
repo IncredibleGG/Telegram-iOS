@@ -305,11 +305,12 @@ public enum LuminaVoiceTranscription {
             }
             let backoff: Double
             switch error {
-            case .noKey:
+            case .noKey, .keyRejected, .modelNotFound:
+                // Configuration problems: retrying cannot help.
                 return .single(nil)
             case .rateLimited:
                 backoff = 1.5
-            case .network:
+            case .network, .serverError, .httpStatus, .badResponse:
                 backoff = 0.6
             }
             return Signal<String?, NoError>.complete()
