@@ -500,6 +500,10 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
     var mediaRestrictedTooltipControllerMode = true
     weak var checksTooltipController: TooltipController?
     weak var copyProtectionTooltipController: TooltipController?
+    // LuminaGram: the shared "Translating…" bubble (luminaPresentTranslatingIndicator) and how many
+    // pending translate-before-send sends are still using it.
+    weak var luminaTranslatingTooltipController: TooltipController?
+    var luminaTranslatingTooltipUsers = 0
     weak var emojiPackTooltipController: TooltipScreen?
     weak var birthdayTooltipController: TooltipScreen?
     weak var scheduledVideoProcessingTooltipController: TooltipScreen?
@@ -10386,20 +10390,53 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
     // disposes the result when it is done). A TooltipController never takes touches, so the input
     // field, the keyboard and the send button keep working while it shows. nil when there is no text
     // input panel to point at; the caller then shows its full-screen spinner instead.
+    //
+    // Sends that translate at the same time share one bubble, which stays until the last of them
+    // is done. It is kept in luminaTranslatingTooltipController so dismissAllTooltips (leaving the
+    // chat, opening a menu, ...) removes it like the chat's other tooltips; the translation itself
+    // carries on.
     func luminaPresentTranslatingIndicator() -> Disposable? {
         guard self.chatDisplayNode.frameForInputActionButton() != nil else {
             return nil
         }
-        let tooltipController = TooltipController(content: .text(LuminaL10n.tr("Translating…")), baseFontSize: self.presentationData.listsFontSize.baseDisplaySize, timeout: 30.0, dismissByTapOutside: false, dismissImmediatelyOnLayoutUpdate: true, padding: 2.0)
-        self.present(tooltipController, in: .window(.root), with: TooltipControllerPresentationArguments(sourceNodeAndRect: { [weak self] in
-            guard let self, let rect = self.chatDisplayNode.frameForInputActionButton() else {
-                return nil
+        let tooltipController: TooltipController
+        if let current = self.luminaTranslatingTooltipController {
+            tooltipController = current
+        } else {
+            tooltipController = TooltipController(content: .text(LuminaL10n.tr("Translating…")), baseFontSize: self.presentationData.listsFontSize.baseDisplaySize, timeout: 30.0, dismissByTapOutside: false, dismissImmediatelyOnLayoutUpdate: true, padding: 2.0)
+            self.luminaTranslatingTooltipController = tooltipController
+            self.luminaTranslatingTooltipUsers = 0
+            tooltipController.dismissed = { [weak self, weak tooltipController] _ in
+                if let self, let tooltipController, self.luminaTranslatingTooltipController === tooltipController {
+                    self.luminaTranslatingTooltipController = nil
+                    self.luminaTranslatingTooltipUsers = 0
+                }
             }
-            return (self.chatDisplayNode, rect)
-        }))
-        return ActionDisposable { [weak tooltipController] in
+            self.present(tooltipController, in: .window(.root), with: TooltipControllerPresentationArguments(sourceNodeAndRect: { [weak self] in
+                guard let self, let rect = self.chatDisplayNode.frameForInputActionButton() else {
+                    return nil
+                }
+                return (self.chatDisplayNode, rect)
+            }))
+        }
+        self.luminaTranslatingTooltipUsers += 1
+        return ActionDisposable { [weak self, weak tooltipController] in
             Queue.mainQueue().async {
-                tooltipController?.dismiss()
+                guard let tooltipController else {
+                    return
+                }
+                guard let self else {
+                    tooltipController.dismiss()
+                    return
+                }
+                guard self.luminaTranslatingTooltipController === tooltipController else {
+                    // Already dismissed (timeout, layout change, dismissAllTooltips).
+                    return
+                }
+                self.luminaTranslatingTooltipUsers -= 1
+                if self.luminaTranslatingTooltipUsers <= 0 {
+                    tooltipController.dismiss()
+                }
             }
         }
     }
@@ -10631,6 +10668,7 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
         self.checksTooltipController?.dismiss()
         self.copyProtectionTooltipController?.dismiss()
         self.guestChatMessageTooltipController?.dismiss()
+        self.luminaTranslatingTooltipController?.dismiss()
         
         self.window?.forEachController({ controller in
             if let controller = controller as? UndoOverlayController {

@@ -154,33 +154,52 @@ public func luminaTranslateMessagesBeforeSend(context: AccountContext, peerId: E
     }
     |> deliverOnMainQueue
 
-    // Only chats with translate-before-send on are ordered, read from the synchronous settings
-    // cache (the async read above cannot decide this before the caller subscribes). Every other
-    // chat keeps the stock path untouched.
-    let cachedSettings = LuminaSettingsCache.settings
-    if cachedSettings.translateBeforeSend, cachedSettings.trSendEnabledDialog.first(where: { $0.peerId == peerId.toInt64() })?.value == true {
+    // Only chats with translate-before-send on are ordered. Every other chat keeps the stock path
+    // untouched.
+    if luminaTranslateBeforeSendOrdersSends(peerId: peerId) {
         return LuminaTranslateBeforeSendOrder.ordered(peerId: peerId, translated)
     }
     return translated
 }
 
+// LuminaGram: for sends in this chat that do not go through luminaTranslateMessagesBeforeSend (a
+// voice note sent from the recording preview, a forward from several chats). In a chat with
+// translate-before-send on they wait until every earlier send of the chat has been handed on, so
+// they cannot land above a text whose translation is still pending. The caller must enqueue
+// synchronously from the value this delivers (on the main queue). Every other chat gets
+// `.single(value)` back, i.e. the stock path.
+public func luminaTranslateBeforeSendQueued<T>(peerId: EnginePeer.Id, _ value: T) -> Signal<T, NoError> {
+    guard luminaTranslateBeforeSendOrdersSends(peerId: peerId) else {
+        return .single(value)
+    }
+    return LuminaTranslateBeforeSendOrder.ordered(peerId: peerId, .single(value))
+}
+
+// Read from the synchronous settings cache: the async settings read in
+// luminaTranslateMessagesBeforeSend cannot decide this before the caller subscribes.
+private func luminaTranslateBeforeSendOrdersSends(peerId: EnginePeer.Id) -> Bool {
+    let cachedSettings = LuminaSettingsCache.settings
+    return cachedSettings.translateBeforeSend && cachedSettings.trSendEnabledDialog.first(where: { $0.peerId == peerId.toInt64() })?.value == true
+}
+
 // LuminaGram: keep a chat's sends in order while translate-before-send is on for it. The
-// "Translating…" indicator no longer covers the screen, so a second message (or a sticker) can be
-// sent before the first one's translation has come back; without this the faster one would reach
-// enqueueMessages first and land above the other. A send that comes through
-// luminaTranslateMessagesBeforeSend for such a chat is handed on only after every earlier one from
-// that chat has been handed on (or has finished without a result). The wait for earlier sends is
-// capped at maxWait, so a request that never finishes cannot hold the chat's sends back.
+// "Translating…" indicator no longer covers the screen, so a second message (or a sticker, a voice
+// note, a forward) can be sent before the first one's translation has come back; without this the
+// faster one would reach enqueueMessages first and land above the other. A send that comes through
+// luminaTranslateMessagesBeforeSend or luminaTranslateBeforeSendQueued for such a chat is handed on
+// only after every earlier one from that chat has been handed on (or has finished without a
+// result). The wait for earlier sends is capped at maxWait, so a request that never finishes cannot
+// hold the chat's sends back.
 //
-// Main queue only: both callers in ChatController subscribe on the main queue, the translated
+// Main queue only: every caller in ChatController subscribes on the main queue, the translated
 // signal is delivered there, and the slots are released there.
 private enum LuminaTranslateBeforeSendOrder {
     private static var tails: [EnginePeer.Id: (id: Int, done: Signal<Never, NoError>)] = [:]
     private static var nextId: Int = 0
     private static let maxWait: Double = 20.0
 
-    static func ordered(peerId: EnginePeer.Id, _ signal: Signal<[EnqueueMessage], NoError>) -> Signal<[EnqueueMessage], NoError> {
-        return Signal<[EnqueueMessage], NoError> { subscriber in
+    static func ordered<T>(peerId: EnginePeer.Id, _ signal: Signal<T, NoError>) -> Signal<T, NoError> {
+        return Signal<T, NoError> { subscriber in
             LuminaTranslateBeforeSendOrder.nextId += 1
             let id = LuminaTranslateBeforeSendOrder.nextId
             // Completes once every earlier send of this chat has been handed on.
@@ -204,7 +223,7 @@ private enum LuminaTranslateBeforeSendOrder {
                 }
             }
 
-            var result: [EnqueueMessage]?
+            var result: T?
             var previousDone = false
             var sourceDone = false
             var finished = false

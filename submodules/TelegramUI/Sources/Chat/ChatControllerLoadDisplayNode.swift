@@ -1082,17 +1082,24 @@ extension ChatControllerImpl {
                             shouldOpenScheduledMessages = true
                         }
                         
-                        var signals: [Signal<[MessageId?], NoError>] = []
-                        for messagesGroup in forwardedMessages {
-                            signals.append(enqueueMessages(account: strongSelf.context.account, peerId: peerId, messages: messagesGroup))
-                        }
-                        signal = combineLatest(signals)
-                        |> map { results in
-                            var ids: [MessageId?] = []
-                            for result in results {
-                                ids.append(contentsOf: result)
+                        // LuminaGram: in a translate-before-send chat these forwards wait behind a text
+                        // that is still translating, so they cannot land above it. Stock path
+                        // (.single) everywhere else.
+                        let account = strongSelf.context.account
+                        signal = luminaTranslateBeforeSendQueued(peerId: peerId, forwardedMessages)
+                        |> mapToSignal { forwardedMessages -> Signal<[MessageId?], NoError> in
+                            var signals: [Signal<[MessageId?], NoError>] = []
+                            for messagesGroup in forwardedMessages {
+                                signals.append(enqueueMessages(account: account, peerId: peerId, messages: messagesGroup))
                             }
-                            return ids
+                            return combineLatest(signals)
+                            |> map { results in
+                                var ids: [MessageId?] = []
+                                for result in results {
+                                    ids.append(contentsOf: result)
+                                }
+                                return ids
+                            }
                         }
                     } else {
                         var transformedMessages = transformedMessages

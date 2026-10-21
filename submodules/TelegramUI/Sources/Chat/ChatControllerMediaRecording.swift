@@ -754,7 +754,13 @@ extension ChatControllerImpl {
                 return
             }
             
-            let _ = (enqueueMessages(account: self.context.account, peerId: peerId, messages: transformedMessages)
+            // LuminaGram: in a translate-before-send chat the voice note waits behind a text that is
+            // still translating, so it cannot land above it. Stock path (.single) everywhere else.
+            let context = self.context
+            let _ = (luminaTranslateBeforeSendQueued(peerId: peerId, transformedMessages)
+            |> mapToSignal { transformedMessages in
+                return enqueueMessages(account: context.account, peerId: peerId, messages: transformedMessages)
+            }
             |> deliverOnMainQueue).startStandalone(next: { [weak self] _ in
                 if let strongSelf = self, strongSelf.presentationInterfaceState.subject != .scheduledMessages {
                     strongSelf.chatDisplayNode.historyNode.scrollToEndOfHistory()
