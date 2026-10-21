@@ -9216,6 +9216,8 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
                 // schedule-time-picker branch below is not translated a second time.
                 let _ = (luminaTranslateMessagesBeforeSend(context: self.context, peerId: peerId, present: { [weak self] c in
                     self?.present(c, in: .window(.root))
+                }, translatingIndicator: { [weak self] in
+                    return self?.luminaPresentTranslatingIndicator()
                 }, messages: self.transformEnqueueMessages(messages, postpone: postpone))
                 |> mapToSignal { translatedMessages in
                     return enqueueMessages(account: self.context.account, peerId: peerId, messages: translatedMessages)
@@ -10377,6 +10379,29 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
             }
             return nil
         }))
+    }
+    
+    // LuminaGram: the "Translating…" bubble over the send button while translate-before-send waits
+    // for a translation (luminaTranslateMessagesBeforeSend calls this 0.15s into the round-trip and
+    // disposes the result when it is done). A TooltipController never takes touches, so the input
+    // field, the keyboard and the send button keep working while it shows. nil when there is no text
+    // input panel to point at; the caller then shows its full-screen spinner instead.
+    func luminaPresentTranslatingIndicator() -> Disposable? {
+        guard self.chatDisplayNode.frameForInputActionButton() != nil else {
+            return nil
+        }
+        let tooltipController = TooltipController(content: .text(LuminaL10n.tr("Translating…")), baseFontSize: self.presentationData.listsFontSize.baseDisplaySize, timeout: 30.0, dismissByTapOutside: false, dismissImmediatelyOnLayoutUpdate: true, padding: 2.0)
+        self.present(tooltipController, in: .window(.root), with: TooltipControllerPresentationArguments(sourceNodeAndRect: { [weak self] in
+            guard let self, let rect = self.chatDisplayNode.frameForInputActionButton() else {
+                return nil
+            }
+            return (self.chatDisplayNode, rect)
+        }))
+        return ActionDisposable { [weak tooltipController] in
+            Queue.mainQueue().async {
+                tooltipController?.dismiss()
+            }
+        }
     }
     
     func displayEmojiTooltip() {

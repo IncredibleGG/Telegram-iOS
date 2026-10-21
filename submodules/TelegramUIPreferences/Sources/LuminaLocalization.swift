@@ -449,6 +449,8 @@ public enum LuminaL10n {
             "Use larger upload and download chunks to move big files faster.": "使用更大的上传和下载分块，更快地传输大文件。",
             "Experimental. Sends and receives files in larger pieces to speed up big transfers. If uploads or downloads start failing on your network, turn this off. Off by default - and when off, Telegram's standard transfer behavior is completely unchanged.": "实验性功能。以更大的分块收发文件，从而加速大文件传输。如果在你的网络上出现上传或下载失败，请关闭此项。默认关闭；关闭时，Telegram 的标准传输行为完全保持不变。",
             "Maximum (100%)": "最高（100%）",
+            "Translating…": "翻译中…",
+            "Translation failed": "翻译失败",
         ],
         "zh-hant": [
             "LANGUAGES": "語言",
@@ -842,6 +844,8 @@ public enum LuminaL10n {
             "Use larger upload and download chunks to move big files faster.": "使用更大的上傳和下載分塊，更快地傳輸大型檔案。",
             "Experimental. Sends and receives files in larger pieces to speed up big transfers. If uploads or downloads start failing on your network, turn this off. Off by default - and when off, Telegram's standard transfer behavior is completely unchanged.": "實驗性功能。以更大的分塊收發檔案，從而加速大型檔案傳輸。如果在你的網路上出現上傳或下載失敗，請關閉此項。預設關閉；關閉時，Telegram 的標準傳輸行為完全保持不變。",
             "Maximum (100%)": "最高（100%）",
+            "Translating…": "翻譯中…",
+            "Translation failed": "翻譯失敗",
         ],
     ]
 }

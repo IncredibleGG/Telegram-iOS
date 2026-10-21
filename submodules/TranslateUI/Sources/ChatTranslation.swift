@@ -300,7 +300,11 @@ public func translateMessageIds(context: AccountContext, messageIds: [EngineMess
                         |> map { result -> (EngineMessage.Id, String)? in
                             return (item.0, result.text)
                         }
-                        |> `catch` { _ -> Signal<(EngineMessage.Id, String)?, NoError> in
+                        |> `catch` { error -> Signal<(EngineMessage.Id, String)?, NoError> in
+                            // LuminaGram: the message just stays untranslated, but a missing LLM
+                            // model or a rejected key is reported once as a toast
+                            // (LuminaTranslateFailureNotice.swift).
+                            luminaReportTranslateFailure(context: context, engineId: engine.id, error: error)
                             return .single(nil)
                         }
                     }

@@ -38,8 +38,13 @@ private func luminaShouldTranslateBeforeSend(text: String, attributes: [MessageA
 // The single entry point ChatController.sendMessages calls. A fast no-op path (`.single(messages)`
 // with no further work) whenever the feature or this specific dialog is off, so the stock send
 // path is unaffected when translate-before-send has never been touched.
-public func luminaTranslateMessagesBeforeSend(context: AccountContext, peerId: EnginePeer.Id, present: @escaping (ViewController) -> Void, messages: [EnqueueMessage]) -> Signal<[EnqueueMessage], NoError> {
-    return luminaCurrentSettings(context: context)
+//
+// `translatingIndicator` shows the "Translating…" hint while a translation is pending and returns
+// the disposable that hides it (ChatControllerImpl.luminaPresentTranslatingIndicator: a small
+// bubble over the send button that takes no touches). nil, or a call that returns nil, falls back
+// to the full-screen spinner presented through `present`.
+public func luminaTranslateMessagesBeforeSend(context: AccountContext, peerId: EnginePeer.Id, present: @escaping (ViewController) -> Void, translatingIndicator: (() -> Disposable?)? = nil, messages: [EnqueueMessage]) -> Signal<[EnqueueMessage], NoError> {
+    let translated: Signal<[EnqueueMessage], NoError> = luminaCurrentSettings(context: context)
     |> mapToSignal { settings -> Signal<[EnqueueMessage], NoError> in
         guard settings.translateBeforeSend else {
             return .single(messages)
@@ -92,9 +97,12 @@ public func luminaTranslateMessagesBeforeSend(context: AccountContext, peerId: E
                     |> map { result -> LuminaTranslationResult? in
                         return result
                     }
-                    |> `catch` { _ -> Signal<LuminaTranslationResult?, NoError> in
+                    |> `catch` { error -> Signal<LuminaTranslationResult?, NoError> in
                         // Translation failed (no key, network, rate limit, …): fail open and
-                        // send the original as typed rather than blocking the send.
+                        // send the original as typed rather than blocking the send. A missing
+                        // LLM model or a rejected key is also reported once as a toast
+                        // (LuminaTranslateFailureNotice.swift); that never delays the send.
+                        luminaReportTranslateFailure(context: context, engineId: engine.id, error: error)
                         return .single(nil)
                     }
                     |> mapToSignal { result -> Signal<EnqueueMessage, NoError> in
@@ -113,12 +121,18 @@ public func luminaTranslateMessagesBeforeSend(context: AccountContext, peerId: E
                         return .single(translatedMessage)
                     }
                 }
-                // LuminaGram: brief "translating" spinner so a send with translate-before-send does
-                // not feel janky during the ~0.3-1s translate round-trip. The 0.15s delay means fast
-                // or cached translates never flash it; placed here (after all gates) so it appears
-                // ONLY when translation actually runs, and auto-dismisses when the work finishes.
+                // LuminaGram: "Translating…" while the translate round-trip runs, so a send with
+                // translate-before-send never looks stuck. The 0.15s delay means fast or cached
+                // translates never flash it; placed here (after all gates) so it appears ONLY when
+                // translation actually runs, and it goes away when the work finishes. The chat's
+                // indicator leaves the input usable, so the user can keep typing and even send the
+                // next message - LuminaTranslateBeforeSendOrder below keeps those sends in order.
+                // Without an indicator this is the old full-screen spinner.
                 let presentationData = context.sharedContext.currentPresentationData.with { $0 }
                 let progressDisposable = (Signal<Never, NoError> { _ in
+                    if let indicator = translatingIndicator?() {
+                        return indicator
+                    }
                     let controller = OverlayStatusController(theme: presentationData.theme, type: .loading(cancelled: nil))
                     present(controller)
                     return ActionDisposable { [weak controller] in
@@ -139,6 +153,104 @@ public func luminaTranslateMessagesBeforeSend(context: AccountContext, peerId: E
         }
     }
     |> deliverOnMainQueue
+
+    // Only chats with translate-before-send on are ordered, read from the synchronous settings
+    // cache (the async read above cannot decide this before the caller subscribes). Every other
+    // chat keeps the stock path untouched.
+    let cachedSettings = LuminaSettingsCache.settings
+    if cachedSettings.translateBeforeSend, cachedSettings.trSendEnabledDialog.first(where: { $0.peerId == peerId.toInt64() })?.value == true {
+        return LuminaTranslateBeforeSendOrder.ordered(peerId: peerId, translated)
+    }
+    return translated
+}
+
+// LuminaGram: keep a chat's sends in order while translate-before-send is on for it. The
+// "Translating…" indicator no longer covers the screen, so a second message (or a sticker) can be
+// sent before the first one's translation has come back; without this the faster one would reach
+// enqueueMessages first and land above the other. A send that comes through
+// luminaTranslateMessagesBeforeSend for such a chat is handed on only after every earlier one from
+// that chat has been handed on (or has finished without a result). The wait for earlier sends is
+// capped at maxWait, so a request that never finishes cannot hold the chat's sends back.
+//
+// Main queue only: both callers in ChatController subscribe on the main queue, the translated
+// signal is delivered there, and the slots are released there.
+private enum LuminaTranslateBeforeSendOrder {
+    private static var tails: [EnginePeer.Id: (id: Int, done: Signal<Never, NoError>)] = [:]
+    private static var nextId: Int = 0
+    private static let maxWait: Double = 20.0
+
+    static func ordered(peerId: EnginePeer.Id, _ signal: Signal<[EnqueueMessage], NoError>) -> Signal<[EnqueueMessage], NoError> {
+        return Signal<[EnqueueMessage], NoError> { subscriber in
+            LuminaTranslateBeforeSendOrder.nextId += 1
+            let id = LuminaTranslateBeforeSendOrder.nextId
+            // Completes once every earlier send of this chat has been handed on.
+            let previous: Signal<Never, NoError> = LuminaTranslateBeforeSendOrder.tails[peerId]?.done ?? .complete()
+            let released = ValuePromise<Bool>(false, ignoreRepeated: true)
+            let ownDone: Signal<Never, NoError> = released.get()
+            |> filter { $0 }
+            |> take(1)
+            |> ignoreValues
+            LuminaTranslateBeforeSendOrder.tails[peerId] = (id: id, done: previous |> then(ownDone))
+
+            var isReleased = false
+            let release: () -> Void = {
+                if isReleased {
+                    return
+                }
+                isReleased = true
+                released.set(true)
+                if let tail = LuminaTranslateBeforeSendOrder.tails[peerId], tail.id == id {
+                    LuminaTranslateBeforeSendOrder.tails.removeValue(forKey: peerId)
+                }
+            }
+
+            var result: [EnqueueMessage]?
+            var previousDone = false
+            var sourceDone = false
+            var finished = false
+            let finishIfReady: () -> Void = {
+                if finished || !previousDone {
+                    return
+                }
+                if let value = result {
+                    finished = true
+                    result = nil
+                    // The caller enqueues synchronously from putNext, so this send is in the
+                    // queue before the next one is released.
+                    subscriber.putNext(value)
+                    release()
+                    subscriber.putCompletion()
+                } else if sourceDone {
+                    finished = true
+                    release()
+                    subscriber.putCompletion()
+                }
+            }
+
+            let previousDisposable = (previous
+            |> timeout(LuminaTranslateBeforeSendOrder.maxWait, queue: Queue.mainQueue(), alternate: .complete())).start(completed: {
+                previousDone = true
+                finishIfReady()
+            })
+            let sourceDisposable = signal.start(next: { value in
+                result = value
+                finishIfReady()
+            }, completed: {
+                sourceDone = true
+                finishIfReady()
+            })
+
+            return ActionDisposable {
+                previousDisposable.dispose()
+                sourceDisposable.dispose()
+                // A cancelled send must not hold up the ones after it.
+                Queue.mainQueue().async {
+                    release()
+                }
+            }
+        }
+        |> runOn(Queue.mainQueue())
+    }
 }
 
 // The pre-translation original for a sent message, if translate-before-send fired for it —

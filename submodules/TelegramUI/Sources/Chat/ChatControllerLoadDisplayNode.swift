@@ -1114,6 +1114,8 @@ extension ChatControllerImpl {
                         // dialog are both enabled. Mirrors ChatController.swift:9051.
                         signal = luminaTranslateMessagesBeforeSend(context: strongSelf.context, peerId: peerId, present: { [weak self] c in
                             self?.present(c, in: .window(.root))
+                        }, translatingIndicator: { [weak self] in
+                            return self?.luminaPresentTranslatingIndicator()
                         }, messages: transformedMessages)
                         |> mapToSignal { translatedMessages in
                             return enqueueMessages(account: strongSelf.context.account, peerId: peerId, messages: translatedMessages)
