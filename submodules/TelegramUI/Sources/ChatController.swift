@@ -9399,14 +9399,14 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
         // (TelegramEngine.EngineData.Item.Messages.TopMessage). Fails open: any unexpected state,
         // or the setting being off, calls proceed() immediately with no user-visible change.
         self.luminaCheckOtpGuardBeforeSending(messages, peerId: peerId, proceed: { [weak self] in
-            self?.luminaSendMessagesAfterOtpGuard(messages, media: media, postpone: postpone, commit: commit, peerId: peerId)
+            self?.luminaSendMessagesAfterOtpGuard(messages, media: media, postpone: postpone, commit: commit, presentSchedulePickerInOverlay: presentSchedulePickerInOverlay, peerId: peerId)
         })
     }
 
     // LuminaGram: OTP leak guard — see luminaCheckOtpGuardBeforeSending below. This is the
     // original, UNCHANGED body of `sendMessages(_:media:postpone:commit:)`, reached only after
     // the guard above has either not triggered or been explicitly confirmed by the user.
-    private func luminaSendMessagesAfterOtpGuard(_ messages: [EnqueueMessage], media: Bool, postpone: Bool, commit: Bool, peerId: PeerId) {
+    private func luminaSendMessagesAfterOtpGuard(_ messages: [EnqueueMessage], media: Bool, postpone: Bool, commit: Bool, presentSchedulePickerInOverlay: Bool, peerId: PeerId) {
         
         let _ = (self.shouldDivertMessagesToScheduled(messages: messages)
         |> deliverOnMainQueue).startStandalone(next: { [weak self] shouldDivert in
@@ -10353,7 +10353,7 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
         // homoglyph profile-row warning (LuminaHomoglyph.swift). Fails open: any unexpected
         // state, or the setting being off, proceeds with the original behavior unchanged.
         self.luminaCheckLinkSafetyBeforeOpening(url, proceed: { [weak self] in
-            self?.luminaOpenUrlAfterLinkSafety(url, concealed: concealed, forceExternal: forceExternal, forceUpdate: forceUpdate, skipUrlAuth: skipUrlAuth, skipConcealedAlert: skipConcealedAlert, message: message, allowInlineWebpageResolution: allowInlineWebpageResolution, progress: progress, commit: commit)
+            self?.luminaOpenUrlAfterLinkSafety(url, concealed: concealed, forceConcealed: forceConcealed, forceExternal: forceExternal, forceUpdate: forceUpdate, skipUrlAuth: skipUrlAuth, skipConcealedAlert: skipConcealedAlert, message: message, allowInlineWebpageResolution: allowInlineWebpageResolution, progress: progress, fullUrl: fullUrl, alertDisplayUpdated: alertDisplayUpdated, commit: commit)
         })
     }
 
@@ -10363,6 +10363,7 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
     private func luminaOpenUrlAfterLinkSafety(
         _ url: String,
         concealed: Bool,
+        forceConcealed: Bool = false,
         forceExternal: Bool = false,
         forceUpdate: Bool = false,
         skipUrlAuth: Bool = false,
@@ -10370,6 +10371,8 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
         message: Message? = nil,
         allowInlineWebpageResolution: Bool = false,
         progress: Promise<Bool>? = nil,
+        fullUrl: Bool = false,
+        alertDisplayUpdated: ((ViewController?) -> Void)? = nil,
         commit: @escaping () -> Void = {}
     ) {
         self.commitPurposefulAction()
