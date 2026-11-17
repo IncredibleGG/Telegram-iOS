@@ -10,7 +10,8 @@
 // invariance, serialize → deserialize round trip, every SPEC §8.3 rejection rule on crafted blobs, no plaintext in
 // blobs, ForgetAll refusing writes, the remaining storage tests of test_adshield.py, the v3 tests of TestV3 /
 // TestV3Fixes (VAR / BLOCK rules, key caps, record authors, foldPrivilegedRepeats only touching privileged messages,
-// CR LF, PRIV_STRONG and the author of re-forwarded channel posts) and a 3000-row timing.
+// CR LF, PRIV_STRONG and the author of re-forwarded channel posts), the incrementally maintained units cache against a
+// rebuild after every event of every scenario (SPEC §6.6) and a 3000-row timing.
 import Foundation
 
 typealias AS = LuminaAdShield
@@ -1630,6 +1631,213 @@ func checkAccount(_ scenarios: [J]) {
     T.end()
 }
 
+// MARK: - incremental units cache (SPEC §6.6)
+
+/// Canonical form of a units cache: every live unit by unit id (all fields, keys / links sorted, its rows), the order
+/// as unit ids; plus every internal inconsistency (dead slots reachable, ranks, key index ≠ the units' keys, work left
+/// unflushed).
+func unitsSnapshot(_ c: AS.ChatStore.UnitsCache) -> (units: [String], order: [String], problems: [String]) {
+    var problems: [String] = []
+    var units: [String] = []
+    var keyCount = 0
+    func name(_ u: AS.UnitId) -> String {
+        return (u.isAlbum ? "album" : "rid") + String(u.value)
+    }
+    var slotUid: [Int: AS.UnitId] = [:]
+    for (uid, s) in c.byUid {
+        guard s >= 0 && s < c.count && c.alive[s] else {
+            problems.append("byUid \(name(uid)) → dead or invalid slot \(s)")
+            continue
+        }
+        slotUid[s] = uid
+        let o = c.order[s]
+        let keys = c.keys[s].sorted().map { "\($0.kind):\(hex($0.hash))" }.joined(separator: ",")
+        let links = c.links[s].sorted().map { hex($0) }.joined(separator: ",")
+        units.append("\(name(uid)) date=\(c.date[s]) sender=\(hex(c.sender[s])) flags=\(c.flags[s]) live=\(c.live[s]) order=\(o.date)/\(o.live)/\(o.minMsgId)/\(hex(o.minKeyHash)) blocks=\(c.nBlocks[s]) minRid=\(c.minRid[s]) rows=\(c.rids[uid] ?? []) keys=[\(keys)] links=[\(links)]")
+        for k in c.keys[s] {
+            keyCount += 1
+            let e = Int32(s) << 4 | Int32(k.kind & 15)
+            if !(c.index[k.hash]?.contains(e) ?? false) {
+                problems.append("index misses \(name(uid)) kind \(k.kind)")
+            }
+        }
+    }
+    let entries = c.index.values.reduce(0) { $0 + $1.count }
+    if entries != keyCount {
+        problems.append("index has \(entries) entries, the units have \(keyCount) keys")
+    }
+    if c.index.values.contains(where: { $0.isEmpty }) {
+        problems.append("empty index list")
+    }
+    let aliveSlots = (0 ..< c.count).filter { c.alive[$0] }.count
+    if aliveSlots != c.byUid.count || c.count - aliveSlots != c.deadCount {
+        problems.append("slots: \(aliveSlots) alive, \(c.byUid.count) unit ids, \(c.deadCount) dead of \(c.count)")
+    }
+    if Set(c.rids.keys) != Set(c.byUid.keys) || c.rids.values.contains(where: { $0.isEmpty || $0 != $0.sorted() }) {
+        problems.append("rows map ≠ units")
+    }
+    if c.byOrder.count != c.byUid.count {
+        problems.append("byOrder has \(c.byOrder.count) of \(c.byUid.count) units")
+    }
+    for (pos, s) in c.byOrder.enumerated() where s >= c.count || !c.alive[s] || c.rank[s] != pos {
+        problems.append("byOrder / rank inconsistent at \(pos)")
+        break
+    }
+    if !c.dirty.isEmpty || !c.dirtyHandles.isEmpty {
+        problems.append("unflushed work after units()")
+    }
+    let order = c.byOrder.map { slotUid[$0].map(name) ?? "?" }
+    return (units.sorted(), order, problems)
+}
+
+/// Every scenario twice in lockstep: store A keeps its units cache across writes (maintained incrementally, re-synced
+/// for moving `now`), store B rebuilds it from scratch. After EVERY event both caches must be identical (all units,
+/// their order) at now, now + 1 d, now + 9 d and now − 9 d, and all decisions at now equal.
+func checkIncremental(_ scenarios: [J], title: String) {
+    T.begin(title)
+    var cacheComparisons = 0
+    var decisionComparisons = 0
+    for sc in scenarios {
+        let id = str(sc["id"]) ?? "?"
+        var ctx = context(sc["context"] as! J)
+        let a = AS.ChatStore(chatId: ctx.chatId, key: testKey)
+        let b = AS.ChatStore(chatId: ctx.chatId, key: testKey)
+        let st = settings(sc["settings"] as? J, .standard)
+        let stAggressive = settings(sc["settings"] as? J, .aggressive)
+        var seen: [Int32] = []
+        var now: Int64 = 0
+        var cacheFailure: String?
+        var decisionFailure: String?
+        for (idx, ev) in ((sc["events"] as? [J]) ?? []).enumerated() {
+            switch str(ev["op"]) ?? "" {
+            case "observe":
+                let msg = message(ev["message"] as! J)
+                now = ev["now"] != nil ? i64(ev["now"]) : max(now, msg.date)
+                _ = try! a.observe(msg, context: ctx, now: now)
+                _ = try! b.observe(msg, context: ctx, now: now)
+                if !seen.contains(msg.id) {
+                    seen.append(msg.id)
+                }
+            case "delete":
+                now = ev["now"] != nil ? i64(ev["now"]) : now
+                let ids = ((ev["ids"] as? [NSNumber]) ?? []).map { Int32(truncatingIfNeeded: $0.int64Value) }
+                try! a.delete(ids, now: now)
+                try! b.delete(ids, now: now)
+            case "notAd":
+                now = ev["now"] != nil ? i64(ev["now"]) : now
+                let mid = Int32(truncatingIfNeeded: i64(ev["id"]))
+                _ = try! a.markNotAd(mid, context: ctx, now: now)
+                _ = try! b.markNotAd(mid, context: ctx, now: now)
+            case "context":
+                ctx = context(ev["context"] as! J)
+            case "expect":
+                now = ev["now"] != nil ? i64(ev["now"]) : now
+            default:
+                break
+            }
+            for q in [now, now + 86400, now + 9 * 86400, now - 9 * 86400] where q >= 0 {
+                let sa = unitsSnapshot(a.units(ctx, now: q))
+                b.releaseCache()
+                let sb = unitsSnapshot(b.units(ctx, now: q))
+                cacheComparisons += 1
+                if cacheFailure == nil {
+                    if !sa.problems.isEmpty || !sb.problems.isEmpty {
+                        cacheFailure = "event#\(idx) now\(q >= now ? "+" : "")\(q - now): \(sa.problems.prefix(3)) / rebuild \(sb.problems.prefix(3))"
+                    } else if sa.units != sb.units || sa.order != sb.order {
+                        let diff = sa.units.count == sb.units.count ? zip(sa.units, sb.units).first(where: { $0 != $1 }).map { "\n    incremental \($0.0)\n    rebuild     \($0.1)" } ?? " (order)" : " (\(sa.units.count) vs \(sb.units.count) units)"
+                        cacheFailure = "event#\(idx) now\(q >= now ? "+" : "")\(q - now): units differ\(diff)"
+                    }
+                }
+            }
+            b.releaseCache()
+            for s in [st, stAggressive] {
+                for i in seen {
+                    let da = a.decide(i, context: ctx, settings: s, now: now)
+                    let db = b.decide(i, context: ctx, settings: s, now: now)
+                    decisionComparisons += 1
+                    if da != db && decisionFailure == nil {
+                        decisionFailure = "event#\(idx) id \(i) \(s.sensitivity.rawValue): \(da) vs rebuild \(db)"
+                    }
+                }
+            }
+        }
+        T.check(cacheFailure == nil, "\(id): incremental units cache ≠ rebuild: \(cacheFailure ?? "")")
+        T.check(decisionFailure == nil, "\(id): decision with the incremental cache ≠ rebuild: \(decisionFailure ?? "")")
+    }
+    print("  \(scenarios.count) scenarios: \(cacheComparisons) cache comparisons after every event (now, +1 d, +9 d, −9 d), \(decisionComparisons) decisions")
+    T.end()
+}
+
+/// The write paths the scenarios rarely reach, with the cache kept alive: the row cap (3000) and the handle cap (2000)
+/// evicting, history loads moving a handle's first date back (a pending mention becomes a known member), edits,
+/// albums arriving one photo at a time, deletions; compared with a rebuild every 40 messages.
+func checkIncrementalCaps() {
+    T.begin("incremental cache: caps, handles, albums")
+    let ctx = AS.ChatContext(chatId: -1001000000555, username: "caps_demo_grp", memberHandles: ["caps_admin_demo"])
+    let a = AS.ChatStore(chatId: ctx.chatId, key: testKey)
+    let b = AS.ChatStore(chatId: ctx.chatId, key: testKey)
+    let base: Int64 = 1_794_268_800
+    let st = AS.Settings(sensitivity: .aggressive)
+    var rng = SplitMix64(state: 20261118)
+    var ids: [Int32] = []
+    var mismatches = 0
+    var comparisons = 0
+    var firstFailure = ""
+    for i in 0 ..< 3400 {
+        // every 9th message is a history load (three days older) by the previous message's sender: that user's first
+        // date moves back, and rows mentioning them may now mention a known member
+        let history = i % 9 == 4
+        let user = Int64((history ? i - 1 : i) % 2150)
+        let mentioned = Int((rng.next() % 2150))
+        let date = base + Int64(i) * 150 - (history ? 3 * 86400 : 0)
+        let cluster = Int(rng.next() % 60)
+        let text = "團購第\(cluster)團 今日價格表 請找 @capsu_\(mentioned) 下單 編號\(cluster * 7)"
+        var id = Int32(i + 1)
+        if i % 37 == 5 && !ids.isEmpty {
+            id = ids[Int(rng.next() % UInt64(ids.count))] // edit (upsert)
+        }
+        let album: Int64 = i % 23 < 3 ? Int64(9_000 + i / 23) : 0
+        let media: AS.Media? = album != 0 || i % 11 == 0 ? AS.Media(kind: .photo, id: String(100 + cluster % 5)) : nil
+        let m = AS.MessageInput(id: id, date: date, sender: AS.Sender(id: 50_000 + user, username: "capsu_\(user)"), text: text, media: media, album: album)
+        let now = max(date, base + Int64(i) * 150)
+        _ = try! a.observe(m, context: ctx, now: now)
+        _ = try! b.observe(m, context: ctx, now: now)
+        if !ids.contains(id) {
+            ids.append(id)
+        }
+        if i % 53 == 17 {
+            let victim = ids[Int(rng.next() % UInt64(ids.count))]
+            try! a.delete([victim], now: now)
+            try! b.delete([victim], now: now)
+        }
+        if i % 40 == 39 {
+            let sa = unitsSnapshot(a.units(ctx, now: now))
+            b.releaseCache()
+            let sb = unitsSnapshot(b.units(ctx, now: now))
+            comparisons += 1
+            if !sa.problems.isEmpty || sa.units != sb.units || sa.order != sb.order {
+                mismatches += 1
+                if firstFailure.isEmpty {
+                    firstFailure = "after message \(i): \(sa.problems.prefix(3)), units equal \(sa.units == sb.units), order equal \(sa.order == sb.order)"
+                }
+            }
+            for k in stride(from: max(0, ids.count - 60), to: ids.count, by: 3) {
+                if a.decide(ids[k], context: ctx, settings: st, now: now) != b.decide(ids[k], context: ctx, settings: st, now: now) {
+                    mismatches += 1
+                    if firstFailure.isEmpty {
+                        firstFailure = "after message \(i): decision of \(ids[k]) differs"
+                    }
+                }
+            }
+        }
+    }
+    T.check(a.rowCount == AS.maxRows, "the row cap evicted (\(a.rowCount) rows)")
+    T.check(a.handleCount == 2000, "the handle cap evicted (\(a.handleCount) handles)")
+    T.check(mismatches == 0, "incremental cache = rebuild through the caps: \(firstFailure)")
+    print("  3400 messages (edits, albums, history loads, deletions), \(comparisons) cache comparisons; \(a.rowCount) rows, \(a.handleCount) handles at the end")
+    T.end()
+}
+
 // MARK: - timing
 
 func now() -> Double {
@@ -1664,7 +1872,14 @@ func checkTiming() {
     let lastNow = msgs.last!.date
     T.check(chat.rowCount == 3000, "3000 rows stored (\(chat.rowCount))")
     let st = AS.Settings()
-    // cold: first decision after a change rebuilds the resolved units
+    // first decision: builds the resolved units; after a change: maintained incrementally (SPEC §6.6)
+    var buildTimes: [Double] = []
+    for k in 0 ..< 5 {
+        chat.releaseCache()
+        let a = now()
+        _ = chat.decide(Int32(1500 + k), context: ctx, settings: st, now: lastNow)
+        buildTimes.append(now() - a)
+    }
     var coldTimes: [Double] = []
     for k in 0 ..< 5 {
         try! chat.delete([Int32(3000 - k)], now: lastNow)
@@ -1695,7 +1910,8 @@ func checkTiming() {
     T.check(folded > 0, "the synthetic chat has folded messages (\(folded))")
     let coldMedian = coldTimes.sorted()[coldTimes.count / 2]
     print(String(format: "  observe: %.1f ms total for 3000 (%.3f ms each)", t1 - t0, (t1 - t0) / 3000))
-    print(String(format: "  decide cold (after a change, rebuilds units): median %.2f ms, max %.2f ms", coldMedian, coldTimes.max() ?? 0))
+    print(String(format: "  decide with a new units cache (full build): median %.2f ms, max %.2f ms", buildTimes.sorted()[buildTimes.count / 2], buildTimes.max() ?? 0))
+    print(String(format: "  decide after a delete (incremental update): median %.2f ms, max %.2f ms", coldMedian, coldTimes.max() ?? 0))
     print(String(format: "  decide warm: all 3000 messages %.1f ms (%.4f ms each), slowest single %.3f ms; %d folded", warmAll, warmAll / 3000, maxOne, folded))
     print(String(format: "  serialize %.2f ms, deserialize %.2f ms (%d bytes)", blobEnd - blobStart, loadEnd - blobEnd, blob.count))
 
@@ -1737,12 +1953,30 @@ func checkTiming() {
     }
     let f1 = now()
     let floodNow = fmsgs.last!.date
+    var floodBuild: [Double] = []
+    for k in 0 ..< 5 {
+        flood.releaseCache()
+        let a = now()
+        _ = flood.decide(Int32(1500 + k), context: ctx, settings: st, now: floodNow)
+        floodBuild.append(now() - a)
+    }
     var floodCold: [Double] = []
     for k in 0 ..< 5 {
         try! flood.delete([Int32(3000 - k)], now: floodNow)
         let a = now()
         _ = flood.decide(Int32(1500 + k), context: ctx, settings: st, now: floodNow)
         floodCold.append(now() - a)
+    }
+    // a new list arriving while the chat is open: observe + decide, the cache updated in place
+    var floodArrive: [Double] = []
+    for k in 0 ..< 5 {
+        var lines = lists[(7 * k) % 40]
+        lines[3] = "到貨\(k)號"
+        let m = AS.MessageInput(id: Int32(5001 + k), date: floodNow + Int64(k + 1) * 60, sender: AS.Sender(id: 20_000 + Int64(k), username: "vendor_\(20_000 + k)"), text: lines.joined(separator: "\n"))
+        let a = now()
+        _ = try! flood.observe(m, context: ctx, now: m.date)
+        _ = flood.decide(m.id, context: ctx, settings: st, now: m.date)
+        floodArrive.append(now() - a)
     }
     let fa = now()
     var floodFolded = 0
@@ -1754,7 +1988,9 @@ func checkTiming() {
     T.check(AS.ChatStore.deserialize(floodBlob, chatId: ctx.chatId, key: testKey) != nil, "flood blob loads")
     T.check(floodFolded > 0, "the flood has folded messages (\(floodFolded))")
     print(String(format: "  v3 flood (multi-line lists, %.1f keys per row): observe %.1f ms total (%.3f ms each)", Double(keyCount) / 3000, f1 - f0, (f1 - f0) / 3000))
-    print(String(format: "  v3 flood decide cold (rebuilds units): median %.2f ms, max %.2f ms", floodCold.sorted()[floodCold.count / 2], floodCold.max() ?? 0))
+    print(String(format: "  v3 flood decide with a new units cache (full build): median %.2f ms, max %.2f ms", floodBuild.sorted()[floodBuild.count / 2], floodBuild.max() ?? 0))
+    print(String(format: "  v3 flood decide after a delete (incremental update): median %.2f ms, max %.2f ms", floodCold.sorted()[floodCold.count / 2], floodCold.max() ?? 0))
+    print(String(format: "  v3 flood new message, observe + decide (incremental update): median %.2f ms, max %.2f ms", floodArrive.sorted()[floodArrive.count / 2], floodArrive.max() ?? 0))
     print(String(format: "  v3 flood decide warm: 2995 messages %.1f ms (%.4f ms each); %d folded; blob %d bytes", floodWarm, floodWarm / 2995, floodFolded, floodBlob.count))
     T.end()
 }
@@ -1822,11 +2058,14 @@ struct AdShieldCheck {
         checkRejections()
         checkAccount(scenarios)
         checkV3(scenarios)
+        checkIncremental(scenarios, title: "incremental units cache = rebuild")
+        checkIncrementalCaps()
         for p in extraFingerprints {
             checkFingerprintFile(p, title: "extra fingerprints: " + (p as NSString).lastPathComponent, expectedCount: nil)
         }
         for p in extraScenarios {
             checkExtraScenarios(p)
+            checkIncremental(loadJSON(p)["scenarios"] as! [J], title: "incremental cache: " + (p as NSString).lastPathComponent)
         }
         if !skipTiming {
             checkTiming()

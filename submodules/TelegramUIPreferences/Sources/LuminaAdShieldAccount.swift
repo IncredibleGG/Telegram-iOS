@@ -341,6 +341,11 @@ extension LuminaAdShield {
             return ok
         }
 
+        /// A chat that is already in memory (never loads one).
+        func loadedChat(_ chatId: Int64) -> ChatStore? {
+            return self.chats[chatId]
+        }
+
         /// Drops a chat from memory (flush it first if it should be kept).
         public func unload(_ chatId: Int64) {
             self.chats.removeValue(forKey: chatId)

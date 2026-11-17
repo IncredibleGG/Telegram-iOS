@@ -206,6 +206,8 @@ extension LuminaAdShield {
         var handles: [UInt64: HandleInfo] = [:]
         /// Bumped by every change that can change a decision (the integration re-decides visible messages).
         public private(set) var version: Int = 0
+        /// The resolved units and their key index (SPEC §6.6), kept up to date by every write that maintains it; a
+        /// write that does not leaves `mutation` ≠ `version`, and the next decision rebuilds it.
         private var cache: UnitsCache?
 
         /// A store not attached to an AccountStore (tests, or an integration that manages files itself).
@@ -228,6 +230,26 @@ extension LuminaAdShield {
 
         private func changed() {
             self.version += 1
+        }
+
+        /// The units cache if it matches the store as it is now (a write maintains it, then calls `cacheDone`);
+        /// a stale one is dropped.
+        private func cacheInSync() -> UnitsCache? {
+            if let c = self.cache, c.mutation == self.version {
+                return c
+            }
+            self.cache = nil
+            return nil
+        }
+
+        private func cacheDone(_ c: UnitsCache?) {
+            if let c, self.cache === c {
+                c.mutation = self.version
+            }
+        }
+
+        /// Frees the units cache (the integration keeps it only for the chats in use); the next decision rebuilds it.
+        func releaseCache() {
             self.cache = nil
         }
 
@@ -274,21 +296,30 @@ extension LuminaAdShield {
                 return nil
             }
             self.compact(now: now)
+            let c = self.cacheInSync()
             let fp = fingerprint(msg, context: ctx, key: self.key)
             let mid = msg.id
             let date = msg.date
             if let rid = self.byMsg.removeValue(forKey: mid), let idx = self.rowIndex(rid: rid) {
-                self.rows.remove(at: idx)
+                let old = self.rows.remove(at: idx)
+                if let c {
+                    self.cacheRemove(c, old)
+                }
             }
             let username = uname(msg.sender.username)
             if validUsername(username) {
                 let h = handleHash(key: self.key, name: username)
                 if var hi = self.handles[h] {
+                    if date < hi.first {
+                        // Another row's pending mention of this handle may now be a known member.
+                        c?.dirtyHandles.insert(h)
+                    }
                     hi.first = min(hi.first, date)
                     hi.last = max(hi.last, date)
                     hi.seen = max(hi.seen, now)
                     self.handles[h] = hi
                 } else {
+                    c?.dirtyHandles.insert(h)
                     self.handles[h] = HandleInfo(first: date, last: date, seen: now)
                 }
             }
@@ -304,11 +335,16 @@ extension LuminaAdShield {
             if fp.store {
                 let rid = self.nextRid
                 self.nextRid += 1
-                self.rows.append(Row(rid: rid, msgId: mid, album: msg.album, date: date, seen: now, sender: fp.senderKey, flags: fp.flags, keys: keys, links: fp.linkHashes, pending: fp.pending))
+                let row = Row(rid: rid, msgId: mid, album: msg.album, date: date, seen: now, sender: fp.senderKey, flags: fp.flags, keys: keys, links: fp.linkHashes, pending: fp.pending)
+                self.rows.append(row)
                 self.byMsg[mid] = rid
+                if let c {
+                    self.cachePlace(c, row)
+                }
             }
-            self.enforceCaps()
+            self.enforceCaps(c)
             self.changed()
+            self.cacheDone(c)
             return fp
         }
 
@@ -316,6 +352,7 @@ extension LuminaAdShield {
         /// hashes) stay as an anonymous row. `now` is clamped to 0…2^40 so the row stays loadable.
         public func delete(_ msgIds: [Int32], now: Int64) throws {
             try self.checkWritable()
+            let c = self.cacheInSync()
             let seen = min(max(now, 0), maxDate)
             for mid in msgIds {
                 guard let rid = self.byMsg.removeValue(forKey: mid), let idx = self.rowIndex(rid: rid) else {
@@ -325,8 +362,12 @@ extension LuminaAdShield {
                 self.rows[idx].sender = 0
                 self.rows[idx].flags = (self.rows[idx].flags & Flag.anonKeep) | Flag.anon
                 self.rows[idx].seen = seen
+                if let c {
+                    self.cachePlace(c, self.rows[idx])
+                }
             }
             self.changed()
+            self.cacheDone(c)
         }
 
         /// "Not an ad": remember the whole cluster of the message (post-resolve keys and links) for 90 days.
@@ -350,6 +391,8 @@ extension LuminaAdShield {
             }
             self.addNotAd(stamp: now, keys: orderedRecordKeys(keySeq), links: dedupe(linkSeq, cap: maxRecordLinks))
             self.changed()
+            // Records only: the units are unchanged.
+            self.cacheDone(c)
             return true
         }
 
@@ -399,6 +442,7 @@ extension LuminaAdShield {
         /// Eviction: rows with now − max(date, seen) > 8 days, records older than 90 days, handles idle > 30 days.
         /// Comparisons are written as `now > x + ttl` (x ≤ 2^40), so no `now` can overflow.
         public func compact(now: Int64) {
+            let c = self.cacheInSync()
             let before = (self.rows.count, self.records.count, self.handles.count)
             var kept: [Row] = []
             kept.reserveCapacity(self.rows.count)
@@ -407,19 +451,30 @@ extension LuminaAdShield {
                     if r.live {
                         self.byMsg.removeValue(forKey: r.msgId)
                     }
+                    if let c {
+                        self.cacheRemove(c, r)
+                    }
                 } else {
                     kept.append(r)
                 }
             }
             self.rows = kept
             self.records = self.records.filter { now <= $0.stamp + recordTTL }
-            self.handles = self.handles.filter { now <= max($0.value.last, $0.value.seen) + handleTTL }
+            var idle: [UInt64] = []
+            for (h, hi) in self.handles where now > max(hi.last, hi.seen) + handleTTL {
+                idle.append(h)
+            }
+            for h in idle {
+                self.handles.removeValue(forKey: h)
+                c?.dirtyHandles.insert(h)
+            }
             if before != (self.rows.count, self.records.count, self.handles.count) {
                 self.changed()
+                self.cacheDone(c)
             }
         }
 
-        private func enforceCaps() {
+        private func enforceCaps(_ c: UnitsCache?) {
             while self.rows.count > maxRows {
                 var victim = 0
                 for i in 1 ..< self.rows.count {
@@ -434,6 +489,9 @@ extension LuminaAdShield {
                 let r = self.rows.remove(at: victim)
                 if r.live {
                     self.byMsg.removeValue(forKey: r.msgId)
+                }
+                if let c {
+                    self.cacheRemove(c, r)
                 }
             }
             while self.handles.count > maxHandles {
@@ -450,19 +508,48 @@ extension LuminaAdShield {
                 }
                 if let v = victim {
                     self.handles.removeValue(forKey: v.0)
+                    c?.dirtyHandles.insert(v.0)
                 }
             }
         }
 
         // ---- decisions ----
 
-        /// Album-merged counting units of every non-expired row, keys / links / flags resolved against the
-        /// known-member table (SPEC §5.5), as parallel arrays. Cached until the store changes or `now` / the
-        /// context's member handles change (same result as recomputing on every call, like the reference).
+        /// One counting unit (an album, or a single row) resolved against the known-member table (SPEC §5.5).
+        struct UnitData {
+            var date: Int64
+            var sender: UInt64
+            var flags: UInt32
+            var live: Bool
+            var order: UnitOrder
+            var keys: Set<Key>
+            var links: Set<UInt64>
+            var nBlocks: Int
+            var minRid: Int
+        }
+
+        /// Album-merged counting units of the rows not expired at the decision's `now`, keys / links / flags resolved
+        /// against the known-member table (SPEC §5.5), as parallel arrays by slot: the units the reference rebuilds on
+        /// every decide. Maintained incrementally (SPEC §6.6): observe / delete / compact / the caps put rows in or out
+        /// of their unit (`rids`) and mark it dirty, a handle whose known-member status may have changed marks the
+        /// units that mention it, and the next decision re-resolves only the dirty units (`cacheFlush`), updating the
+        /// key index and the order. A `now` outside lo…hi re-checks which rows are expired (`cacheResync`). Rebuilt
+        /// only for other member handles, after a write that did not maintain it, or when most slots are dead.
         final class UnitsCache {
-            let mutation: Int
-            let now: Int64
+            var mutation: Int
             let knownHashes: [UInt64]
+            let knownSet: Set<UInt64>
+            /// Valid for a decision `now` in lo…hi: the rows in `rids` are exactly those whose expiry
+            /// (max(date, seen) + 8 days) is ≥ hi; every other row's expiry is < lo.
+            var lo: Int64 = Int64.min
+            var hi: Int64 = Int64.max
+            /// Rows (rids, ascending) of each unit; a unit without rows is not in the map and has no slot in use.
+            var rids: [UnitId: [Int]] = [:]
+            /// Units whose rows changed since the last flush, and handles whose known-member status may have changed
+            /// (the units mentioning them are found at flush).
+            var dirty = Set<UnitId>()
+            var dirtyHandles = Set<UInt64>()
+            // Per slot. A dead slot (its unit is gone) is in none of `byUid`, `byOrder` and `index`.
             var date: [Int64] = []
             var sender: [UInt64] = []
             var flags: [UInt32] = []
@@ -475,21 +562,312 @@ extension LuminaAdShield {
             /// Smallest rowId of the unit: total-order tie-breaker. Only ever needed between anonymous units with equal
             /// order keys (live units differ by msgId); the reference leaves that order to Python set iteration.
             var minRid: [Int] = []
-            /// Unit indices sorted by (order, minRid), and each unit's position in that sequence.
+            var alive: [Bool] = []
+            var deadCount = 0
+            /// Slots in use (not dead) sorted by (order, minRid), and each such slot's position in that sequence.
             var byOrder: [Int] = []
             var rank: [Int] = []
             var byUid: [UnitId: Int] = [:]
-            /// key → unit indices (ascending)
-            var index: [Key: [Int]] = [:]
+            /// Key hash → slot << 4 | key kind. A primitive map (SPEC §6.6); two kinds can share a hash (the VAR family
+            /// does by design), so every lookup compares the kind.
+            var index: [UInt64: [Int32]] = [:]
 
-            init(mutation: Int, now: Int64, knownHashes: [UInt64]) {
+            init(mutation: Int, knownHashes: [UInt64]) {
                 self.mutation = mutation
-                self.now = now
                 self.knownHashes = knownHashes
+                self.knownSet = Set(knownHashes)
             }
 
+            /// Slots, dead ones included.
             var count: Int {
                 return self.date.count
+            }
+
+            @inline(__always) static func entry(_ slot: Int, _ kind: UInt8) -> Int32 {
+                return Int32(truncatingIfNeeded: slot) << 4 | Int32(kind & 15)
+            }
+
+            func indexAdd(_ slot: Int, _ k: Key) {
+                self.index[k.hash, default: []].append(UnitsCache.entry(slot, k.kind))
+            }
+
+            func indexRemove(_ slot: Int, _ k: Key) {
+                let e = UnitsCache.entry(slot, k.kind)
+                guard let i = self.index[k.hash]?.firstIndex(of: e) else {
+                    return
+                }
+                self.index[k.hash]?.remove(at: i)
+                if self.index[k.hash]?.isEmpty ?? false {
+                    self.index[k.hash] = nil
+                }
+            }
+        }
+
+        @inline(__always) static func unitId(_ r: Row) -> UnitId {
+            return r.album != 0 ? UnitId(isAlbum: true, value: r.album) : UnitId(isAlbum: false, value: Int64(r.rid))
+        }
+
+        /// A row is evicted (and left out of the units) once now > its expiry.
+        @inline(__always) static func expiry(_ r: Row) -> Int64 {
+            return max(r.date, r.seen) + evictAfter
+        }
+
+        @inline(__always) static func insertSorted(_ list: inout [Int], _ rid: Int) {
+            var i = list.count
+            while i > 0 && list[i - 1] > rid {
+                i -= 1
+            }
+            list.insert(rid, at: i)
+        }
+
+        /// A row was added or changed: into its unit if its expiry is ≥ lo (hi narrows to that expiry, so the row is
+        /// not expired anywhere in lo…hi), out of it otherwise; the unit is re-resolved at the next flush.
+        private func cachePlace(_ c: UnitsCache, _ r: Row) {
+            let uid = ChatStore.unitId(r)
+            let e = ChatStore.expiry(r)
+            let has = c.rids[uid]?.contains(r.rid) ?? false
+            if e >= c.lo {
+                if !has {
+                    ChatStore.insertSorted(&c.rids[uid, default: []], r.rid)
+                }
+                c.hi = min(c.hi, e)
+            } else if has {
+                c.rids[uid]?.removeAll(where: { $0 == r.rid })
+                if c.rids[uid]?.isEmpty ?? false {
+                    c.rids[uid] = nil
+                }
+            } else {
+                return
+            }
+            c.dirty.insert(uid)
+        }
+
+        /// A row left the store.
+        private func cacheRemove(_ c: UnitsCache, _ r: Row) {
+            let uid = ChatStore.unitId(r)
+            guard let at = c.rids[uid]?.firstIndex(of: r.rid) else {
+                return
+            }
+            c.rids[uid]?.remove(at: at)
+            if c.rids[uid]?.isEmpty ?? false {
+                c.rids[uid] = nil
+            }
+            c.dirty.insert(uid)
+        }
+
+        /// Puts every row in or out of its unit for `now` and recomputes lo…hi (a new cache, or a `now` outside lo…hi).
+        private func cacheResync(_ c: UnitsCache, now: Int64) {
+            var lo = Int64.min
+            var hi = Int64.max
+            for r in self.rows {
+                let e = ChatStore.expiry(r)
+                let uid = ChatStore.unitId(r)
+                let has = c.rids[uid]?.contains(r.rid) ?? false
+                if now <= e {
+                    hi = min(hi, e)
+                    if !has {
+                        ChatStore.insertSorted(&c.rids[uid, default: []], r.rid)
+                        c.dirty.insert(uid)
+                    }
+                } else {
+                    lo = max(lo, e + 1)
+                    if has {
+                        c.rids[uid]?.removeAll(where: { $0 == r.rid })
+                        if c.rids[uid]?.isEmpty ?? false {
+                            c.rids[uid] = nil
+                        }
+                        c.dirty.insert(uid)
+                    }
+                }
+            }
+            c.lo = lo
+            c.hi = hi
+        }
+
+        /// The unit made of these rows, merged like the reference: earliest date, OR of the flags, union of keys and
+        /// links, the sender of its live row with the smallest msgId. nil when none of the rows exists.
+        private func makeUnit(_ rids: [Int], knownSet: Set<UInt64>, handles: [UInt64: HandleInfo]) -> UnitData? {
+            var found = false
+            var date: Int64 = 0
+            var flags: UInt32 = 0
+            var keys = Set<Key>()
+            var links = Set<UInt64>()
+            var minRid = 0
+            var live = false
+            var sender: UInt64 = 0
+            var liveMinMsg: Int32 = 0
+            for rid in rids {
+                guard let idx = self.rowIndex(rid: rid) else {
+                    continue
+                }
+                let r = self.rows[idx]
+                let rowDate = r.date
+                let res = resolve(flags: r.flags, keys: r.keys, links: r.links, pending: r.pending, isKnown: { h in
+                    if knownSet.contains(h) {
+                        return true
+                    }
+                    if let hi = handles[h] {
+                        return hi.first <= rowDate - knownMemberMinAge
+                    }
+                    return false
+                })
+                if found {
+                    date = min(date, r.date)
+                    flags |= res.flags
+                    keys.formUnion(res.keys)
+                    links.formUnion(res.links)
+                    minRid = min(minRid, r.rid)
+                } else {
+                    found = true
+                    date = r.date
+                    flags = res.flags
+                    keys = Set(res.keys)
+                    links = Set(res.links)
+                    minRid = r.rid
+                }
+                if r.live && (!live || r.msgId < liveMinMsg) {
+                    live = true
+                    liveMinMsg = r.msgId
+                    sender = r.sender
+                }
+            }
+            if !found {
+                return nil
+            }
+            if live {
+                flags &= ~Flag.anon
+            }
+            // Album: any strong feature in any photo makes the unit not "media only".
+            if flags & Flag.strongMask != 0 {
+                flags &= ~Flag.mediaOnly
+            }
+            var minKey: UInt64 = 0
+            var first = true
+            var blocks = 0
+            for k in keys {
+                if first || k.hash < minKey {
+                    minKey = k.hash
+                    first = false
+                }
+                if k.kind == KeyKind.block.rawValue {
+                    blocks += 1
+                }
+            }
+            let order = UnitOrder(date: date, live: live ? 1 : 0, minMsgId: liveMinMsg, minKeyHash: minKey)
+            return UnitData(date: date, sender: sender, flags: flags, live: live, order: order, keys: keys, links: links, nBlocks: blocks, minRid: minRid)
+        }
+
+        /// Re-resolves the dirty units (and every unit mentioning a changed handle), then updates the key index and
+        /// the order: O(changed units × keys) plus O(units) for the ranks.
+        private func cacheFlush(_ c: UnitsCache) {
+            if !c.dirtyHandles.isEmpty {
+                for r in self.rows where !r.pending.isEmpty && r.pending.contains(where: { c.dirtyHandles.contains($0) }) {
+                    let uid = ChatStore.unitId(r)
+                    if c.rids[uid]?.contains(r.rid) ?? false {
+                        c.dirty.insert(uid)
+                    }
+                }
+                c.dirtyHandles.removeAll()
+            }
+            if c.dirty.isEmpty {
+                return
+            }
+            let handles = self.handles
+            var touched: [Int] = []
+            for uid in c.dirty {
+                let slot = c.byUid[uid]
+                guard let rids = c.rids[uid], let d = self.makeUnit(rids, knownSet: c.knownSet, handles: handles) else {
+                    if let s = slot {
+                        for k in c.keys[s] {
+                            c.indexRemove(s, k)
+                        }
+                        c.byUid.removeValue(forKey: uid)
+                        c.alive[s] = false
+                        c.keys[s] = []
+                        c.links[s] = []
+                        c.deadCount += 1
+                        touched.append(s)
+                    }
+                    continue
+                }
+                if let s = slot {
+                    if c.order[s] != d.order || c.minRid[s] != d.minRid {
+                        touched.append(s)
+                    }
+                    if c.keys[s] != d.keys {
+                        for k in c.keys[s] where !d.keys.contains(k) {
+                            c.indexRemove(s, k)
+                        }
+                        for k in d.keys where !c.keys[s].contains(k) {
+                            c.indexAdd(s, k)
+                        }
+                    }
+                    c.date[s] = d.date
+                    c.sender[s] = d.sender
+                    c.flags[s] = d.flags
+                    c.live[s] = d.live
+                    c.order[s] = d.order
+                    c.keys[s] = d.keys
+                    c.links[s] = d.links
+                    c.nBlocks[s] = d.nBlocks
+                    c.minRid[s] = d.minRid
+                } else {
+                    let s = c.count
+                    c.date.append(d.date)
+                    c.sender.append(d.sender)
+                    c.flags.append(d.flags)
+                    c.live.append(d.live)
+                    c.order.append(d.order)
+                    c.keys.append(d.keys)
+                    c.links.append(d.links)
+                    c.nBlocks.append(d.nBlocks)
+                    c.minRid.append(d.minRid)
+                    c.alive.append(true)
+                    c.rank.append(0)
+                    c.byUid[uid] = s
+                    for k in d.keys {
+                        c.indexAdd(s, k)
+                    }
+                    touched.append(s)
+                }
+            }
+            c.dirty.removeAll()
+            if touched.isEmpty {
+                return
+            }
+            let less: (Int, Int) -> Bool = { a, b in
+                if c.order[a] != c.order[b] {
+                    return c.order[a] < c.order[b]
+                }
+                return c.minRid[a] < c.minRid[b]
+            }
+            if touched.count * 16 >= c.byOrder.count {
+                var all: [Int] = []
+                all.reserveCapacity(c.count - c.deadCount)
+                for s in 0 ..< c.count where c.alive[s] {
+                    all.append(s)
+                }
+                all.sort(by: less)
+                c.byOrder = all
+            } else {
+                let moved = Set(touched)
+                c.byOrder.removeAll(where: { moved.contains($0) })
+                for s in touched where c.alive[s] {
+                    var lo = 0
+                    var hi = c.byOrder.count
+                    while lo < hi {
+                        let mid = (lo + hi) / 2
+                        if less(c.byOrder[mid], s) {
+                            lo = mid + 1
+                        } else {
+                            hi = mid
+                        }
+                    }
+                    c.byOrder.insert(s, at: lo)
+                }
+            }
+            for (pos, s) in c.byOrder.enumerated() {
+                c.rank[s] = pos
             }
         }
 
@@ -503,91 +881,16 @@ extension LuminaAdShield {
 
         func units(_ ctx: ChatContext, now: Int64) -> UnitsCache {
             let known = self.contextKnown(ctx)
-            if let c = self.cache, c.mutation == self.version, c.now == now, c.knownHashes == known {
+            if let c = self.cache, c.mutation == self.version, c.knownHashes == known, !(c.deadCount > 64 && c.deadCount * 2 > c.count) {
+                if now < c.lo || now > c.hi {
+                    self.cacheResync(c, now: now)
+                }
+                self.cacheFlush(c)
                 return c
             }
-            let knownSet = Set(known)
-            let handles = self.handles
-            let c = UnitsCache(mutation: self.version, now: now, knownHashes: known)
-            var liveMinMsg: [Int32] = []
-            for r in self.rows {
-                if now > max(r.date, r.seen) + evictAfter {
-                    continue
-                }
-                let date = r.date
-                let res = resolve(flags: r.flags, keys: r.keys, links: r.links, pending: r.pending, isKnown: { h in
-                    if knownSet.contains(h) {
-                        return true
-                    }
-                    if let hi = handles[h] {
-                        return hi.first <= date - knownMemberMinAge
-                    }
-                    return false
-                })
-                let uid = r.album != 0 ? UnitId(isAlbum: true, value: r.album) : UnitId(isAlbum: false, value: Int64(r.rid))
-                let ui: Int
-                if let existing = c.byUid[uid] {
-                    ui = existing
-                    c.date[ui] = min(c.date[ui], r.date)
-                    c.flags[ui] |= res.flags
-                    c.keys[ui].formUnion(res.keys)
-                    c.links[ui].formUnion(res.links)
-                    c.minRid[ui] = min(c.minRid[ui], r.rid)
-                } else {
-                    ui = c.date.count
-                    c.byUid[uid] = ui
-                    c.date.append(r.date)
-                    c.sender.append(0)
-                    c.flags.append(res.flags)
-                    c.live.append(false)
-                    c.keys.append(Set(res.keys))
-                    c.links.append(Set(res.links))
-                    c.minRid.append(r.rid)
-                    liveMinMsg.append(0)
-                }
-                if r.live && (!c.live[ui] || r.msgId < liveMinMsg[ui]) {
-                    c.live[ui] = true
-                    liveMinMsg[ui] = r.msgId
-                    c.sender[ui] = r.sender
-                }
-            }
-            let n = c.date.count
-            c.order.reserveCapacity(n)
-            for ui in 0 ..< n {
-                if c.live[ui] {
-                    c.flags[ui] &= ~Flag.anon
-                }
-                // Album: any strong feature in any photo makes the unit not "media only".
-                if c.flags[ui] & Flag.strongMask != 0 {
-                    c.flags[ui] &= ~Flag.mediaOnly
-                }
-                var minKey: UInt64 = 0
-                var first = true
-                var blocks = 0
-                for k in c.keys[ui] {
-                    if first || k.hash < minKey {
-                        minKey = k.hash
-                        first = false
-                    }
-                    if k.kind == KeyKind.block.rawValue {
-                        blocks += 1
-                    }
-                    c.index[k, default: []].append(ui)
-                }
-                c.nBlocks.append(blocks)
-                c.order.append(UnitOrder(date: c.date[ui], live: c.live[ui] ? 1 : 0, minMsgId: liveMinMsg[ui], minKeyHash: minKey))
-            }
-            c.byOrder = Array(0 ..< n)
-            c.byOrder.sort { a, b in
-                if c.order[a] != c.order[b] {
-                    return c.order[a] < c.order[b]
-                }
-                return c.minRid[a] < c.minRid[b]
-            }
-            c.rank = [Int](repeating: 0, count: n)
-            for (pos, ui) in c.byOrder.enumerated() {
-                c.rank[ui] = pos
-            }
+            let c = UnitsCache(mutation: self.version, knownHashes: known)
+            self.cacheResync(c, now: now)
+            self.cacheFlush(c)
             self.cache = c
             return c
         }
@@ -596,9 +899,7 @@ extension LuminaAdShield {
             guard let rid = self.byMsg[msgId], let idx = self.rowIndex(rid: rid) else {
                 return nil
             }
-            let r = self.rows[idx]
-            let uid = r.album != 0 ? UnitId(isAlbum: true, value: r.album) : UnitId(isAlbum: false, value: Int64(r.rid))
-            return c.byUid[uid]
+            return c.byUid[ChatStore.unitId(self.rows[idx])]
         }
 
         /// G(m) (m included), in (order, minRid) sequence, hence also by date.
@@ -632,33 +933,35 @@ extension LuminaAdShield {
             @inline(__always) func sameSender(_ u: Int) -> Bool {
                 return mLive && c.live[u] && c.sender[u] != 0 && c.sender[u] == mSender
             }
-            func varHit(_ kind: KeyKind, _ hash: UInt64) {
-                guard let us = c.index[Key(kind: kind.rawValue, hash: hash)] else {
-                    return
-                }
-                for u in us where sameSender(u) {
-                    add(u)
+            /// Same-sender units indexed under (kind, hash).
+            func varHit(_ entries: [Int32], _ kind: KeyKind) {
+                let want = Int32(kind.rawValue)
+                for e in entries where e & 15 == want {
+                    let u = Int(e >> 4)
+                    if sameSender(u) {
+                        add(u)
+                    }
                 }
             }
             var blockShared: [Int: Int] = [:]
             for k in c.keys[mi] {
-                guard let kind = KeyKind(rawValue: k.kind) else {
+                guard let kind = KeyKind(rawValue: k.kind), let entries = c.index[k.hash] else {
                     continue
                 }
+                let want = Int32(k.kind)
                 switch kind {
                 case .fwd, .media, .text, .cjk, .tmpl, .contact:
-                    guard let us = c.index[k] else {
-                        continue
-                    }
-                    for u in us {
+                    for e in entries where e & 15 == want {
+                        let u = Int(e >> 4)
                         add(u)
                         mark[u] |= ChatStore.inGroupV2
                     }
                 case .para:
-                    guard let us = c.index[k] else {
-                        continue
-                    }
-                    for u in us where mark[u] & ChatStore.inGroupV2 == 0 {
+                    for e in entries where e & 15 == want {
+                        let u = Int(e >> 4)
+                        if mark[u] & ChatStore.inGroupV2 != 0 {
+                            continue
+                        }
                         if mark[u] & ChatStore.onePara != 0 {
                             add(u)
                             mark[u] |= ChatStore.inGroupV2
@@ -667,23 +970,20 @@ extension LuminaAdShield {
                         }
                     }
                 case .block:
-                    guard let us = c.index[k] else {
-                        continue
-                    }
-                    for u in us {
-                        blockShared[u, default: 0] += 1
+                    for e in entries where e & 15 == want {
+                        blockShared[Int(e >> 4), default: 0] += 1
                     }
                 case .variant:
                     // m's full text = the other's text with one line dropped (m lacks a line)
-                    varHit(.variantLoose, k.hash)
-                    varHit(.variantStrict, k.hash)
+                    varHit(entries, .variantLoose)
+                    varHit(entries, .variantStrict)
                 case .variantLoose:
                     // m with one line dropped = the other's full text (m has one line more)
-                    varHit(.variant, k.hash)
+                    varHit(entries, .variant)
                 case .variantStrict:
-                    varHit(.variant, k.hash)
+                    varHit(entries, .variant)
                     // both with one line dropped are equal (one line replaced): both sides must be strict
-                    varHit(.variantStrict, k.hash)
+                    varHit(entries, .variantStrict)
                 }
             }
             if !blockShared.isEmpty {

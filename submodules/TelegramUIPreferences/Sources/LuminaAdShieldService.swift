@@ -488,6 +488,9 @@ public final class LuminaAdShieldService {
     static let countWindow: Int64 = 7 * 86400
     /// Chats whose last ChatContext (plaintext description and pinned texts) is kept in memory per account.
     static let maxRememberedContexts = 32
+    /// Loaded chats (most recently used) that keep their units cache (resolved units and key index, several MB in a
+    /// flood chat); the other loaded chats drop it and rebuild it on their next decision.
+    static let maxCachedChats = 2
 
     // ---- AdShield queue ----
     private let queue = Queue(name: "org.luminagram.adshield", qos: .utility)
@@ -976,6 +979,9 @@ public final class LuminaAdShieldService {
             self.qFlushChat(account, victim)
             store.unload(victim)
             account.images.removeValue(forKey: victim)
+        }
+        for idle in account.lru.dropLast(LuminaAdShieldService.maxCachedChats) {
+            store.loadedChat(idle)?.releaseCache()
         }
         return chat
     }

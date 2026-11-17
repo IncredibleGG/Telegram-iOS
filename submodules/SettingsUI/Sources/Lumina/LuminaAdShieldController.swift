@@ -161,7 +161,7 @@ private enum LuminaAdShieldEntry: ItemListNodeEntry {
                 }
             })
         case .exemptionsFooter:
-            return ItemListTextItem(presentationData: presentationData, text: .plain(LuminaL10n.tr("Your own messages and admins' messages are never folded.")), sectionId: self.section)
+            return ItemListTextItem(presentationData: presentationData, text: .plain(LuminaL10n.tr("Your own messages are never folded. Messages from admins and the group's channel aren't either, unless “Also fold admins and the group's channel” is on in that group.")), sectionId: self.section)
         case let .trialRun(value):
             return ItemListSwitchItem(presentationData: presentationData, title: LuminaL10n.tr("Trial Run"), text: LuminaL10n.tr("Only mark messages as “Suspected repeated ad” without folding them"), value: value, sectionId: self.section, style: .blocks, updated: { value in
                 arguments.updateSettings { settings in
