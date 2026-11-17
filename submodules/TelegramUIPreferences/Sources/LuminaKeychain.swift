@@ -73,6 +73,48 @@ public enum LuminaKeychain {
         let status = SecItemDelete(self.query(for: key) as CFDictionary)
         return status == errSecSuccess || status == errSecItemNotFound
     }
+
+    // MARK: Binary items (LuminaGram AdShield key)
+    //
+    // The String API above stores with kSecAttrAccessibleWhenUnlockedThisDeviceOnly. A key that the
+    // background flush of a feature must read while the screen is locked (the AdShield key, SPEC §7)
+    // needs kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly instead: still never synced to iCloud
+    // Keychain or restored to another device, but readable after the first unlock since boot.
+    //
+    // getData distinguishes "there is no item" from "the Keychain cannot answer right now" (for example
+    // errSecInteractionNotAllowed before the first unlock), so a caller only generates a new secret when
+    // the item really does not exist - never because the device happened to be locked.
+
+    public enum DataLookup {
+        case found(Data)
+        case notFound
+        case unavailable(OSStatus)
+    }
+
+    public static func getData(_ key: String) -> DataLookup {
+        var query = self.query(for: key)
+        query[kSecReturnData as String] = true
+        query[kSecMatchLimit as String] = kSecMatchLimitOne
+
+        var result: CFTypeRef?
+        let status = SecItemCopyMatching(query as CFDictionary, &result)
+        if status == errSecItemNotFound {
+            return .notFound
+        }
+        guard status == errSecSuccess, let data = result as? Data else {
+            return .unavailable(status)
+        }
+        return .found(data)
+    }
+
+    /// Adds a binary item with kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly. Never overwrites: an existing
+    /// item makes this return errSecDuplicateItem, so two racing first launches cannot replace each other's secret.
+    public static func addData(_ data: Data, forKey key: String) -> OSStatus {
+        var addQuery = self.query(for: key)
+        addQuery[kSecValueData as String] = data
+        addQuery[kSecAttrAccessible as String] = kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
+        return SecItemAdd(addQuery as CFDictionary, nil)
+    }
 }
 
 // Naming the keys Wave 1+ features are expected to store here. LuminaKeychain itself takes
@@ -87,4 +129,8 @@ public enum LuminaKeychainKey {
     // LocalAuthentication (Face ID/passcode) is the primary chat-lock gate; this is only
     // the fallback PIN, so it belongs in the Keychain, not LuminaSettings.lockedChats.
     public static let chatLockCode = "chatLockCode"
+
+    // 16 random bytes generated once per install (SecRandomCopyBytes) for the AdShield keyed hashes and file
+    // names (SPEC §7). Binary item, see LuminaKeychain.getData / addData.
+    public static let adShieldKey = "adShieldKey"
 }

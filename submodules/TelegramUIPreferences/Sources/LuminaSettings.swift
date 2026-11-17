@@ -326,6 +326,32 @@ public struct LuminaSettings: Codable, Equatable {
     // cannot read LuminaSettings directly).
     public var transferBoost: Bool
 
+    // MARK: Hide repeated ads (LuminaGram, 隱藏重複廣告 / AdShield)
+    //
+    // Local-only folding of ads that are re-posted in groups (engine: LuminaAdShield*.swift in this
+    // module, integration: LuminaAdShieldService.swift). Every default below is "off", so an untouched
+    // install never computes anything, never creates a file and behaves byte-identically to upstream.
+    //
+    // adShieldEnabled: the global switch ("follow default" groups fold when this is on). Default false.
+    // adShieldSensitivity: "loose" / "standard" / "aggressive" (LuminaAdShield.Sensitivity raw values).
+    //   Default "standard".
+    // adShieldExemptContacts / adShieldExemptBots / adShieldExemptReplies: never fold messages from my
+    //   contacts / from bots / replying to or mentioning me (unless they carry strong ad features).
+    //   Default true each.
+    // adShieldDryRun: trial run - only label would-be folds as "suspected repeated ad". Default false.
+    // adShieldExplainerShown: the first-enable explainer was accepted once. Default false.
+    // adShieldDialogs: per-group override (true = on in this group, false = off in this group; absent =
+    //   follow the global switch), keyed by PeerId.toInt64() like every other per-dialog list here.
+    //   Cleared by "Clear Local Data".
+    public var adShieldEnabled: Bool
+    public var adShieldSensitivity: String
+    public var adShieldExemptContacts: Bool
+    public var adShieldExemptBots: Bool
+    public var adShieldExemptReplies: Bool
+    public var adShieldDryRun: Bool
+    public var adShieldExplainerShown: Bool
+    public var adShieldDialogs: [DialogBoolValue]
+
     public static var defaultSettings: LuminaSettings {
         return LuminaSettings(
             trMode: "manual",
@@ -414,7 +440,15 @@ public struct LuminaSettings: Codable, Equatable {
             outgoingPhotoQuality: 0,
             sendLargePhotos: false,
             swipeVideoPip: false,
-            transferBoost: false
+            transferBoost: false,
+            adShieldEnabled: false,
+            adShieldSensitivity: "standard",
+            adShieldExemptContacts: true,
+            adShieldExemptBots: true,
+            adShieldExemptReplies: true,
+            adShieldDryRun: false,
+            adShieldExplainerShown: false,
+            adShieldDialogs: []
         )
     }
 
@@ -505,7 +539,15 @@ public struct LuminaSettings: Codable, Equatable {
         outgoingPhotoQuality: Int32,
         sendLargePhotos: Bool,
         swipeVideoPip: Bool,
-        transferBoost: Bool
+        transferBoost: Bool,
+        adShieldEnabled: Bool = false,
+        adShieldSensitivity: String = "standard",
+        adShieldExemptContacts: Bool = true,
+        adShieldExemptBots: Bool = true,
+        adShieldExemptReplies: Bool = true,
+        adShieldDryRun: Bool = false,
+        adShieldExplainerShown: Bool = false,
+        adShieldDialogs: [DialogBoolValue] = []
     ) {
         self.trMode = trMode
         self.trReadLang = trReadLang
@@ -594,6 +636,14 @@ public struct LuminaSettings: Codable, Equatable {
         self.sendLargePhotos = sendLargePhotos
         self.swipeVideoPip = swipeVideoPip
         self.transferBoost = transferBoost
+        self.adShieldEnabled = adShieldEnabled
+        self.adShieldSensitivity = adShieldSensitivity
+        self.adShieldExemptContacts = adShieldExemptContacts
+        self.adShieldExemptBots = adShieldExemptBots
+        self.adShieldExemptReplies = adShieldExemptReplies
+        self.adShieldDryRun = adShieldDryRun
+        self.adShieldExplainerShown = adShieldExplainerShown
+        self.adShieldDialogs = adShieldDialogs
     }
 
     public init(from decoder: Decoder) throws {
@@ -693,6 +743,15 @@ public struct LuminaSettings: Codable, Equatable {
         self.sendLargePhotos = try container.decodeIfPresent(Bool.self, forKey: "sendLargePhotos") ?? defaults.sendLargePhotos
         self.swipeVideoPip = try container.decodeIfPresent(Bool.self, forKey: "swipeVideoPip") ?? defaults.swipeVideoPip
         self.transferBoost = try container.decodeIfPresent(Bool.self, forKey: "transferBoost") ?? defaults.transferBoost
+
+        self.adShieldEnabled = try container.decodeIfPresent(Bool.self, forKey: "adShieldEnabled") ?? defaults.adShieldEnabled
+        self.adShieldSensitivity = try container.decodeIfPresent(String.self, forKey: "adShieldSensitivity") ?? defaults.adShieldSensitivity
+        self.adShieldExemptContacts = try container.decodeIfPresent(Bool.self, forKey: "adShieldExemptContacts") ?? defaults.adShieldExemptContacts
+        self.adShieldExemptBots = try container.decodeIfPresent(Bool.self, forKey: "adShieldExemptBots") ?? defaults.adShieldExemptBots
+        self.adShieldExemptReplies = try container.decodeIfPresent(Bool.self, forKey: "adShieldExemptReplies") ?? defaults.adShieldExemptReplies
+        self.adShieldDryRun = try container.decodeIfPresent(Bool.self, forKey: "adShieldDryRun") ?? defaults.adShieldDryRun
+        self.adShieldExplainerShown = try container.decodeIfPresent(Bool.self, forKey: "adShieldExplainerShown") ?? defaults.adShieldExplainerShown
+        self.adShieldDialogs = try container.decodeIfPresent([DialogBoolValue].self, forKey: "adShieldDialogs") ?? defaults.adShieldDialogs
     }
 
     public func encode(to encoder: Encoder) throws {
@@ -791,6 +850,15 @@ public struct LuminaSettings: Codable, Equatable {
         try container.encode(self.sendLargePhotos, forKey: "sendLargePhotos")
         try container.encode(self.swipeVideoPip, forKey: "swipeVideoPip")
         try container.encode(self.transferBoost, forKey: "transferBoost")
+
+        try container.encode(self.adShieldEnabled, forKey: "adShieldEnabled")
+        try container.encode(self.adShieldSensitivity, forKey: "adShieldSensitivity")
+        try container.encode(self.adShieldExemptContacts, forKey: "adShieldExemptContacts")
+        try container.encode(self.adShieldExemptBots, forKey: "adShieldExemptBots")
+        try container.encode(self.adShieldExemptReplies, forKey: "adShieldExemptReplies")
+        try container.encode(self.adShieldDryRun, forKey: "adShieldDryRun")
+        try container.encode(self.adShieldExplainerShown, forKey: "adShieldExplainerShown")
+        try container.encode(self.adShieldDialogs, forKey: "adShieldDialogs")
     }
 }
 

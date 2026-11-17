@@ -23,6 +23,8 @@ import TranslationLanguagesContextMenuContent
 //      for translate-before-send in THIS chat; "Don't translate" disables it.
 //   3. Register -- "This chat's tone: <register or not set>". Opens the register options
 //      (None + presets + Custom, where Custom opens a text prompt).
+// In groups (basic group, supergroup, forum, gigagroup) a fourth row follows, after a separator: the
+// per-group mode of 隱藏重複廣告 / Hide Repeated Ads (LuminaAdShieldHook.swift, luminaAdShieldMenuItem).
 //
 // The presentation copies the stock translate panel's near-button context menu
 // (ChatTranslationPanelNode.morePressed): makeContextController with a .reference source
@@ -53,9 +55,12 @@ func luminaPresentChatLanguageMenu(
     }
     // The outgoing half and the register live in LuminaSettings, so read one snapshot before
     // building the menu; the incoming half is already resolved into the two arguments above.
-    let _ = (luminaCurrentSettings(context: context)
-    |> take(1)
-    |> deliverOnMainQueue).startStandalone(next: { settings in
+    // The hide-repeated-ads row needs the chat type and its 7-day folded count (groups only).
+    let _ = (combineLatest(
+        luminaCurrentSettings(context: context) |> take(1),
+        luminaAdShieldMenuInfo(context: context, peerId: peerId) |> take(1)
+    )
+    |> deliverOnMainQueue).startStandalone(next: { settings, adShieldInfo in
         let peerIdValue = peerId.toInt64()
         let accountManager = context.sharedContext.accountManager
 
@@ -296,6 +301,12 @@ func luminaPresentChatLanguageMenu(
             })))
             c?.pushItems(items: .single(ContextController.Items(content: .list(registerItems))))
         })))
+
+        // Hide repeated ads (隱藏重複廣告): follow default / on / off in this group.
+        if let adShieldItem = luminaAdShieldMenuItem(context: context, peerId: peerId, settings: settings, info: adShieldInfo, presentationData: presentationData, present: present) {
+            items.append(.separator)
+            items.append(adShieldItem)
+        }
 
         // Anchor the menu to the translate capsule, the same reference-source presentation the
         // more button and the stock translate bar use for their near-button context menus.

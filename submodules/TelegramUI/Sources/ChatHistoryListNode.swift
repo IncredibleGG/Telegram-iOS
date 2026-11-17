@@ -516,6 +516,9 @@ public final class ChatHistoryListNodeImpl: ASDisplayNode, ChatHistoryNode, Chat
     var areContentAnimationsEnabled: Bool = false
     
     private var historyView: ChatHistoryView?
+    // LuminaGram: 隱藏重複廣告 (hide repeated ads) observer of this history: nil unless this node shows a group's
+    // normal history or a forum topic, idle unless the feature is on there (Lumina/LuminaAdShieldHook.swift).
+    var luminaAdShield: LuminaAdShieldHistoryObserver?
     public var originalHistoryView: MessageHistoryView? {
         return self.historyView?.originalView
     }
@@ -866,6 +869,7 @@ public final class ChatHistoryListNodeImpl: ASDisplayNode, ChatHistoryNode, Chat
         self.selectedMessages = selectedMessages
         self.messageTransitionNode = messageTransitionNode
         self.mode = mode
+        self.luminaAdShield = LuminaAdShieldHistoryObserver.make(context: context, chatLocation: chatLocation, subject: subject, source: source, mode: mode)
         
         if let data = context.currentAppConfiguration.with({ $0 }).data {
             if let _ = data["ios_killswitch_disable_unread_alignment"] {
@@ -1366,6 +1370,7 @@ public final class ChatHistoryListNodeImpl: ASDisplayNode, ChatHistoryNode, Chat
             return
         }
         self.chatLocation = chatLocation
+        self.luminaAdShield = LuminaAdShieldHistoryObserver.make(context: self.context, chatLocation: chatLocation, subject: self.subject, source: self.source, mode: self.mode)
         
         self.interactiveReadActionDisposable?.dispose()
         self.interactiveReadActionDisposable = nil
@@ -2172,6 +2177,8 @@ public final class ChatHistoryListNodeImpl: ASDisplayNode, ChatHistoryNode, Chat
                 }
                 
                 initialData = data
+                // LuminaGram: 隱藏重複廣告 - hand the loaded messages to the AdShield observer (no-op unless on here).
+                self?.luminaAdShield?.historyViewUpdated(view)
                 var updatedScrollPosition = scrollPosition
                 // False for the scrolls this node issues on its own (the first sponsored message, a join,
                 // the bot-reply pin): those never hold a row, whatever they target.

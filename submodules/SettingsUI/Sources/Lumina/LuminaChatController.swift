@@ -18,10 +18,14 @@ import AccountContext
 // Every default here is the stock behavior (double-tap edit off, every menu action shown, no
 // filter keywords, call confirm off), so an untouched install behaves identically to upstream.
 public func luminaChatController(context: AccountContext) -> ViewController {
+    var pushControllerImpl: ((ViewController) -> Void)?
     let arguments = LuminaChatControllerArguments(
         context: context,
         updateSettings: { f in
             let _ = updateLuminaSettingsInteractively(accountManager: context.sharedContext.accountManager, f).start()
+        },
+        openAdShield: {
+            pushControllerImpl?(luminaAdShieldSettingsController(context: context))
         }
     )
 
@@ -39,16 +43,21 @@ public func luminaChatController(context: AccountContext) -> ViewController {
     }
 
     let controller = ItemListController(context: context, state: signal)
+    pushControllerImpl = { [weak controller] c in
+        controller?.push(c)
+    }
     return controller
 }
 
 private final class LuminaChatControllerArguments {
     let context: AccountContext
     let updateSettings: (@escaping (LuminaSettings) -> LuminaSettings) -> Void
+    let openAdShield: () -> Void
 
-    init(context: AccountContext, updateSettings: @escaping (@escaping (LuminaSettings) -> LuminaSettings) -> Void) {
+    init(context: AccountContext, updateSettings: @escaping (@escaping (LuminaSettings) -> LuminaSettings) -> Void, openAdShield: @escaping () -> Void) {
         self.context = context
         self.updateSettings = updateSettings
+        self.openAdShield = openAdShield
     }
 }
 
@@ -56,6 +65,7 @@ private enum LuminaChatSection: Int32 {
     case interaction
     case menu
     case filter
+    case adShield
 }
 
 private enum LuminaChatEntry: ItemListNodeEntry {
@@ -78,6 +88,9 @@ private enum LuminaChatEntry: ItemListNodeEntry {
     case filterKeywords(String)
     case filterFooter
 
+    case adShieldHeader
+    case adShield(Bool)
+
     var section: ItemListSectionId {
         switch self {
         case .interactionHeader, .doubleTapToEdit, .confirmBeforeCall, .interactionFooter:
@@ -86,6 +99,8 @@ private enum LuminaChatEntry: ItemListNodeEntry {
             return LuminaChatSection.menu.rawValue
         case .filterHeader, .filterKeywords, .filterFooter:
             return LuminaChatSection.filter.rawValue
+        case .adShieldHeader, .adShield:
+            return LuminaChatSection.adShield.rawValue
         }
     }
 
@@ -123,6 +138,10 @@ private enum LuminaChatEntry: ItemListNodeEntry {
             return 21
         case .filterFooter:
             return 22
+        case .adShieldHeader:
+            return 30
+        case .adShield:
+            return 31
         }
     }
 
@@ -225,6 +244,13 @@ private enum LuminaChatEntry: ItemListNodeEntry {
             })
         case .filterFooter:
             return ItemListTextItem(presentationData: presentationData, text: .plain(LuminaL10n.tr("Messages whose text contains any of these keywords are hidden from view on this device only. Nothing is deleted, and the other person is never affected.")), sectionId: self.section)
+        case .adShieldHeader:
+            return ItemListSectionHeaderItem(presentationData: presentationData, text: LuminaL10n.tr("REPEATED ADS"), sectionId: self.section)
+        case let .adShield(enabled):
+            // 隱藏重複廣告 (hide repeated ads): LuminaAdShieldController.swift.
+            return ItemListDisclosureItem(presentationData: presentationData, title: LuminaL10n.tr("Hide Repeated Ads"), label: enabled ? LuminaL10n.tr("On") : LuminaL10n.tr("Off"), sectionId: self.section, style: .blocks, action: {
+                arguments.openAdShield()
+            })
         }
     }
 }
@@ -255,6 +281,9 @@ private func luminaChatControllerEntries(settings: LuminaSettings) -> [LuminaCha
 
         .filterHeader,
         .filterKeywords(settings.messageFilterKeywords.joined(separator: ", ")),
-        .filterFooter
+        .filterFooter,
+
+        .adShieldHeader,
+        .adShield(settings.adShieldEnabled)
     ]
 }

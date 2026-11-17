@@ -573,6 +573,9 @@ public final class SharedAccountContextImpl: SharedAccountContext {
         // LuminaGram: seed the LuminaGram string-localization language from the current
         // presentation data. The presentationData subscription above keeps it updated on change.
         LuminaL10n.setCurrentLanguage(self.currentPresentationData.with { $0 }.strings.baseLanguageCode)
+        // LuminaGram: 隱藏重複廣告 (hide repeated ads) - start the AdShield service and its account lifecycle in the
+        // main app. Idle while the feature is off (default); see Lumina/LuminaAdShieldHook.swift.
+        luminaAdShieldInstall(sharedContext: self)
 
         let immediateExperimentalUISettingsValue = self.immediateExperimentalUISettingsValue
         let _ = immediateExperimentalUISettingsValue.swap(initialPresentationDataAndSettings.experimentalUISettings)
