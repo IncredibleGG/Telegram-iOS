@@ -306,8 +306,13 @@ public final class RichTextEditorChatInputNode: ASDisplayNode, ChatRichTextInput
 
         // LuminaGram #15 (Send with Return Key): route the software keyboard's Return to the panel's
         // decision. The default delegate implementation returns true (newline); only the chat panel sends.
-        self.editorView.onSoftwareReturn = { [weak self] in
-            return self?.storedDelegate?.chatInputTextNodeShouldReturnFromSoftwareKeyboard() ?? true
+        // Upstream 13.2 types `editorView` as `any RichTextEditor`; the software-Return hook exists only on
+        // the default TextKit-2 `RichTextEditorView` (the engine editor is a debug-setting path), so it is
+        // wired through a downcast instead of widening upstream's protocol.
+        if let luminaLegacyEditorView = self.editorView as? RichTextEditorView {
+            luminaLegacyEditorView.onSoftwareReturn = { [weak self] in
+                return self?.storedDelegate?.chatInputTextNodeShouldReturnFromSoftwareKeyboard() ?? true
+            }
         }
 
         // The caret's own signal, answered by re-applying the field's CURRENT geometry with the
