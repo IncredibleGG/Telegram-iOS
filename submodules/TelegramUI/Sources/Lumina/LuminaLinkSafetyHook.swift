@@ -142,7 +142,9 @@ extension ChatControllerImpl {
             configuration: AlertScreen.Configuration(allowInputInset: true),
             contentSignal: contentSignal,
             actionsSignal: .single([
-                AlertScreen.Action(id: "cancel", title: LuminaL10n.tr("Cancel")),
+                AlertScreen.Action(id: "cancel", title: LuminaL10n.tr("Cancel"), action: {
+                    model.dispose()
+                }),
                 AlertScreen.Action(id: "open", title: LuminaL10n.tr("Open"), type: .default, action: {
                     openImpl?()
                 }, autoDismiss: false),
@@ -153,6 +155,11 @@ extension ChatControllerImpl {
             model.dispose()
         }
         openImpl = { [weak controller] in
+            // At most once, and never after Cancel: the sheet still takes taps while it animates out, so a
+            // second tap on Open (or Go, then Open) must not open the address a second time.
+            if model.isDisposed {
+                return
+            }
             guard let target = model.addressToOpen() else {
                 model.showInvalidAddress()
                 return
@@ -180,7 +187,8 @@ private final class LuminaShortLinkSheetModel {
     private let originalUrl: String
     private var phase: Phase = .resolving
     private var resolver: LuminaShortLinkResolver?
-    private var isDisposed = false
+    /// Set once the sheet is opened or cancelled (or goes away); nothing is opened after that.
+    private(set) var isDisposed = false
 
     // The address field. Filling in the resolved address puts a new field (new id and state) in place of
     // the old one, since a field takes its initial value only once.

@@ -44,10 +44,20 @@ public enum LuminaShortLink {
         } else if !trimmed.contains("://") && !trimmed.contains(":") {
             candidate = URL(string: "https://" + trimmed)
         }
-        guard let url = candidate, let host = url.host, !host.isEmpty, LuminaLinkSafety.isKnownShortenerHost(host) else {
+        guard let url = candidate, let host = url.host, !host.isEmpty, isShortenerHost(host) else {
             return nil
         }
         return url
+    }
+
+    /// Whether `host` is on `LuminaLinkSafety.urlShorteners`, also when written as a fully qualified
+    /// name ("t.co."): a redirect to "https://t.co./…" is still the shortener, never the real address.
+    static func isShortenerHost(_ host: String) -> Bool {
+        var name = Substring(host)
+        while name.hasSuffix(".") {
+            name = name.dropLast()
+        }
+        return LuminaLinkSafety.isKnownShortenerHost(String(name))
     }
 
     /// `text`, typed into the sheet's address field, as an address the sheet may open: only an
@@ -70,7 +80,7 @@ public enum LuminaShortLink {
         guard var components = URLComponents(url: url, resolvingAgainstBaseURL: false) else {
             return url
         }
-        let upgradesScheme = components.scheme?.lowercased() == "http" && components.host.map(LuminaLinkSafety.isKnownShortenerHost) == true
+        let upgradesScheme = components.scheme?.lowercased() == "http" && components.host.map(isShortenerHost) == true
         if components.user == nil && components.password == nil && components.fragment == nil && !upgradesScheme {
             return url
         }
@@ -405,7 +415,7 @@ public final class LuminaShortLinkResolver: NSObject, URLSessionDataDelegate, @u
             return
         }
         self.redirects += 1
-        if !LuminaLinkSafety.isKnownShortenerHost(host) {
+        if !LuminaShortLink.isShortenerHost(host) {
             self.finish(.resolved(next, redirects: self.redirects))
             return
         }
