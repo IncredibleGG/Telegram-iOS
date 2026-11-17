@@ -28,7 +28,7 @@ import TranslationLanguagesContextMenuContent
 // (ChatTranslationPanelNode.morePressed): makeContextController with a .reference source
 // anchored to the capsule, then presentInGlobalOverlay; each row pushes a sub-menu via
 // pushItems, exactly like the stock "Choose Language" flow. The anchor view is the translate
-// capsule's glass background, reached through NavigationBar.luminaTranslateButtonContextSourceView.
+// item's own glass pill, reached through NavigationBar.rightButtonView(for:) (13.2's NavigationBarNode).
 //
 // The rows are built fresh from one settings snapshot on every open, so they never carry stale
 // state; each picker re-derives its target through the same interactive updaters the settings

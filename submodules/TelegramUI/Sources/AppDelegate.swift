@@ -30,6 +30,7 @@ import AccountUtils
 import CoreSpotlight
 import TelegramAudio
 import DebugSettingsUI
+import CrashReporting
 import BackgroundTasks
 import UIKitRuntimeUtils
 import StoreKit
@@ -42,7 +43,9 @@ import TelegramUIDeclareEncodables
 import ContextMenuScreen
 import MetalEngine
 import RecaptchaEnterprise
-import NavigationBarImpl
+import NavigationBarNode
+import NavigationBarComponent
+import NavigationExpansionTransition
 import ContextUI
 import ContextControllerImpl
 import ProxyServerPreviewScreen
@@ -54,11 +57,6 @@ import MTProtoRustEngine
 
 #if DEBUG
 import AlertComponent
-#endif
-
-#if canImport(AppCenter)
-import AppCenter
-import AppCenterCrashes
 #endif
 
 private let handleVoipNotifications = false
@@ -246,6 +244,7 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
     private var dataImportSplash: LegacyDataImportSplash?
     private var memoryUsageOverlayView: UILabel?
     
+    private let crashReportPromptDisposable = MetaDisposable()
     private var buildConfig: BuildConfig?
     let episodeId = arc4random()
     
@@ -349,6 +348,7 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
         precondition(!testIsLaunched)
         testIsLaunched = true
+        CrashReportCollector.shared.start()
         
         let _ = voipTokenPromise.get().start(next: { token in
             self.voipDeviceToken.set(.single(token))
@@ -360,7 +360,13 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
         let launchStartTime = CFAbsoluteTimeGetCurrent()
         
         defaultNavigationBarImpl = { presentationData in
-            return NavigationBarImpl(presentationData: presentationData)
+            return NavigationBarNode(presentationData: presentationData)
+        }
+        defaultNavigationBarTransitionRenderer = { bottom, top in
+            return makeNavigationBarTransitionRenderer(bottom: bottom, top: top)
+        }
+        defaultNavigationExpansionRenderer = { source, destination, operation in
+            return NavigationExpansionRendererImpl.make(source: source, destination: destination, operation: operation)
         }
         makeContextControllerImpl = { context, presentationData, configuration, recognizer, gesture, workaroundUseLegacyImplementation, disableScreenshots, hideReactionPanelTail in
             return ContextControllerImpl(
@@ -804,7 +810,7 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
         }, currentHorizontalClassGetter: {
             return UIUserInterfaceSizeClass.compact
         }, documentsPath: legacyDocumentsPath(), currentApplicationBounds: {
-            return UIScreen.main.bounds
+            return mainWindowScreenBounds
         }, canOpenUrl: { url in
             return UIApplication.shared.canOpenURL(url)
         }, openUrl: { url in
@@ -1151,6 +1157,25 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
                     }
                 }
             }, appDelegate: self, testingEnvironment: isUITest)
+            navigationBarOverflowMenuPresenter = { [weak sharedContext] sourceView, items in
+                guard let sharedContext, let mainWindow = sharedContext.mainWindow else {
+                    return
+                }
+                let presentationData = sharedContext.currentPresentationData.with { $0 }
+                let menuItems: [ContextMenuItem] = items.map { item in
+                    return .action(ContextMenuActionItem(text: item.title, icon: { theme in
+                        guard let image = item.image ?? item.iconName.flatMap({ UIImage(bundleImageName: $0) }) else {
+                            return nil
+                        }
+                        return generateScaledImage(image: generateTintedImage(image: image, color: theme.contextMenu.primaryColor), size: CGSize(width: 24.0, height: 24.0), opaque: false)
+                    }, action: { _, f in
+                        f(.default)
+                        item.action(sourceView)
+                    }))
+                }
+                let contextController = makeContextController(presentationData: presentationData, source: .reference(NavigationBarOverflowMenuReferenceSource(sourceView: sourceView)), items: .single(ContextController.Items(content: .list(menuItems))), gesture: nil)
+                mainWindow.presentInGlobalOverlay(contextController)
+            }
             
             presentationDataPromise.set(sharedContext.presentationData)
             #if targetEnvironment(simulator)
@@ -1379,6 +1404,7 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
                 contextValue.context.account.shouldExplicitelyKeepWorkerConnections.set(.single(false))
                 contextValue.context.account.shouldKeepBackgroundDownloadConnections.set(.single(false))
             }
+            self.crashReportPromptDisposable.set(nil)
             self.contextValue = context
             if let context = context {
                 setupLegacyComponents(context: context.context)
@@ -1395,6 +1421,12 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
 
                     self.mainWindow.debugAction = nil
                     self.mainWindow.viewController = context.rootController
+                    
+                    #if DEBUG
+                    if firstTime {
+                        self.runCommentsCacheResetLaunchArguments(context: context.context)
+                    }
+                    #endif
                     
                     if firstTime {
                         let layer = context.rootController.view.layer
@@ -1414,6 +1446,10 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
                     self.registerForNotifications(context: context.context, authorize: authorizeNotifications)
                     
                     self.resetIntentsIfNeeded(context: context.context)
+                    self.crashReportPromptDisposable.set(setupCrashReportPrompt(context: context.context, isInternalBuild: buildConfig.isInternalBuild, navigationController: context.rootController, present: { [weak appDelegate = self, weak applicationContext = context] controller in
+                        guard let appDelegate, let applicationContext, appDelegate.contextValue === applicationContext else { return }
+                        appDelegate.mainWindow.present(controller, on: .root)
+                    }))
                 }))
             } else {
                 self.mainWindow.viewController = nil
@@ -1593,14 +1629,6 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
         }
         
         self.maybeCheckForUpdates()
-
-        #if canImport(AppCenter)
-        if !buildConfig.isAppStoreBuild, let appCenterId = buildConfig.appCenterId, !appCenterId.isEmpty {
-            AppCenter.start(withAppSecret: buildConfig.appCenterId, services: [
-                Crashes.self
-            ])
-        }
-        #endif
         
         if #available(iOS 13.0, *) {
             let cleanupTaskId = "\(baseAppBundleId).cleanup"
@@ -2616,6 +2644,52 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
         context.context.sharedContext.presentGlobalController(UndoOverlayController(presentationData: presentationData, content: .info(title: nil, text: presentationData.strings.Wallet_Unavailable, timeout: nil, customUndoText: nil), action: { _ in return false }), nil)
     }
 
+    #if DEBUG
+    /// `-resetCommentsCache designmdk/6860,contest/462` forgets those posts' stored comments before anything
+    /// opens them (`-resetCommentsCacheDropPosts` forgets the posts too); `-resetForumCache twochannel` forgets
+    /// those forums' stored messages; `-debugOpenUrl <url>` then opens a link through the universal-link path.
+    /// Used to measure cold comment and topic loads.
+    private func runCommentsCacheResetLaunchArguments(context: AccountContext) {
+        let arguments = ProcessInfo.processInfo.arguments
+        func value(after flag: String) -> String? {
+            guard let index = arguments.firstIndex(of: flag), index + 1 < arguments.count else {
+                return nil
+            }
+            return arguments[index + 1]
+        }
+        var reset: Signal<Never, NoError> = .complete()
+        if let postsValue = value(after: "-resetCommentsCache") {
+            let posts = postsValue.split(separator: ",").compactMap { item -> (username: String, postId: Int32)? in
+                let parts = item.split(separator: "/")
+                guard parts.count == 2, let postId = Int32(parts[1]) else {
+                    return nil
+                }
+                return (username: String(parts[0]), postId: postId)
+            }
+            reset = context.engine.messages.debugResetDiscussionCaches(posts: posts, dropPosts: arguments.contains("-resetCommentsCacheDropPosts"))
+            |> afterCompleted {
+                Logger.shared.log("ReplyThreadOpen", "reset done")
+            }
+        }
+        if let forumsValue = value(after: "-resetForumCache") {
+            reset = reset |> then(context.engine.messages.debugResetForumHistory(usernames: forumsValue.split(separator: ",").map(String.init))
+            |> afterCompleted {
+                Logger.shared.log("ReplyThreadOpen", "forum reset done")
+            })
+        }
+        let url = value(after: "-debugOpenUrl").flatMap(URL.init(string:))
+        if url == nil && value(after: "-resetCommentsCache") == nil && value(after: "-resetForumCache") == nil {
+            return
+        }
+        let _ = (reset
+        |> deliverOnMainQueue).startStandalone(completed: { [weak self] in
+            if let url {
+                self?.openUrl(url: url)
+            }
+        })
+    }
+    #endif
+    
     private func openUrl(url: URL) {
         let _ = (self.sharedContextPromise.get()
         |> take(1)
@@ -2968,7 +3042,7 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
         self.walletTonConnectNotificationDisposable.set(signal.start(next: { [weak self] context, message in
             guard let self else { return }
             let isWalletAvailable = WalletConfiguration.with(appConfiguration: context.context.currentAppConfiguration.with { $0 }).isAvailable
-            if isWalletAvailable, let message, let request = walletTonConnectRequestRoute(message: message._asMessage(), accountPeerId: context.context.account.peerId) {
+            if isWalletAvailable, let message, let request = walletTonConnectRequestRoute(message: message, accountPeerId: context.context.account.peerId) {
                 context.context.walletContext?.openTonConnectRequest(sessionId: request.sessionId, messageId: request.messageId)
             } else {
                 context.openChatWithPeerId(peerId: route.messageId.peerId, threadId: nil, messageId: route.messageId,
@@ -3027,6 +3101,18 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
     }
     
     func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
+        if response.notification.request.content.userInfo[CallUnlockVideoNotificationState.userInfoKey] != nil {
+            if response.actionIdentifier == UNNotificationDefaultActionIdentifier {
+                let _ = (self.sharedContextPromise.get()
+                |> take(1)
+                |> deliverOnMainQueue).start(next: { sharedApplicationContext in
+                    sharedApplicationContext.sharedContext.navigateToCurrentCall()
+                })
+            }
+            completionHandler()
+            return
+        }
+        
         let _ = (accountIdFromNotification(response.notification, sharedContext: self.sharedContextPromise.get())
         |> deliverOnMainQueue).start(next: { accountId in
             if response.actionIdentifier == UNNotificationDefaultActionIdentifier {
@@ -3132,11 +3218,11 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
             return settings.displayNameOnLockscreen
         }
         |> deliverOnMainQueue).start(next: { displayNames in
-            self.registerForNotifications(replyString: presentationData.strings.Notification_Reply, messagePlaceholderString: presentationData.strings.Conversation_InputTextPlaceholder, hiddenContentString: presentationData.strings.Watch_MessageView_Title, hiddenReactionContentString: presentationData.strings.Notification_LockScreenReactionPlaceholder, hiddenStoryContentString: presentationData.strings.Notification_LockScreenStoryPlaceholder, hiddenStoryReactionContentString: presentationData.strings.PUSH_REACT_STORY_HIDDEN, includeNames: displayNames, authorize: authorize, completion: completion)
+            self.registerForNotifications(replyString: presentationData.strings.Notification_Reply, messagePlaceholderString: presentationData.strings.Conversation_InputTextPlaceholder, hiddenContentString: presentationData.strings.Watch_MessageView_Title, hiddenReactionContentString: presentationData.strings.Notification_LockScreenReactionPlaceholder, hiddenStoryContentString: presentationData.strings.Notification_LockScreenStoryPlaceholder, hiddenStoryReactionContentString: presentationData.strings.PUSH_REACT_STORY_HIDDEN, callUnlockVideoString: UIDevice.current.userInterfaceIdiom == .pad ? presentationData.strings.Call_UnlockToSeeVideoNotificationPad : presentationData.strings.Call_UnlockToSeeVideoNotification, includeNames: displayNames, authorize: authorize, completion: completion)
         })
     }
 
-    private func registerForNotifications(replyString: String, messagePlaceholderString: String, hiddenContentString: String, hiddenReactionContentString: String, hiddenStoryContentString: String, hiddenStoryReactionContentString: String, includeNames: Bool, authorize: Bool = true, completion: @escaping (Bool) -> Void = { _ in }) {
+    private func registerForNotifications(replyString: String, messagePlaceholderString: String, hiddenContentString: String, hiddenReactionContentString: String, hiddenStoryContentString: String, hiddenStoryReactionContentString: String, callUnlockVideoString: String, includeNames: Bool, authorize: Bool = true, completion: @escaping (Bool) -> Void = { _ in }) {
         let notificationCenter = UNUserNotificationCenter.current()
         Logger.shared.log("App \(self.episodeId)", "register for notifications: get settings (authorize: \(authorize))")
         notificationCenter.getNotificationSettings(completionHandler: { settings in
@@ -3183,6 +3269,9 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
                                 reactionMessageCategory = UNNotificationCategory(identifier: "t", actions: [], intentIdentifiers: [], hiddenPreviewsBodyPlaceholder: hiddenReactionContentString, options: options)
                                 storyCategory = UNNotificationCategory(identifier: "st", actions: [], intentIdentifiers: [], hiddenPreviewsBodyPlaceholder: hiddenStoryContentString, options: options)
                                 storyReactionCategory = UNNotificationCategory(identifier: "str", actions: [], intentIdentifiers: [], hiddenPreviewsBodyPlaceholder: hiddenStoryReactionContentString, options: options)
+                                // The unlock-video notification is read on the lock screen: its own text stands in while previews
+                                // are hidden.
+                                let callUnlockVideoCategory = UNNotificationCategory(identifier: CallUnlockVideoNotificationState.categoryIdentifier, actions: [], intentIdentifiers: [], hiddenPreviewsBodyPlaceholder: callUnlockVideoString, options: [])
                                 
                                 UNUserNotificationCenter.current().setNotificationCategories([
                                     unknownMessageCategory,
@@ -3193,7 +3282,8 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
                                     groupRepliableMessageCategory,
                                     groupRepliableMediaMessageCategory,
                                     storyCategory,
-                                    storyReactionCategory
+                                    storyReactionCategory,
+                                    callUnlockVideoCategory
                                 ])
                                 
                                 Logger.shared.log("App \(self.episodeId)", "register for notifications: invoke registerForRemoteNotifications")
@@ -3209,6 +3299,11 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
     
     @available(iOS 10.0, *)
     func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+        if notification.request.content.userInfo[CallUnlockVideoNotificationState.userInfoKey] != nil {
+            completionHandler([])
+            return
+        }
+        
         let _ = (accountIdFromNotification(notification, sharedContext: self.sharedContextPromise.get())
         |> deliverOnMainQueue).start(next: { accountId in
             if let context = self.contextValue {
@@ -3510,5 +3605,17 @@ final class UpdateSettings: Codable, Equatable {
     
     static func ==(lhs: UpdateSettings, rhs: UpdateSettings) -> Bool {
         return lhs.url == rhs.url
+    }
+}
+
+private final class NavigationBarOverflowMenuReferenceSource: ContextReferenceContentSource {
+    private let sourceView: UIView
+
+    init(sourceView: UIView) {
+        self.sourceView = sourceView
+    }
+
+    func transitionInfo() -> ContextControllerReferenceViewInfo? {
+        return ContextControllerReferenceViewInfo(referenceView: self.sourceView, contentAreaInScreenSpace: mainWindowScreenBounds)
     }
 }

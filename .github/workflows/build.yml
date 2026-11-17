@@ -8,9 +8,13 @@ on:
 
 jobs:
   build:
-    # Upstream 13.0 pins Xcode 26.6 (versions.json). Only the macos-26 image ships it
-    # (macos-15 tops out at 26.3). arm64 is also required by the wasi-sdk toolchain.
-    runs-on: macos-26
+    # Upstream 13.2 pins Xcode 27.1 (versions.json; the code uses iOS 27.1 SDK API such as
+    # UIView.reservedRegions(kind:), so an older Xcode cannot build it). The macos-26 image stops at
+    # Xcode 26.6 and there is no macos-27 label yet: GitHub ships Xcode 27.x only on the separate
+    # `xcode-27` label (arm64, macOS 27, Xcode 27.0/27.1/27.2 side by side). arm64 is also required by
+    # the wasi-sdk toolchain. The exact-version check below still fails the job within a minute if the
+    # image ever stops carrying Xcode_27.1.app.
+    runs-on: xcode-27
 
     steps:
       - uses: actions/checkout@v2

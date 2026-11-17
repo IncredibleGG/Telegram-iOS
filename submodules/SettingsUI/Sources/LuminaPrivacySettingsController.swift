@@ -26,17 +26,20 @@ private final class LuminaPrivacySettingsControllerArguments {
     let updateHideOwnPhone: (Bool) -> Void
     let updateStripPhotoMetadata: (Bool) -> Void
     let updateShowRegistrationDate: (Bool) -> Void
+    let updateDisableMessageWidgets: (Bool) -> Void
     let updateChatLockCode: (String) -> Void
 
     init(
         updateHideOwnPhone: @escaping (Bool) -> Void,
         updateStripPhotoMetadata: @escaping (Bool) -> Void,
         updateShowRegistrationDate: @escaping (Bool) -> Void,
+        updateDisableMessageWidgets: @escaping (Bool) -> Void,
         updateChatLockCode: @escaping (String) -> Void
     ) {
         self.updateHideOwnPhone = updateHideOwnPhone
         self.updateStripPhotoMetadata = updateStripPhotoMetadata
         self.updateShowRegistrationDate = updateShowRegistrationDate
+        self.updateDisableMessageWidgets = updateDisableMessageWidgets
         self.updateChatLockCode = updateChatLockCode
     }
 }
@@ -44,6 +47,7 @@ private final class LuminaPrivacySettingsControllerArguments {
 private enum LuminaPrivacySettingsSection: Int32 {
     case disguise
     case chatLock
+    case messageWidgets
 }
 
 private enum LuminaPrivacySettingsEntry: ItemListNodeEntry {
@@ -55,6 +59,9 @@ private enum LuminaPrivacySettingsEntry: ItemListNodeEntry {
     case chatLockHeader
     case chatLockCode(String)
     case chatLockFooter
+    case messageWidgetsHeader
+    case disableMessageWidgets(Bool)
+    case messageWidgetsFooter
 
     var section: ItemListSectionId {
         switch self {
@@ -62,6 +69,8 @@ private enum LuminaPrivacySettingsEntry: ItemListNodeEntry {
             return LuminaPrivacySettingsSection.disguise.rawValue
         case .chatLockHeader, .chatLockCode, .chatLockFooter:
             return LuminaPrivacySettingsSection.chatLock.rawValue
+        case .messageWidgetsHeader, .disableMessageWidgets, .messageWidgetsFooter:
+            return LuminaPrivacySettingsSection.messageWidgets.rawValue
         }
     }
 
@@ -75,6 +84,9 @@ private enum LuminaPrivacySettingsEntry: ItemListNodeEntry {
         case .chatLockHeader: return 5
         case .chatLockCode: return 6
         case .chatLockFooter: return 7
+        case .messageWidgetsHeader: return 8
+        case .disableMessageWidgets: return 9
+        case .messageWidgetsFooter: return 10
         }
     }
 
@@ -109,6 +121,14 @@ private enum LuminaPrivacySettingsEntry: ItemListNodeEntry {
             }, action: {})
         case .chatLockFooter:
             return ItemListTextItem(presentationData: presentationData, text: .plain(LuminaL10n.tr("Locked chats are unlocked with Face ID / passcode. This optional code is a fallback only. It is stored in this device's Keychain, never in Telegram and never synced. Leave empty to remove it.")), sectionId: self.section)
+        case .messageWidgetsHeader:
+            return ItemListSectionHeaderItem(presentationData: presentationData, text: LuminaL10n.tr("MESSAGE WIDGETS"), sectionId: self.section)
+        case let .disableMessageWidgets(value):
+            return ItemListSwitchItem(presentationData: presentationData, systemStyle: .glass, title: LuminaL10n.tr("Turn Off Message Widgets"), value: value, sectionId: self.section, style: .blocks, updated: { value in
+                arguments.updateDisableMessageWidgets(value)
+            })
+        case .messageWidgetsFooter:
+            return ItemListTextItem(presentationData: presentationData, text: .plain(LuminaL10n.tr("Some bots send interactive widgets that run their own code inside a message. With this switch on, LuminaGram does not run them and shows such messages as unsupported media with their caption. Off by default, which keeps Telegram's standard behavior.")), sectionId: self.section)
         }
     }
 }
@@ -123,6 +143,9 @@ private func luminaPrivacySettingsControllerEntries(settings: LuminaSettings) ->
         .chatLockHeader,
         .chatLockCode(LuminaKeychain.get(LuminaKeychainKey.chatLockCode) ?? ""),
         .chatLockFooter,
+        .messageWidgetsHeader,
+        .disableMessageWidgets(settings.disableMessageWidgets),
+        .messageWidgetsFooter,
     ]
 }
 
@@ -146,6 +169,13 @@ public func luminaPrivacySettingsController(context: AccountContext) -> ViewCont
             let _ = updateLuminaSettingsInteractively(accountManager: context.sharedContext.accountManager, { settings in
                 var settings = settings
                 settings.showRegistrationDate = value
+                return settings
+            }).start()
+        },
+        updateDisableMessageWidgets: { value in
+            let _ = updateLuminaSettingsInteractively(accountManager: context.sharedContext.accountManager, { settings in
+                var settings = settings
+                settings.disableMessageWidgets = value
                 return settings
             }).start()
         },

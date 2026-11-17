@@ -167,6 +167,11 @@ public struct LuminaSettings: Codable, Equatable {
     public var hideOwnPhone: Bool
     public var stripPhotoMetadata: Bool
     public var showRegistrationDate: Bool
+    // disableMessageWidgets: do not run message widgets (upstream 13.2's interactive HTML/CSS/JS
+    //   mini-apps a bot puts inside a message, executed in a sandboxed JS engine). When on, widget
+    //   messages show the way upstream shows them under its server kill switch (unsupported media
+    //   with the caption) and no widget code runs. Default false = upstream behavior (widgets on).
+    public var disableMessageWidgets: Bool
     // Dialog ids hidden from the chat list until unlocked. The unlock gate itself is
     // LocalAuthentication (Face ID/passcode), not a stored code - see LuminaKeychain.swift
     // for chatLockCode, used only as a LocalAuthentication fallback.
@@ -274,7 +279,6 @@ public struct LuminaSettings: Codable, Equatable {
     // hideTabBar: hide the main bottom tab bar. Default false. When on, a Settings entry is
     //   surfaced in the chat list so the user is never stranded.
     // tabBarHideLabels: hide the text labels under the bottom tab-bar items. Default false.
-    // tabBarHideContacts: hide the Contacts tab from the bottom tab bar. Default false.
     // tabBarHideCalls: hide the Calls tab from the bottom tab bar even when the account setting
     //   would show it. Default false.
     public var hideAllChatsFolder: Bool
@@ -284,7 +288,6 @@ public struct LuminaSettings: Codable, Equatable {
     public var lastSelectedFolderId: Int32
     public var hideTabBar: Bool
     public var tabBarHideLabels: Bool
-    public var tabBarHideContacts: Bool
     public var tabBarHideCalls: Bool
     // foldersAtBottom: move the chat-folder tab strip from its stock position (top, inside the
     //   navigation bar) to the bottom of the chat list, above the tab bar, for one-handed reach.
@@ -365,6 +368,7 @@ public struct LuminaSettings: Codable, Equatable {
             hideOwnPhone: false,
             stripPhotoMetadata: true,
             showRegistrationDate: true,
+            disableMessageWidgets: false,
             lockedChats: [],
             showBookmarks: true,
             bookmarks: [],
@@ -405,7 +409,6 @@ public struct LuminaSettings: Codable, Equatable {
             lastSelectedFolderId: 0,
             hideTabBar: false,
             tabBarHideLabels: false,
-            tabBarHideContacts: false,
             tabBarHideCalls: false,
             foldersAtBottom: false,
             outgoingPhotoQuality: 0,
@@ -456,6 +459,7 @@ public struct LuminaSettings: Codable, Equatable {
         hideOwnPhone: Bool,
         stripPhotoMetadata: Bool,
         showRegistrationDate: Bool,
+        disableMessageWidgets: Bool,
         lockedChats: [Int64],
         showBookmarks: Bool,
         bookmarks: [Bookmark],
@@ -496,7 +500,6 @@ public struct LuminaSettings: Codable, Equatable {
         lastSelectedFolderId: Int32,
         hideTabBar: Bool,
         tabBarHideLabels: Bool,
-        tabBarHideContacts: Bool,
         tabBarHideCalls: Bool,
         foldersAtBottom: Bool,
         outgoingPhotoQuality: Int32,
@@ -544,6 +547,7 @@ public struct LuminaSettings: Codable, Equatable {
         self.hideOwnPhone = hideOwnPhone
         self.stripPhotoMetadata = stripPhotoMetadata
         self.showRegistrationDate = showRegistrationDate
+        self.disableMessageWidgets = disableMessageWidgets
         self.lockedChats = lockedChats
         self.showBookmarks = showBookmarks
         self.bookmarks = bookmarks
@@ -584,7 +588,6 @@ public struct LuminaSettings: Codable, Equatable {
         self.lastSelectedFolderId = lastSelectedFolderId
         self.hideTabBar = hideTabBar
         self.tabBarHideLabels = tabBarHideLabels
-        self.tabBarHideContacts = tabBarHideContacts
         self.tabBarHideCalls = tabBarHideCalls
         self.foldersAtBottom = foldersAtBottom
         self.outgoingPhotoQuality = outgoingPhotoQuality
@@ -640,6 +643,7 @@ public struct LuminaSettings: Codable, Equatable {
         self.hideOwnPhone = try container.decodeIfPresent(Bool.self, forKey: "hideOwnPhone") ?? defaults.hideOwnPhone
         self.stripPhotoMetadata = try container.decodeIfPresent(Bool.self, forKey: "stripPhotoMetadata") ?? defaults.stripPhotoMetadata
         self.showRegistrationDate = try container.decodeIfPresent(Bool.self, forKey: "showRegistrationDate") ?? defaults.showRegistrationDate
+        self.disableMessageWidgets = try container.decodeIfPresent(Bool.self, forKey: "disableMessageWidgets") ?? defaults.disableMessageWidgets
         self.lockedChats = try container.decodeIfPresent([Int64].self, forKey: "lockedChats") ?? defaults.lockedChats
 
         self.showBookmarks = try container.decodeIfPresent(Bool.self, forKey: "showBookmarks") ?? defaults.showBookmarks
@@ -682,7 +686,6 @@ public struct LuminaSettings: Codable, Equatable {
         self.lastSelectedFolderId = try container.decodeIfPresent(Int32.self, forKey: "lastSelectedFolderId") ?? defaults.lastSelectedFolderId
         self.hideTabBar = try container.decodeIfPresent(Bool.self, forKey: "hideTabBar") ?? defaults.hideTabBar
         self.tabBarHideLabels = try container.decodeIfPresent(Bool.self, forKey: "tabBarHideLabels") ?? defaults.tabBarHideLabels
-        self.tabBarHideContacts = try container.decodeIfPresent(Bool.self, forKey: "tabBarHideContacts") ?? defaults.tabBarHideContacts
         self.tabBarHideCalls = try container.decodeIfPresent(Bool.self, forKey: "tabBarHideCalls") ?? defaults.tabBarHideCalls
         self.foldersAtBottom = try container.decodeIfPresent(Bool.self, forKey: "foldersAtBottom") ?? defaults.foldersAtBottom
 
@@ -738,6 +741,7 @@ public struct LuminaSettings: Codable, Equatable {
         try container.encode(self.hideOwnPhone, forKey: "hideOwnPhone")
         try container.encode(self.stripPhotoMetadata, forKey: "stripPhotoMetadata")
         try container.encode(self.showRegistrationDate, forKey: "showRegistrationDate")
+        try container.encode(self.disableMessageWidgets, forKey: "disableMessageWidgets")
         try container.encode(self.lockedChats, forKey: "lockedChats")
 
         try container.encode(self.showBookmarks, forKey: "showBookmarks")
@@ -780,7 +784,6 @@ public struct LuminaSettings: Codable, Equatable {
         try container.encode(self.lastSelectedFolderId, forKey: "lastSelectedFolderId")
         try container.encode(self.hideTabBar, forKey: "hideTabBar")
         try container.encode(self.tabBarHideLabels, forKey: "tabBarHideLabels")
-        try container.encode(self.tabBarHideContacts, forKey: "tabBarHideContacts")
         try container.encode(self.tabBarHideCalls, forKey: "tabBarHideCalls")
         try container.encode(self.foldersAtBottom, forKey: "foldersAtBottom")
 

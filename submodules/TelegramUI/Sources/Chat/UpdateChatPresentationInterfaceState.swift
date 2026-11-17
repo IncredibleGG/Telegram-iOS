@@ -16,11 +16,15 @@ import WebUI
 import LegacyChatHeaderPanelComponent
 import ComponentFlow
 import ComponentDisplayAdapters
+import ChatTitleView
+import EmojiStatusComponent
 
 extension ChatControllerImpl {
     func updateRightNavigationButtons(presentationInterfaceState: ChatPresentationInterfaceState, transition: ContainedViewLayoutTransition) {
         var buttonsAnimated = transition.isAnimated
-        if let button = rightNavigationButtonForChatInterfaceState(context: self.context, presentationInterfaceState: presentationInterfaceState, strings: presentationInterfaceState.strings, currentButton: self.rightNavigationButton, target: self, selector: #selector(self.rightNavigationButtonAction), chatInfoNavigationButton: self.chatInfoNavigationButton, moreInfoNavigationButton: self.moreInfoNavigationButton) {
+        let sideListKind = self.currentSideListKind(presentationInterfaceState: presentationInterfaceState)
+        self.sideListButtonKind = sideListKind
+        if let button = rightNavigationButtonForChatInterfaceState(context: self.context, presentationInterfaceState: presentationInterfaceState, strings: presentationInterfaceState.strings, currentButton: self.rightNavigationButton, target: self, selector: #selector(self.rightNavigationButtonAction), chatInfoNavigationButton: self.chatInfoNavigationButton, moreInfoNavigationButton: self.moreInfoNavigationButton, sideListKind: sideListKind) {
             if self.rightNavigationButton != button {
                 if let currentButton = self.rightNavigationButton?.action, currentButton == button.action {
                     buttonsAnimated = false
@@ -31,7 +35,7 @@ extension ChatControllerImpl {
             self.rightNavigationButton = nil
         }
 
-        if let button = secondaryRightNavigationButtonForChatInterfaceState(context: self.context, presentationInterfaceState: presentationInterfaceState, strings: presentationInterfaceState.strings, currentButton: self.secondaryRightNavigationButton, target: self, selector: #selector(self.secondaryRightNavigationButtonAction), chatInfoNavigationButton: self.chatInfoNavigationButton, moreInfoNavigationButton: self.moreInfoNavigationButton) {
+        if let button = secondaryRightNavigationButtonForChatInterfaceState(context: self.context, presentationInterfaceState: presentationInterfaceState, strings: presentationInterfaceState.strings, currentButton: self.secondaryRightNavigationButton, target: self, selector: #selector(self.secondaryRightNavigationButtonAction), chatInfoNavigationButton: self.chatInfoNavigationButton, moreInfoNavigationButton: self.moreInfoNavigationButton, sideListKind: sideListKind) {
             if self.secondaryRightNavigationButton != button {
                 if let currentButton = self.secondaryRightNavigationButton?.action, currentButton == button.action {
                     buttonsAnimated = false
@@ -60,19 +64,18 @@ extension ChatControllerImpl {
         }
 
         var rightBarButtons: [UIBarButtonItem] = []
-        // LuminaGram: this custom navigation bar lays rightBarButtonItems out left-to-right in array
-        // order, so index 0 is the LEFTMOST item (see NavigationButtonNodeImpl.updateLayout in the
-        // NavigationBarImpl module) - the opposite of stock UIKit. Prepending the plain translate item
-        // makes it the leftmost button and keeps the avatar custom node last, mirroring the working
-        // Saved Messages layout ([search, more]) so both the translate tap and the avatar tap fire.
+        // LuminaGram: rightBarButtonItems run left-to-right in array order (NavigationBarNode reverses them
+        // into NavigationBarComponent's outermost-first rightButtons), so index 0 is the LEFTMOST item.
+        // The translate item goes first: it asks for a glass pill of its own (requiresOwnSection, set in
+        // luminaTranslateNavigationButtonForChatInterfaceState), left of the avatar / sidebar buttons.
         if let luminaTranslateNavigationButton = self.luminaTranslateNavigationButton {
             rightBarButtons.append(luminaTranslateNavigationButton.buttonItem)
         }
-        if let rightNavigationButton = self.rightNavigationButton {
-            rightBarButtons.append(rightNavigationButton.buttonItem)
-        }
-        if let secondaryRightNavigationButton = self.secondaryRightNavigationButton {
-            rightBarButtons.append(secondaryRightNavigationButton.buttonItem)
+        // The sidebar button stays outermost, with Saved Messages' search before it.
+        if self.rightNavigationButton?.action == .toggleSideList {
+            rightBarButtons.append(contentsOf: [self.secondaryRightNavigationButton, self.rightNavigationButton].compactMap { $0?.buttonItem })
+        } else {
+            rightBarButtons.append(contentsOf: [self.rightNavigationButton, self.secondaryRightNavigationButton].compactMap { $0?.buttonItem })
         }
         var rightBarButtonsUpdated = false
         let currentRightBarButtons = self.navigationItem.rightBarButtonItems ?? []
@@ -108,6 +111,12 @@ func updateChatPresentationInterfaceStateImpl(
     
     var completion = externalCompletion
     var temporaryChatPresentationInterfaceState = f(selfController.presentationInterfaceState)
+    // The chat's data keeps a finished countdown until it next recomputes slow mode, and re-applies it with any
+    // unrelated update. Drop it here, before anything reads it: once this update is under way, nothing can take it
+    // out of what it hands the panel, which then shows the finished countdown, "0:00".
+    if let slowmodeState = temporaryChatPresentationInterfaceState.slowmodeState, !slowmodeState.isActive(at: Int32(Date().timeIntervalSince1970)) {
+        temporaryChatPresentationInterfaceState = temporaryChatPresentationInterfaceState.updatedSlowmodeState(nil)
+    }
     
     if selfController.presentationInterfaceState.keyboardButtonsMessage?.visibleButtonKeyboardMarkup != temporaryChatPresentationInterfaceState.keyboardButtonsMessage?.visibleButtonKeyboardMarkup || selfController.presentationInterfaceState.keyboardButtonsMessage?.id != temporaryChatPresentationInterfaceState.keyboardButtonsMessage?.id {
         if let keyboardButtonsMessage = temporaryChatPresentationInterfaceState.keyboardButtonsMessage, let keyboardMarkup = keyboardButtonsMessage.visibleButtonKeyboardMarkup {
@@ -534,7 +543,38 @@ func updateChatPresentationInterfaceStateImpl(
     
     var forceLayout = false
     
-    if let chatTitleContent = selfController.contentData?.state.chatTitleContent, let chatTitleView = selfController.chatTitleView {
+    if var chatTitleContent = selfController.contentData?.state.chatTitleContent, let chatTitleView = selfController.chatTitleView {
+        // With the side list, the header's right avatar gives way to the list's button, so the title carries the chat's
+        // icon before it: a sub-chat's peer, a topic's icon. Saved Messages shows its title alone (the list replaces "Tap
+        // to view as chats"). A channel's direct messages name the channel below.
+        var leadingIcon: ChatTitleLeadingIcon?
+        if let sideListKind = selfController.currentSideListKind(presentationInterfaceState: updatedChatPresentationInterfaceState), case let .peer(peerView, customTitle, customSubtitle, onlineMemberCount, isScheduledMessages, isMuted, customMessageCount, hidePeerStatus, isEnabled) = chatTitleContent {
+            var subtitle = customSubtitle
+            if updatedChatPresentationInterfaceState.chatLocation.threadId == nil {
+                if case .savedMessages = sideListKind {
+                    subtitle = nil
+                }
+            } else {
+                switch selfController.contentData?.state.infoAvatar {
+                case let .peer(peer, imageOverride, _, _):
+                    leadingIcon = .peer(peer, imageOverride: imageOverride)
+                case let .emojiStatus(content, _):
+                    if updatedChatPresentationInterfaceState.chatLocation.threadId == 1 {
+                        // General's "#" at the side list row's size (the info avatar's is a large one), in the status
+                        // line's colour.
+                        leadingIcon = .emojiStatus(.image(image: PresentationResourcesChatList.generalTopicSmallIcon(selfController.presentationData.theme)?.withRenderingMode(.alwaysTemplate), tintColor: selfController.presentationData.theme.chat.inputPanel.inputControlColor))
+                    } else {
+                        leadingIcon = .emojiStatus(chatTitleLeadingEmojiStatus(content))
+                    }
+                case .none:
+                    break
+                }
+                if case .monoforum = sideListKind, let channel = updatedChatPresentationInterfaceState.renderedPeer?.peer as? TelegramChannel, let linkedMonoforumId = channel.linkedMonoforumId, let mainChannel = updatedChatPresentationInterfaceState.renderedPeer?.peers[linkedMonoforumId] {
+                    subtitle = "\(EnginePeer(mainChannel).compactDisplayTitle) · \(selfController.presentationData.strings.Chat_SideList_DirectMessages)"
+                }
+            }
+            chatTitleContent = .peer(peerView: peerView, customTitle: customTitle, customSubtitle: subtitle, onlineMemberCount: onlineMemberCount, isScheduledMessages: isScheduledMessages, isMuted: isMuted, customMessageCount: customMessageCount, hidePeerStatus: hidePeerStatus, isEnabled: isEnabled)
+        }
         var titleTransition = ComponentTransition(transition)
         if case .messageOptions = selfController.subject {
             titleTransition = titleTransition.withAnimation(.none)
@@ -548,6 +588,8 @@ func updateChatPresentationInterfaceStateImpl(
             dateTimeFormat: selfController.presentationData.dateTimeFormat,
             nameDisplayOrder: selfController.presentationData.nameDisplayOrder,
             content: chatTitleContent,
+            labelsWithoutGlass: !selfController.presentationData.chatBubbleCorners.bubbleMode,
+            leadingIcon: leadingIcon,
             transition: titleTransition,
             ignoreParentTransitionRequests: true
         )
@@ -592,8 +634,8 @@ func updateChatPresentationInterfaceStateImpl(
                 animated = false
             }
             animated = false
-            selfController.navigationItem.setLeftBarButton(button.buttonItem, animated: animated && selfController.currentChatSwitchDirection == nil)
             selfController.leftNavigationButton = button
+            selfController.navigationItem.setLeftBarButton(button.buttonItem, animated: animated && selfController.currentChatSwitchDirection == nil)
         }
     } else if let _ = selfController.leftNavigationButton {
         selfController.navigationItem.setLeftBarButton(nil, animated: transition.isAnimated && selfController.currentChatSwitchDirection == nil)
@@ -664,4 +706,17 @@ func updateChatPresentationInterfaceStateImpl(
         }
     }
     selfController.stateUpdated?(transition)
+}
+
+/// A topic's icon at the size of the title's leading icon.
+private func chatTitleLeadingEmojiStatus(_ content: EmojiStatusComponent.Content) -> EmojiStatusComponent.Content {
+    let size = CGSize(width: 22.0, height: 22.0)
+    switch content {
+    case let .topic(title, color, _):
+        return .topic(title: title, color: color, size: size)
+    case let .animation(animationContent, _, placeholderColor, themeColor, loopMode):
+        return .animation(content: animationContent, size: size, placeholderColor: placeholderColor, themeColor: themeColor, loopMode: loopMode)
+    default:
+        return content
+    }
 }

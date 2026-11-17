@@ -18,6 +18,7 @@ public enum ChatNavigationButtonAction: Equatable {
     // LuminaGram: persistent header translate toggle. isActive mirrors the chat's
     // current translation-enabled state so the button diffs (and re-tints) when it flips.
     case luminaToggleTranslation(isActive: Bool)
+    case toggleSideList
 }
 
 public struct ChatNavigationButton: Equatable {

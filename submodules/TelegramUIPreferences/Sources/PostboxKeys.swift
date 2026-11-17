@@ -10,6 +10,9 @@ private enum ApplicationSpecificPreferencesKeyValues: Int32 {
     case ageVerificationState = 21
     case textProcessingEditingState = 22
     case walletState = 23
+    case qrStudioLook = 24
+    case qrStudioPeerLook = 25
+    case messageWidgetStorageIndex = 26
 }
 
 public struct ApplicationSpecificPreferencesKeys {
@@ -20,7 +23,17 @@ public struct ApplicationSpecificPreferencesKeys {
     public static let mediaAutoSaveSettings: EngineDataBuffer = applicationSpecificPreferencesKey(ApplicationSpecificPreferencesKeyValues.mediaAutoSaveSettings.rawValue)
     public static let ageVerificationState: EngineDataBuffer = applicationSpecificPreferencesKey(ApplicationSpecificPreferencesKeyValues.ageVerificationState.rawValue)
     public static let walletState: EngineDataBuffer = applicationSpecificPreferencesKey(ApplicationSpecificPreferencesKeyValues.walletState.rawValue)
+    public static let qrStudioLook: EngineDataBuffer = applicationSpecificPreferencesKey(ApplicationSpecificPreferencesKeyValues.qrStudioLook.rawValue)
+    /// The messages whose derived data holds a message widget's storage (MessageWidgetStorage), for "Clear cache".
+    public static let messageWidgetStorageIndex: EngineDataBuffer = applicationSpecificPreferencesKey(ApplicationSpecificPreferencesKeyValues.messageWidgetStorageIndex.rawValue)
     
+    public static func qrStudioPeerLook(peerId: EnginePeer.Id) -> EngineDataBuffer {
+        let key = EngineDataBuffer(length: 4 + 8)
+        key.setInt32(0, value: ApplicationSpecificPreferencesKeyValues.qrStudioPeerLook.rawValue)
+        key.setInt64(4, value: peerId.toInt64())
+        return key
+    }
+
     public static func textProcessingEditingState(peerId: EnginePeer.Id) -> EngineDataBuffer {
         let key = EngineDataBuffer(length: 4 + 8)
         key.setInt32(0, value: ApplicationSpecificPreferencesKeyValues.textProcessingEditingState.rawValue)
@@ -53,7 +66,13 @@ private enum ApplicationSpecificSharedDataKeyValues: Int32 {
     case mediaDisplaySettings = 20
     case updateSettings = 21
     case chatSettings = 22
+    // LuminaGram: 23 is luminaSettings and is already persisted on every user's device -- never renumber it.
     case luminaSettings = 23
+    // LuminaGram: upstream 13.2 also took 23 for newsFeedSettings (28faad6b64). Both keys resolve to the same
+    // accountManager sharedData slot (23 + 1000), so upstream's News settings are moved to a far, Lumina-reserved
+    // number instead. NewsFeedSettings is local-only (never synced to the server), so the move costs nothing.
+    // When merging upstream again, check new cases here against the numbers LuminaGram occupies (23, 500).
+    case newsFeedSettings = 500
 }
 
 public struct ApplicationSpecificSharedDataKeys {
@@ -82,6 +101,7 @@ public struct ApplicationSpecificSharedDataKeys {
     public static let chatSettings: EngineDataBuffer = applicationSpecificPreferencesKey(ApplicationSpecificSharedDataKeyValues.chatSettings.rawValue)
     // LuminaGram: local-only preferences store (LuminaSettings.swift), never synced to Telegram.
     public static let luminaSettings: EngineDataBuffer = applicationSpecificPreferencesKey(ApplicationSpecificSharedDataKeyValues.luminaSettings.rawValue)
+    public static let newsFeedSettings: EngineDataBuffer = applicationSpecificSharedDataKey(ApplicationSpecificSharedDataKeyValues.newsFeedSettings.rawValue)
 }
 
 private enum ApplicationSpecificItemCacheCollectionIdValues: Int8 {

@@ -73,7 +73,6 @@ private enum LuminaInterfaceEntry: ItemListNodeEntry {
     case tabBarHeader
     case hideTabBar(Bool)
     case tabBarHideLabels(Bool)
-    case tabBarHideContacts(Bool)
     case tabBarHideCalls(Bool)
     case tabBarFooter
 
@@ -91,7 +90,7 @@ private enum LuminaInterfaceEntry: ItemListNodeEntry {
 
     var section: ItemListSectionId {
         switch self {
-        case .tabBarHeader, .hideTabBar, .tabBarHideLabels, .tabBarHideContacts, .tabBarHideCalls, .tabBarFooter:
+        case .tabBarHeader, .hideTabBar, .tabBarHideLabels, .tabBarHideCalls, .tabBarFooter:
             return LuminaInterfaceSection.tabBar.rawValue
         case .foldersHeader, .hideAllChatsFolder, .compactFolderTabs, .wideFolderTabs, .rememberLastFolder, .foldersAtBottom, .foldersFooter:
             return LuminaInterfaceSection.folders.rawValue
@@ -108,8 +107,6 @@ private enum LuminaInterfaceEntry: ItemListNodeEntry {
             return 1
         case .tabBarHideLabels:
             return 2
-        case .tabBarHideContacts:
-            return 3
         case .tabBarHideCalls:
             return 4
         case .tabBarFooter:
@@ -159,14 +156,6 @@ private enum LuminaInterfaceEntry: ItemListNodeEntry {
                 arguments.updateSettings { settings in
                     var settings = settings
                     settings.tabBarHideLabels = value
-                    return settings
-                }
-            })
-        case let .tabBarHideContacts(value):
-            return ItemListSwitchItem(presentationData: presentationData, title: LuminaL10n.tr("Hide Contacts Tab"), value: value, sectionId: self.section, style: .blocks, updated: { value in
-                arguments.updateSettings { settings in
-                    var settings = settings
-                    settings.tabBarHideContacts = value
                     return settings
                 }
             })
@@ -242,7 +231,6 @@ private func luminaInterfaceControllerEntries(settings: LuminaSettings) -> [Lumi
     entries.append(.tabBarHeader)
     entries.append(.hideTabBar(settings.hideTabBar))
     entries.append(.tabBarHideLabels(settings.tabBarHideLabels))
-    entries.append(.tabBarHideContacts(settings.tabBarHideContacts))
     entries.append(.tabBarHideCalls(settings.tabBarHideCalls))
     entries.append(.tabBarFooter)
 
