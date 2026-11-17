@@ -88,6 +88,9 @@ submodules/TelegramUI/Sources/CreateGroupController.swift
 submodules/TelegramUI/Sources/DocumentPreviewController.swift
 submodules/TelegramUI/Sources/FetchCachedRepresentations.swift
 submodules/TelegramUI/Sources/InChatPrefetchManager.swift
+submodules/TelegramUI/Sources/Lumina/LuminaAdShieldFold.swift
+submodules/TelegramUI/Sources/Lumina/LuminaAdShieldFoldEntries.swift
+submodules/TelegramUI/Sources/Lumina/LuminaAdShieldHook.swift
 submodules/TelegramUI/Sources/Lumina/LuminaLinkSafetyHook.swift
 submodules/TelegramUI/Sources/Lumina/LuminaOtpGuardHook.swift
 submodules/TelegramUI/Sources/Lumina/LuminaSessionGuard.swift

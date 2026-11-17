@@ -223,6 +223,7 @@ submodules/TelegramUI/Sources/HorizontalListContextResultsChatInputPanelItem.swi
 submodules/TelegramUI/Sources/HorizontalStickerGridItem.swift
 submodules/TelegramUI/Sources/InChatPrefetchManager.swift
 submodules/TelegramUI/Sources/LargeEmojiAlertScreen.swift
+submodules/TelegramUI/Sources/Lumina/LuminaAdShieldHook.swift
 submodules/TelegramUI/Sources/LuminaVoiceTranscription.swift
 submodules/TelegramUI/Sources/NotificationContentContext.swift
 submodules/TelegramUI/Sources/OpenChatMessage.swift
