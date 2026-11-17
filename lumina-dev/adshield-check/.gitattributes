@@ -1,0 +1,3 @@
+# Vectors and scenarios are byte-for-byte copies of adshield/vectors and adshield/corpus: never convert line endings.
+vectors/** -text
+corpus/** -text

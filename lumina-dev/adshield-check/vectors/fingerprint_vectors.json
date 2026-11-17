@@ -1,0 +1,4147 @@
+{
+ "tablesVersion": "f40fc4cc",
+ "algoVersion": 2,
+ "key": "000102030405060708090a0b0c0d0e0f",
+ "note": "固定測試金鑰 000102…0f。links 依抽取順序：文字（網址→t.me→*.t.me→email→網域→@→「@ 帳號」→電話→聯絡帳號）→ 隱藏連結（entities 順序）→ 按鈕 → 名片。feature ∈ strong/weak/member/pending/none。strong/weak/flags/keys/subsetLinks/pending 是「儲存用」結果（不含待定 handle 的貢獻）；resolved* 是以 knownHandles=∅ ∪ context.memberHandles 解開待定 handle 後的結果。",
+ "context": {
+  "chatId": -1001234567890,
+  "type": "supergroup",
+  "username": "luminatest_grp",
+  "linkedChannel": {
+   "id": -1009876543210,
+   "username": "luminatest_ch"
+  },
+  "description": "本群官網 https://lumina-test.example.org 新人請看置頂。邀請連結 t.me/+GroupInvite01 文件 https://lumina-org.github.io/docs",
+  "pinnedTexts": [
+   "群規：禁止廣告。客服 @lumina_helpdesk"
+  ],
+  "adminsKnown": true,
+  "memberHandles": [
+   "alice_member",
+   "bob_member"
+  ],
+  "selfUsername": "lumina_me"
+ },
+ "cases": [
+  {
+   "id": "tme-variants",
+   "description": "t.me 各種寫法都變成 @handle",
+   "message": {
+    "id": 1,
+    "date": 1795000001,
+    "sender": {
+     "id": 7001,
+     "role": "member"
+    },
+    "text": "加入 https://t.me/BigSale?start=abc 或 telegram.me/BigSale 或 tg://resolve?domain=bigsale 或 bigsale.t.me"
+   },
+   "expect": {
+    "fold": "加入 https://t.me/bigsale?start=abc 或 telegram.me/bigsale 或 tg://resolve?domain=bigsale 或 bigsale.t.me",
+    "foldNoLinks": "加入   或   或   或  ",
+    "text": "加入或或或",
+    "cjk": "加入或或或",
+    "wlen": 10,
+    "cjkCount": 5,
+    "otherLetterCount": 0,
+    "paragraphs": [],
+    "links": [
+     {
+      "token": "@bigsale",
+      "type": "HANDLE",
+      "kind": "handle",
+      "source": "text",
+      "feature": "pending",
+      "hash": "27469e00d78b027f"
+     },
+     {
+      "token": "@bigsale",
+      "type": "HANDLE",
+      "kind": "handle",
+      "source": "text",
+      "feature": "pending",
+      "hash": "27469e00d78b027f"
+     },
+     {
+      "token": "@bigsale",
+      "type": "HANDLE",
+      "kind": "handle",
+      "source": "text",
+      "feature": "pending",
+      "hash": "27469e00d78b027f"
+     },
+     {
+      "token": "@bigsale",
+      "type": "HANDLE",
+      "kind": "handle",
+      "source": "text",
+      "feature": "pending",
+      "hash": "27469e00d78b027f"
+     }
+    ],
+    "strong": [],
+    "weak": [],
+    "mentionCount": 0,
+    "keys": [
+     {
+      "kind": "TMPL",
+      "tag": "tmpl",
+      "payload": "加入或或或\u001eHANDLE",
+      "hash": "0c249ea937eeed60"
+     }
+    ],
+    "flags": 1073741824,
+    "flagNames": [
+     "F_TMPL_COND"
+    ],
+    "subsetLinks": [],
+    "pending": [
+     "27469e00d78b027f"
+    ],
+    "resolvedStrong": [
+     "handle"
+    ],
+    "resolvedWeak": [],
+    "resolvedFlags": 1073741826,
+    "resolvedFlagNames": [
+     "S_handle",
+     "F_TMPL_COND"
+    ],
+    "senderKey": "f835c8c7783b17ad",
+    "store": true,
+    "endorsing": false
+   }
+  },
+  {
+   "id": "invites",
+   "description": "邀請連結統一成 invite:",
+   "message": {
+    "id": 2,
+    "date": 1795000002,
+    "sender": {
+     "id": 7002,
+     "role": "member"
+    },
+    "text": "t.me/+AbCdEf123 t.me/joinchat/AbCdEf123 tg://join?invite=AbCdEf123 t.me/addlist/xyz"
+   },
+   "expect": {
+    "fold": "t.me/+abcdef123 t.me/joinchat/abcdef123 tg://join?invite=abcdef123 t.me/addlist/xyz",
+    "foldNoLinks": "       ",
+    "text": "",
+    "cjk": "",
+    "wlen": 0,
+    "cjkCount": 0,
+    "otherLetterCount": 0,
+    "paragraphs": [],
+    "links": [
+     {
+      "token": "invite:abcdef123",
+      "type": "INVITE",
+      "kind": "invite",
+      "source": "text",
+      "feature": "strong",
+      "hash": "51e31b1c78bc634e"
+     },
+     {
+      "token": "invite:abcdef123",
+      "type": "INVITE",
+      "kind": "invite",
+      "source": "text",
+      "feature": "strong",
+      "hash": "51e31b1c78bc634e"
+     },
+     {
+      "token": "invite:abcdef123",
+      "type": "INVITE",
+      "kind": "invite",
+      "source": "text",
+      "feature": "strong",
+      "hash": "51e31b1c78bc634e"
+     },
+     {
+      "token": "invite:addlist/xyz",
+      "type": "INVITE",
+      "kind": "invite",
+      "source": "text",
+      "feature": "strong",
+      "hash": "d225455ffc0ffac5"
+     }
+    ],
+    "strong": [
+     "invite"
+    ],
+    "weak": [],
+    "mentionCount": 0,
+    "keys": [
+     {
+      "kind": "CONTACT",
+      "tag": "contact",
+      "payload": "invite:abcdef123,invite:addlist/xyz",
+      "hash": "06d8e2c8b10623f5"
+     }
+    ],
+    "flags": 1,
+    "flagNames": [
+     "S_invite"
+    ],
+    "subsetLinks": [
+     "51e31b1c78bc634e",
+     "d225455ffc0ffac5"
+    ],
+    "pending": [],
+    "resolvedStrong": [
+     "invite"
+    ],
+    "resolvedWeak": [],
+    "resolvedFlags": 1,
+    "resolvedFlagNames": [
+     "S_invite"
+    ],
+    "senderKey": "ef48f823de1b855a",
+    "store": true,
+    "endorsing": false
+   }
+  },
+  {
+   "id": "tracking-params",
+   "description": "去掉追蹤參數、www、結尾斜線",
+   "message": {
+    "id": 3,
+    "date": 1795000003,
+    "sender": {
+     "id": 7003,
+     "role": "member"
+    },
+    "text": "看 https://www.shop-example.com/item/42/?utm_source=tg&fbclid=1&color=red&ref=abc"
+   },
+   "expect": {
+    "fold": "看 https://www.shop-example.com/item/42/?utm_source=tg&fbclid=1&color=red&ref=abc",
+    "foldNoLinks": "看  ",
+    "text": "看",
+    "cjk": "看",
+    "wlen": 2,
+    "cjkCount": 1,
+    "otherLetterCount": 0,
+    "paragraphs": [],
+    "links": [
+     {
+      "token": "url:shop-example.com/item/42?color=red",
+      "type": "URL:shop-example.com",
+      "kind": "url",
+      "source": "text",
+      "feature": "weak",
+      "hash": "428d92c4d04c0e31"
+     }
+    ],
+    "strong": [],
+    "weak": [
+     "url"
+    ],
+    "mentionCount": 0,
+    "keys": [],
+    "flags": 1024,
+    "flagNames": [
+     "W_url"
+    ],
+    "subsetLinks": [
+     "428d92c4d04c0e31"
+    ],
+    "pending": [],
+    "resolvedStrong": [],
+    "resolvedWeak": [
+     "url"
+    ],
+    "resolvedFlags": 1024,
+    "resolvedFlagNames": [
+     "W_url"
+    ],
+    "senderKey": "8d6b6aeb5cf0900c",
+    "store": false,
+    "endorsing": false
+   }
+  },
+  {
+   "id": "youtube-alias",
+   "description": "youtu.be 與 youtube.com 是同一個 token；網頁預覽媒體不建指紋",
+   "message": {
+    "id": 4,
+    "date": 1795000004,
+    "sender": {
+     "id": 7004,
+     "role": "member"
+    },
+    "text": "推薦這首歌 youtu.be/dQw4w9WgXcQ https://m.youtube.com/watch?v=dQw4w9WgXcQ&si=xx",
+    "media": {
+     "kind": "webpage",
+     "id": "wp1"
+    }
+   },
+   "expect": {
+    "fold": "推荐这首歌 youtu.be/dqw4w9wgxcq https://m.youtube.com/watch?v=dqw4w9wgxcq&si=xx",
+    "foldNoLinks": "推荐这首歌    ",
+    "text": "推荐这首歌",
+    "cjk": "推荐这首歌",
+    "wlen": 10,
+    "cjkCount": 5,
+    "otherLetterCount": 0,
+    "paragraphs": [],
+    "links": [
+     {
+      "token": "url:youtube.com/watch?v=dqw4w9wgxcq",
+      "type": "URL:youtube.com",
+      "kind": "url",
+      "source": "text",
+      "feature": "weak",
+      "hash": "4b40599ce1a70ed6"
+     },
+     {
+      "token": "url:youtube.com/watch?v=dqw4w9wgxcq",
+      "type": "URL:youtube.com",
+      "kind": "url",
+      "source": "text",
+      "feature": "weak",
+      "hash": "4b40599ce1a70ed6"
+     }
+    ],
+    "strong": [],
+    "weak": [
+     "url"
+    ],
+    "mentionCount": 0,
+    "keys": [],
+    "flags": 1024,
+    "flagNames": [
+     "W_url"
+    ],
+    "subsetLinks": [
+     "4b40599ce1a70ed6"
+    ],
+    "pending": [],
+    "resolvedStrong": [],
+    "resolvedWeak": [
+     "url"
+    ],
+    "resolvedFlags": 1024,
+    "resolvedFlagNames": [
+     "W_url"
+    ],
+    "senderKey": "67fc0ab43b622226",
+    "store": false,
+    "endorsing": false
+   }
+  },
+  {
+   "id": "shortener",
+   "description": "縮網址是強特徵",
+   "message": {
+    "id": 5,
+    "date": 1795000005,
+    "sender": {
+     "id": 7005,
+     "role": "member"
+    },
+    "text": "限時優惠 bit.ly/3abcXYZ 快來"
+   },
+   "expect": {
+    "fold": "限时优惠 bit.ly/3abcxyz 快来",
+    "foldNoLinks": "限时优惠   快来",
+    "text": "限时优惠快来",
+    "cjk": "限时优惠快来",
+    "wlen": 12,
+    "cjkCount": 6,
+    "otherLetterCount": 0,
+    "paragraphs": [],
+    "links": [
+     {
+      "token": "url:bit.ly/3abcxyz",
+      "type": "SHORT",
+      "kind": "url",
+      "source": "text",
+      "feature": "strong",
+      "hash": "b3ed34bbc34b9703"
+     }
+    ],
+    "strong": [
+     "shortener"
+    ],
+    "weak": [],
+    "mentionCount": 0,
+    "keys": [
+     {
+      "kind": "TEXT",
+      "tag": "text",
+      "payload": "限时优惠快来",
+      "hash": "dbce1d5032a9dd0c"
+     },
+     {
+      "kind": "TMPL",
+      "tag": "tmpl",
+      "payload": "限时优惠快来\u001eSHORT",
+      "hash": "f0881d6c19aeb0bf"
+     }
+    ],
+    "flags": 65540,
+    "flagNames": [
+     "S_shortener",
+     "F_HAS_TEXT"
+    ],
+    "subsetLinks": [
+     "b3ed34bbc34b9703"
+    ],
+    "pending": [],
+    "resolvedStrong": [
+     "shortener"
+    ],
+    "resolvedWeak": [],
+    "resolvedFlags": 65540,
+    "resolvedFlagNames": [
+     "S_shortener",
+     "F_HAS_TEXT"
+    ],
+    "senderKey": "0c16d2e4b6058138",
+    "store": true,
+    "endorsing": false
+   }
+  },
+  {
+   "id": "wa-me-phone",
+   "description": "wa.me 與 +國碼電話",
+   "message": {
+    "id": 6,
+    "date": 1795000006,
+    "sender": {
+     "id": 7006,
+     "role": "member"
+    },
+    "text": "WhatsApp: wa.me/8613812345678 或 +86 138-1234-5678"
+   },
+   "expect": {
+    "fold": "whatsapp: wa.me/8613812345678 或 +86 138-1234-5678",
+    "foldNoLinks": "whatsapp:   或  ",
+    "text": "whatsapp或",
+    "cjk": "或",
+    "wlen": 10,
+    "cjkCount": 1,
+    "otherLetterCount": 8,
+    "paragraphs": [],
+    "links": [
+     {
+      "token": "tel:8613812345678",
+      "type": "PHONE",
+      "kind": "phone",
+      "source": "text",
+      "feature": "strong",
+      "hash": "914d3b0b62517fa6"
+     },
+     {
+      "token": "tel:8613812345678",
+      "type": "PHONE",
+      "kind": "phone",
+      "source": "text",
+      "feature": "strong",
+      "hash": "914d3b0b62517fa6"
+     }
+    ],
+    "strong": [
+     "phone"
+    ],
+    "weak": [],
+    "mentionCount": 0,
+    "keys": [
+     {
+      "kind": "TMPL",
+      "tag": "tmpl",
+      "payload": "whatsapp或\u001ePHONE",
+      "hash": "d2c71770cb25e407"
+     },
+     {
+      "kind": "CONTACT",
+      "tag": "contact",
+      "payload": "tel:8613812345678",
+      "hash": "1874bb178b5bf7b3"
+     }
+    ],
+    "flags": 64,
+    "flagNames": [
+     "S_phone"
+    ],
+    "subsetLinks": [
+     "914d3b0b62517fa6"
+    ],
+    "pending": [],
+    "resolvedStrong": [
+     "phone"
+    ],
+    "resolvedWeak": [],
+    "resolvedFlags": 64,
+    "resolvedFlagNames": [
+     "S_phone"
+    ],
+    "senderKey": "2ab6fe89c26a2050",
+    "store": true,
+    "endorsing": false
+   }
+  },
+  {
+   "id": "cn-mobile-spaced",
+   "description": "1 開頭 11 碼手機（夾空白、-）",
+   "message": {
+    "id": 7,
+    "date": 1795000007,
+    "sender": {
+     "id": 7007,
+     "role": "member"
+    },
+    "text": "代辦信用卡 電話 138 1234 5678"
+   },
+   "expect": {
+    "fold": "代办信用卡 电话 138 1234 5678",
+    "foldNoLinks": "代办信用卡 电话  ",
+    "text": "代办信用卡电话",
+    "cjk": "代办信用卡电话",
+    "wlen": 14,
+    "cjkCount": 7,
+    "otherLetterCount": 0,
+    "paragraphs": [],
+    "links": [
+     {
+      "token": "tel:8613812345678",
+      "type": "PHONE",
+      "kind": "phone",
+      "source": "text",
+      "feature": "strong",
+      "hash": "914d3b0b62517fa6"
+     }
+    ],
+    "strong": [
+     "phone"
+    ],
+    "weak": [],
+    "mentionCount": 0,
+    "keys": [
+     {
+      "kind": "TEXT",
+      "tag": "text",
+      "payload": "代办信用卡电话",
+      "hash": "763a0aec705a9bf3"
+     },
+     {
+      "kind": "TMPL",
+      "tag": "tmpl",
+      "payload": "代办信用卡电话\u001ePHONE",
+      "hash": "7bd284e3dde66c8c"
+     },
+     {
+      "kind": "CONTACT",
+      "tag": "contact",
+      "payload": "tel:8613812345678",
+      "hash": "1874bb178b5bf7b3"
+     }
+    ],
+    "flags": 65600,
+    "flagNames": [
+     "S_phone",
+     "F_HAS_TEXT"
+    ],
+    "subsetLinks": [
+     "914d3b0b62517fa6"
+    ],
+    "pending": [],
+    "resolvedStrong": [
+     "phone"
+    ],
+    "resolvedWeak": [],
+    "resolvedFlags": 65600,
+    "resolvedFlagNames": [
+     "S_phone",
+     "F_HAS_TEXT"
+    ],
+    "senderKey": "e7fcdc2f5fbb2c72",
+    "store": true,
+    "endorsing": false
+   }
+  },
+  {
+   "id": "keycap-phone",
+   "description": "keycap 數字寫的電話",
+   "message": {
+    "id": 8,
+    "date": 1795000008,
+    "sender": {
+     "id": 7008,
+     "role": "member"
+    },
+    "text": "代辦大額信用卡 快速下卡 電話 1️⃣3️⃣8️⃣1️⃣2️⃣3️⃣4️⃣5️⃣6️⃣7️⃣8️⃣"
+   },
+   "expect": {
+    "fold": "代办大额信用卡 快速下卡 电话 13812345678",
+    "foldNoLinks": "代办大额信用卡 快速下卡 电话  ",
+    "text": "代办大额信用卡快速下卡电话",
+    "cjk": "代办大额信用卡快速下卡电话",
+    "wlen": 26,
+    "cjkCount": 13,
+    "otherLetterCount": 0,
+    "paragraphs": [],
+    "links": [
+     {
+      "token": "tel:8613812345678",
+      "type": "PHONE",
+      "kind": "phone",
+      "source": "text",
+      "feature": "strong",
+      "hash": "914d3b0b62517fa6"
+     }
+    ],
+    "strong": [
+     "phone"
+    ],
+    "weak": [],
+    "mentionCount": 0,
+    "keys": [
+     {
+      "kind": "TEXT",
+      "tag": "text",
+      "payload": "代办大额信用卡快速下卡电话",
+      "hash": "06650b5294849f14"
+     },
+     {
+      "kind": "CJK",
+      "tag": "cjk",
+      "payload": "代办大额信用卡快速下卡电话",
+      "hash": "b466d35d172fa2cb"
+     },
+     {
+      "kind": "TMPL",
+      "tag": "tmpl",
+      "payload": "代办大额信用卡快速下卡电话\u001ePHONE",
+      "hash": "2e68919c95136e3a"
+     },
+     {
+      "kind": "CONTACT",
+      "tag": "contact",
+      "payload": "tel:8613812345678",
+      "hash": "1874bb178b5bf7b3"
+     }
+    ],
+    "flags": 327744,
+    "flagNames": [
+     "S_phone",
+     "F_HAS_TEXT",
+     "F_PURE_TEXT"
+    ],
+    "subsetLinks": [
+     "914d3b0b62517fa6"
+    ],
+    "pending": [],
+    "resolvedStrong": [
+     "phone"
+    ],
+    "resolvedWeak": [],
+    "resolvedFlags": 327744,
+    "resolvedFlagNames": [
+     "S_phone",
+     "F_HAS_TEXT",
+     "F_PURE_TEXT"
+    ],
+    "senderKey": "8bf6f2186a107fba",
+    "store": true,
+    "endorsing": false
+   }
+  },
+  {
+   "id": "contact-accounts",
+   "description": "加V／微信號／QQ 後面接帳號",
+   "message": {
+    "id": 9,
+    "date": 1795000009,
+    "sender": {
+     "id": 7009,
+     "role": "member"
+    },
+    "text": "加V：abc_888 微信號是kevin88 QQ 12345678 +line lumina_ok"
+   },
+   "expect": {
+    "fold": "加v:abc_888 微信号是kevin88 qq 12345678 +line lumina_ok",
+    "foldNoLinks": "加v:  微信号是  qq   +line  ",
+    "text": "加v微信号是qqline",
+    "cjk": "加微信号是",
+    "wlen": 17,
+    "cjkCount": 5,
+    "otherLetterCount": 7,
+    "paragraphs": [],
+    "links": [
+     {
+      "token": "acct:wx:abc_888",
+      "type": "ACCT:wx",
+      "kind": "acct",
+      "source": "text",
+      "feature": "strong",
+      "hash": "bbb2a8273918db1a"
+     },
+     {
+      "token": "acct:wx:kevin88",
+      "type": "ACCT:wx",
+      "kind": "acct",
+      "source": "text",
+      "feature": "strong",
+      "hash": "2e24c70fce8cb278"
+     },
+     {
+      "token": "acct:qq:12345678",
+      "type": "ACCT:qq",
+      "kind": "acct",
+      "source": "text",
+      "feature": "strong",
+      "hash": "8e8d5c67fc743b28"
+     },
+     {
+      "token": "acct:line:lumina_ok",
+      "type": "ACCT:line",
+      "kind": "acct",
+      "source": "text",
+      "feature": "strong",
+      "hash": "8da0ec18528f7a5d"
+     }
+    ],
+    "strong": [
+     "account"
+    ],
+    "weak": [],
+    "mentionCount": 0,
+    "keys": [
+     {
+      "kind": "TEXT",
+      "tag": "text",
+      "payload": "加v微信号是qqline",
+      "hash": "22d958fa338049fb"
+     },
+     {
+      "kind": "TMPL",
+      "tag": "tmpl",
+      "payload": "加v微信号是qqline\u001eACCT:line,ACCT:qq,ACCT:wx",
+      "hash": "74965b29b03befc1"
+     },
+     {
+      "kind": "CONTACT",
+      "tag": "contact",
+      "payload": "acct:line:lumina_ok,acct:qq:12345678,acct:wx:abc_888,acct:wx:kevin88",
+      "hash": "e3ec8cca7f148b42"
+     }
+    ],
+    "flags": 65664,
+    "flagNames": [
+     "S_account",
+     "F_HAS_TEXT"
+    ],
+    "subsetLinks": [
+     "bbb2a8273918db1a",
+     "2e24c70fce8cb278",
+     "8e8d5c67fc743b28",
+     "8da0ec18528f7a5d"
+    ],
+    "pending": [],
+    "resolvedStrong": [
+     "account"
+    ],
+    "resolvedWeak": [],
+    "resolvedFlags": 65664,
+    "resolvedFlagNames": [
+     "S_account",
+     "F_HAS_TEXT"
+    ],
+    "senderKey": "ef8e54627e4cda65",
+    "store": true,
+    "endorsing": false
+   }
+  },
+  {
+   "id": "contact-ascii-no-account",
+   "description": "telegram desktop 不是帳號",
+   "message": {
+    "id": 10,
+    "date": 1795000010,
+    "sender": {
+     "id": 7010,
+     "role": "member"
+    },
+    "text": "telegram desktop 很好用，whatsapp group 也不錯"
+   },
+   "expect": {
+    "fold": "telegram desktop 很好用,whatsapp group 也不错",
+    "foldNoLinks": "telegram desktop 很好用,whatsapp group 也不错",
+    "text": "telegramdesktop很好用whatsappgroup也不错",
+    "cjk": "很好用也不错",
+    "wlen": 40,
+    "cjkCount": 6,
+    "otherLetterCount": 28,
+    "paragraphs": [
+     "telegramdesktop很好用whatsappgroup也不错"
+    ],
+    "links": [],
+    "strong": [],
+    "weak": [],
+    "mentionCount": 0,
+    "keys": [
+     {
+      "kind": "TEXT",
+      "tag": "text",
+      "payload": "telegramdesktop很好用whatsappgroup也不错",
+      "hash": "b46b6a4554f35f8f"
+     },
+     {
+      "kind": "PARA",
+      "tag": "para",
+      "payload": "telegramdesktop很好用whatsappgroup也不错",
+      "hash": "327e4e7ddfe1432e"
+     }
+    ],
+    "flags": 327680,
+    "flagNames": [
+     "F_HAS_TEXT",
+     "F_PURE_TEXT"
+    ],
+    "subsetLinks": [],
+    "pending": [],
+    "resolvedStrong": [],
+    "resolvedWeak": [],
+    "resolvedFlags": 327680,
+    "resolvedFlagNames": [
+     "F_HAS_TEXT",
+     "F_PURE_TEXT"
+    ],
+    "senderKey": "a3cc5d09cfb2d789",
+    "store": true,
+    "endorsing": false
+   }
+  },
+  {
+   "id": "pointer-cjk",
+   "description": "私我／看簡介（繁體也命中）",
+   "message": {
+    "id": 11,
+    "date": 1795000011,
+    "sender": {
+     "id": 7011,
+     "role": "member"
+    },
+    "text": "有需要的私我，詳情看簡介"
+   },
+   "expect": {
+    "fold": "有需要的私我,详情看简介",
+    "foldNoLinks": "有需要的私我,详情看简介",
+    "text": "有需要的私我详情看简介",
+    "cjk": "有需要的私我详情看简介",
+    "wlen": 22,
+    "cjkCount": 11,
+    "otherLetterCount": 0,
+    "paragraphs": [],
+    "links": [],
+    "strong": [
+     "pointer"
+    ],
+    "weak": [],
+    "mentionCount": 0,
+    "keys": [
+     {
+      "kind": "TEXT",
+      "tag": "text",
+      "payload": "有需要的私我详情看简介",
+      "hash": "1d7941d896ecefbf"
+     },
+     {
+      "kind": "CJK",
+      "tag": "cjk",
+      "payload": "有需要的私我详情看简介",
+      "hash": "3a7670c7acae5ba0"
+     },
+     {
+      "kind": "TMPL",
+      "tag": "tmpl",
+      "payload": "有需要的私我详情看简介\u001e",
+      "hash": "a0c337a91843a3e9"
+     }
+    ],
+    "flags": 65792,
+    "flagNames": [
+     "S_pointer",
+     "F_HAS_TEXT"
+    ],
+    "subsetLinks": [
+     "5bc9075af64dbfa6"
+    ],
+    "pending": [],
+    "resolvedStrong": [
+     "pointer"
+    ],
+    "resolvedWeak": [],
+    "resolvedFlags": 65792,
+    "resolvedFlagNames": [
+     "S_pointer",
+     "F_HAS_TEXT"
+    ],
+    "senderKey": "b3c25a1bde16d809",
+    "store": true,
+    "endorsing": false
+   }
+  },
+  {
+   "id": "pointer-not-after",
+   "description": "「自私我」不算",
+   "message": {
+    "id": 12,
+    "date": 1795000012,
+    "sender": {
+     "id": 7012,
+     "role": "member"
+    },
+    "text": "你太自私我不想說了"
+   },
+   "expect": {
+    "fold": "你太自私我不想说了",
+    "foldNoLinks": "你太自私我不想说了",
+    "text": "你太自私我不想说了",
+    "cjk": "你太自私我不想说了",
+    "wlen": 18,
+    "cjkCount": 9,
+    "otherLetterCount": 0,
+    "paragraphs": [],
+    "links": [],
+    "strong": [],
+    "weak": [],
+    "mentionCount": 0,
+    "keys": [
+     {
+      "kind": "TEXT",
+      "tag": "text",
+      "payload": "你太自私我不想说了",
+      "hash": "8a37fd93d3952804"
+     },
+     {
+      "kind": "CJK",
+      "tag": "cjk",
+      "payload": "你太自私我不想说了",
+      "hash": "3a386ac05ae360c5"
+     }
+    ],
+    "flags": 65536,
+    "flagNames": [
+     "F_HAS_TEXT"
+    ],
+    "subsetLinks": [],
+    "pending": [],
+    "resolvedStrong": [],
+    "resolvedWeak": [],
+    "resolvedFlags": 65536,
+    "resolvedFlagNames": [
+     "F_HAS_TEXT"
+    ],
+    "senderKey": "d3efaf7e6428c504",
+    "store": false,
+    "endorsing": false
+   }
+  },
+  {
+   "id": "pointer-ascii",
+   "description": "DM me / link in bio",
+   "message": {
+    "id": 13,
+    "date": 1795000013,
+    "sender": {
+     "id": 7013,
+     "role": "member"
+    },
+    "text": "Best signals!!! DM me for price, link in bio"
+   },
+   "expect": {
+    "fold": "best signals!!! dm me for price, link in bio",
+    "foldNoLinks": "best signals!!! dm me for price, link in bio",
+    "text": "bestsignalsdmmeforpricelinkinbio",
+    "cjk": "",
+    "wlen": 32,
+    "cjkCount": 0,
+    "otherLetterCount": 32,
+    "paragraphs": [],
+    "links": [],
+    "strong": [
+     "pointer"
+    ],
+    "weak": [],
+    "mentionCount": 0,
+    "keys": [
+     {
+      "kind": "TEXT",
+      "tag": "text",
+      "payload": "bestsignalsdmmeforpricelinkinbio",
+      "hash": "8304320166d8d96c"
+     },
+     {
+      "kind": "TMPL",
+      "tag": "tmpl",
+      "payload": "bestsignalsdmmeforpricelinkinbio\u001e",
+      "hash": "30d5b4f1e0fdf93d"
+     }
+    ],
+    "flags": 327936,
+    "flagNames": [
+     "S_pointer",
+     "F_HAS_TEXT",
+     "F_PURE_TEXT"
+    ],
+    "subsetLinks": [
+     "5bc9075af64dbfa6"
+    ],
+    "pending": [],
+    "resolvedStrong": [
+     "pointer"
+    ],
+    "resolvedWeak": [],
+    "resolvedFlags": 327936,
+    "resolvedFlagNames": [
+     "S_pointer",
+     "F_HAS_TEXT",
+     "F_PURE_TEXT"
+    ],
+    "senderKey": "223c4f6e47cb2649",
+    "store": true,
+    "endorsing": false
+   }
+  },
+  {
+   "id": "long-number-exempt",
+   "description": "日期、價格、訂單號不算長數字特徵",
+   "message": {
+    "id": 14,
+    "date": 1795000014,
+    "sender": {
+     "id": 7014,
+     "role": "member"
+    },
+    "text": "20261117 到貨 150000đ 訂單號 2026111700123 ₩150000"
+   },
+   "expect": {
+    "fold": "20261117 到货 150000đ 订单号 2026111700123 ₩150000",
+    "foldNoLinks": "20261117 到货 150000đ 订单号 2026111700123 ₩150000",
+    "text": "#到货#đ订单号##",
+    "cjk": "到货订单号",
+    "wlen": 15,
+    "cjkCount": 5,
+    "otherLetterCount": 1,
+    "paragraphs": [],
+    "links": [],
+    "strong": [],
+    "weak": [],
+    "mentionCount": 0,
+    "keys": [
+     {
+      "kind": "TEXT",
+      "tag": "text",
+      "payload": "#到货#đ订单号##",
+      "hash": "0baae1aaa2f32c16"
+     }
+    ],
+    "flags": 65536,
+    "flagNames": [
+     "F_HAS_TEXT"
+    ],
+    "subsetLinks": [],
+    "pending": [],
+    "resolvedStrong": [],
+    "resolvedWeak": [],
+    "resolvedFlags": 65536,
+    "resolvedFlagNames": [
+     "F_HAS_TEXT"
+    ],
+    "senderKey": "01182aac87974665",
+    "store": false,
+    "endorsing": false
+   }
+  },
+  {
+   "id": "long-number-weak",
+   "description": "單純 6 位以上數字是弱特徵",
+   "message": {
+    "id": 15,
+    "date": 1795000015,
+    "sender": {
+     "id": 7015,
+     "role": "member"
+    },
+    "text": "驗證 998877665 收到請回"
+   },
+   "expect": {
+    "fold": "验证 998877665 收到请回",
+    "foldNoLinks": "验证 998877665 收到请回",
+    "text": "验证#收到请回",
+    "cjk": "验证收到请回",
+    "wlen": 13,
+    "cjkCount": 6,
+    "otherLetterCount": 0,
+    "paragraphs": [],
+    "links": [],
+    "strong": [],
+    "weak": [
+     "long_number"
+    ],
+    "mentionCount": 0,
+    "keys": [
+     {
+      "kind": "TEXT",
+      "tag": "text",
+      "payload": "验证#收到请回",
+      "hash": "92a92f079d44d8b9"
+     }
+    ],
+    "flags": 69632,
+    "flagNames": [
+     "W_long_number",
+     "F_HAS_TEXT"
+    ],
+    "subsetLinks": [],
+    "pending": [],
+    "resolvedStrong": [],
+    "resolvedWeak": [
+     "long_number"
+    ],
+    "resolvedFlags": 69632,
+    "resolvedFlagNames": [
+     "W_long_number",
+     "F_HAS_TEXT"
+    ],
+    "senderKey": "5a58db1203a2b076",
+    "store": true,
+    "endorsing": false
+   }
+  },
+  {
+   "id": "mass-mention",
+   "description": "一則 @3 人以上是弱特徵",
+   "message": {
+    "id": 16,
+    "date": 1795000016,
+    "sender": {
+     "id": 7016,
+     "role": "member"
+    },
+    "text": "@alice_member @bob_member @carol_x 快來看",
+    "entities": [
+     {
+      "type": "mention_name",
+      "userId": 555
+     }
+    ]
+   },
+   "expect": {
+    "fold": "@alice_member @bob_member @carol_x 快来看",
+    "foldNoLinks": "      快来看",
+    "text": "快来看",
+    "cjk": "快来看",
+    "wlen": 6,
+    "cjkCount": 3,
+    "otherLetterCount": 0,
+    "paragraphs": [],
+    "links": [
+     {
+      "token": "@alice_member",
+      "type": "HANDLE",
+      "kind": "handle",
+      "source": "text",
+      "feature": "member",
+      "hash": "041f152e80e7b188"
+     },
+     {
+      "token": "@bob_member",
+      "type": "HANDLE",
+      "kind": "handle",
+      "source": "text",
+      "feature": "member",
+      "hash": "97cb1daeef893a1c"
+     },
+     {
+      "token": "@carol_x",
+      "type": "HANDLE",
+      "kind": "handle",
+      "source": "text",
+      "feature": "member",
+      "hash": "2d4deea5af1c1b9f"
+     }
+    ],
+    "strong": [],
+    "weak": [
+     "mass_mention",
+     "member_mention"
+    ],
+    "mentionCount": 4,
+    "keys": [],
+    "flags": 10240,
+    "flagNames": [
+     "W_member_mention",
+     "W_mass_mention"
+    ],
+    "subsetLinks": [],
+    "pending": [],
+    "resolvedStrong": [],
+    "resolvedWeak": [
+     "mass_mention",
+     "member_mention"
+    ],
+    "resolvedFlags": 10240,
+    "resolvedFlagNames": [
+     "W_member_mention",
+     "W_mass_mention"
+    ],
+    "senderKey": "54439bf378e29e51",
+    "store": false,
+    "endorsing": false
+   }
+  },
+  {
+   "id": "member-vs-stranger",
+   "description": "@ 已知成員=弱、@ 陌生人=強、本群與置頂裡的帳號=不算",
+   "message": {
+    "id": 17,
+    "date": 1795000017,
+    "sender": {
+     "id": 7017,
+     "role": "member"
+    },
+    "text": "問 @alice_member 或 @stranger_shop 或 @luminatest_grp 或 @lumina_helpdesk"
+   },
+   "expect": {
+    "fold": "问 @alice_member 或 @stranger_shop 或 @luminatest_grp 或 @lumina_helpdesk",
+    "foldNoLinks": "问   或   或   或  ",
+    "text": "问或或或",
+    "cjk": "问或或或",
+    "wlen": 8,
+    "cjkCount": 4,
+    "otherLetterCount": 0,
+    "paragraphs": [],
+    "links": [
+     {
+      "token": "@alice_member",
+      "type": "HANDLE",
+      "kind": "handle",
+      "source": "text",
+      "feature": "pending",
+      "hash": "041f152e80e7b188"
+     },
+     {
+      "token": "@stranger_shop",
+      "type": "HANDLE",
+      "kind": "handle",
+      "source": "text",
+      "feature": "pending",
+      "hash": "6a494228c0387594"
+     },
+     {
+      "token": "@luminatest_grp",
+      "type": "HANDLE",
+      "kind": "handle",
+      "source": "text",
+      "feature": "none",
+      "hash": "698375207232fe11"
+     },
+     {
+      "token": "@lumina_helpdesk",
+      "type": "HANDLE",
+      "kind": "handle",
+      "source": "text",
+      "feature": "none",
+      "hash": "7f360187161e10d8"
+     }
+    ],
+    "strong": [],
+    "weak": [
+     "mass_mention"
+    ],
+    "mentionCount": 4,
+    "keys": [
+     {
+      "kind": "TMPL",
+      "tag": "tmpl",
+      "payload": "问或或或\u001eHANDLE",
+      "hash": "8a26616a94960c28"
+     }
+    ],
+    "flags": 1073750016,
+    "flagNames": [
+     "W_mass_mention",
+     "F_TMPL_COND"
+    ],
+    "subsetLinks": [],
+    "pending": [
+     "041f152e80e7b188",
+     "6a494228c0387594"
+    ],
+    "resolvedStrong": [
+     "handle"
+    ],
+    "resolvedWeak": [
+     "mass_mention",
+     "member_mention"
+    ],
+    "resolvedFlags": 1073752066,
+    "resolvedFlagNames": [
+     "S_handle",
+     "W_member_mention",
+     "W_mass_mention",
+     "F_TMPL_COND"
+    ],
+    "senderKey": "af28eeb4345b638b",
+    "store": true,
+    "endorsing": false
+   }
+  },
+  {
+   "id": "trusted-links",
+   "description": "群簡介裡的網域與邀請連結不算特徵",
+   "message": {
+    "id": 18,
+    "date": 1795000018,
+    "sender": {
+     "id": 7018,
+     "role": "member"
+    },
+    "text": "官網 https://docs.lumina-test.example.org/faq 邀請 t.me/+GroupInvite01"
+   },
+   "expect": {
+    "fold": "官网 https://docs.lumina-test.example.org/faq 邀请 t.me/+groupinvite01",
+    "foldNoLinks": "官网   邀请  ",
+    "text": "官网邀请",
+    "cjk": "官网邀请",
+    "wlen": 8,
+    "cjkCount": 4,
+    "otherLetterCount": 0,
+    "paragraphs": [],
+    "links": [
+     {
+      "token": "url:docs.lumina-test.example.org/faq",
+      "type": "URL:example.org",
+      "kind": "url",
+      "source": "text",
+      "feature": "none",
+      "hash": "776b5518d99c0725"
+     },
+     {
+      "token": "invite:groupinvite01",
+      "type": "INVITE",
+      "kind": "invite",
+      "source": "text",
+      "feature": "none",
+      "hash": "8b4639b7d6254032"
+     }
+    ],
+    "strong": [],
+    "weak": [],
+    "mentionCount": 0,
+    "keys": [],
+    "flags": 0,
+    "flagNames": [],
+    "subsetLinks": [],
+    "pending": [],
+    "resolvedStrong": [],
+    "resolvedWeak": [],
+    "resolvedFlags": 0,
+    "resolvedFlagNames": [],
+    "senderKey": "78a54099b4deee68",
+    "store": false,
+    "endorsing": false
+   }
+  },
+  {
+   "id": "self-promo",
+   "description": "@ 自己的 username 算強特徵",
+   "message": {
+    "id": 19,
+    "date": 1795000019,
+    "sender": {
+     "id": 7019,
+     "role": "member",
+     "username": "spam_seller"
+    },
+    "text": "找我 @spam_seller 下單"
+   },
+   "expect": {
+    "fold": "找我 @spam_seller 下单",
+    "foldNoLinks": "找我   下单",
+    "text": "找我下单",
+    "cjk": "找我下单",
+    "wlen": 8,
+    "cjkCount": 4,
+    "otherLetterCount": 0,
+    "paragraphs": [],
+    "links": [
+     {
+      "token": "@spam_seller",
+      "type": "HANDLE",
+      "kind": "handle",
+      "source": "text",
+      "feature": "strong",
+      "hash": "0146344e668a5e32"
+     }
+    ],
+    "strong": [
+     "handle"
+    ],
+    "weak": [],
+    "mentionCount": 1,
+    "keys": [
+     {
+      "kind": "TMPL",
+      "tag": "tmpl",
+      "payload": "找我下单\u001eHANDLE",
+      "hash": "c383cb170df3368b"
+     }
+    ],
+    "flags": 2,
+    "flagNames": [
+     "S_handle"
+    ],
+    "subsetLinks": [
+     "0146344e668a5e32"
+    ],
+    "pending": [],
+    "resolvedStrong": [
+     "handle"
+    ],
+    "resolvedWeak": [],
+    "resolvedFlags": 2,
+    "resolvedFlagNames": [
+     "S_handle"
+    ],
+    "senderKey": "23e88f49217e103f",
+    "store": true,
+    "endorsing": false
+   }
+  },
+  {
+   "id": "forward-channel",
+   "description": "轉發頻道貼文：鍵用 (頻道, 貼文 id)；來源頻道自己的帳號不算特徵",
+   "message": {
+    "id": 20,
+    "date": 1795000020,
+    "sender": {
+     "id": 7020,
+     "role": "member"
+    },
+    "text": "今日新聞摘要 https://news.example.com/a/123 訂閱 @worldnews_tw",
+    "forward": {
+     "fromKind": "channel",
+     "fromId": -1001111,
+     "postId": 555,
+     "username": "worldnews_tw",
+     "date": 1794990000
+    }
+   },
+   "expect": {
+    "fold": "今日新闻摘要 https://news.example.com/a/123 订阅 @worldnews_tw",
+    "foldNoLinks": "今日新闻摘要   订阅  ",
+    "text": "今日新闻摘要订阅",
+    "cjk": "今日新闻摘要订阅",
+    "wlen": 16,
+    "cjkCount": 8,
+    "otherLetterCount": 0,
+    "paragraphs": [],
+    "links": [
+     {
+      "token": "url:news.example.com/a/123",
+      "type": "URL:example.com",
+      "kind": "url",
+      "source": "text",
+      "feature": "weak",
+      "hash": "dcf3a4826ef75f80"
+     },
+     {
+      "token": "@worldnews_tw",
+      "type": "HANDLE",
+      "kind": "handle",
+      "source": "text",
+      "feature": "none",
+      "hash": "60b51f84123db696"
+     }
+    ],
+    "strong": [],
+    "weak": [
+     "url"
+    ],
+    "mentionCount": 1,
+    "keys": [
+     {
+      "kind": "FWD",
+      "tag": "fwd",
+      "payload": "c|-1001111|555",
+      "hash": "38d3e06b290bfb5b"
+     },
+     {
+      "kind": "TEXT",
+      "tag": "text",
+      "payload": "今日新闻摘要订阅",
+      "hash": "04778f79a78b691d"
+     },
+     {
+      "kind": "CJK",
+      "tag": "cjk",
+      "payload": "今日新闻摘要订阅",
+      "hash": "06179f966494dce5"
+     }
+    ],
+    "flags": 268502016,
+    "flagNames": [
+     "W_url",
+     "F_HAS_TEXT",
+     "F_HAS_FWD_KEY"
+    ],
+    "subsetLinks": [
+     "dcf3a4826ef75f80"
+    ],
+    "pending": [],
+    "resolvedStrong": [],
+    "resolvedWeak": [
+     "url"
+    ],
+    "resolvedFlags": 268502016,
+    "resolvedFlagNames": [
+     "W_url",
+     "F_HAS_TEXT",
+     "F_HAS_FWD_KEY"
+    ],
+    "senderKey": "cabbfa79eea5ad23",
+    "store": true,
+    "endorsing": false
+   }
+  },
+  {
+   "id": "forward-user",
+   "description": "轉發使用者訊息：鍵含 (來源, 原始日期, 內容)",
+   "message": {
+    "id": 21,
+    "date": 1795000021,
+    "sender": {
+     "id": 7021,
+     "role": "member"
+    },
+    "text": "明天上午九點在禮堂集合，記得帶學生證",
+    "forward": {
+     "fromKind": "user",
+     "fromId": 5005,
+     "date": 1794900000
+    }
+   },
+   "expect": {
+    "fold": "明天上午九点在礼堂集合,记得带学生证",
+    "foldNoLinks": "明天上午九点在礼堂集合,记得带学生证",
+    "text": "明天上午九点在礼堂集合记得带学生证",
+    "cjk": "明天上午九点在礼堂集合记得带学生证",
+    "wlen": 34,
+    "cjkCount": 17,
+    "otherLetterCount": 0,
+    "paragraphs": [
+     "明天上午九点在礼堂集合记得带学生证"
+    ],
+    "links": [],
+    "strong": [],
+    "weak": [],
+    "mentionCount": 0,
+    "keys": [
+     {
+      "kind": "FWD",
+      "tag": "fwd",
+      "payload": "u|5005|1794900000|t:明天上午九点在礼堂集合记得带学生证",
+      "hash": "c19111432097eeb0"
+     },
+     {
+      "kind": "TEXT",
+      "tag": "text",
+      "payload": "明天上午九点在礼堂集合记得带学生证",
+      "hash": "df2d14c56ea69a2a"
+     },
+     {
+      "kind": "CJK",
+      "tag": "cjk",
+      "payload": "明天上午九点在礼堂集合记得带学生证",
+      "hash": "09953cabe1ce1df6"
+     },
+     {
+      "kind": "PARA",
+      "tag": "para",
+      "payload": "明天上午九点在礼堂集合记得带学生证",
+      "hash": "2d5e57e930a8a98b"
+     }
+    ],
+    "flags": 268763136,
+    "flagNames": [
+     "F_HAS_TEXT",
+     "F_PURE_TEXT",
+     "F_HAS_FWD_KEY"
+    ],
+    "subsetLinks": [],
+    "pending": [],
+    "resolvedStrong": [],
+    "resolvedWeak": [],
+    "resolvedFlags": 268763136,
+    "resolvedFlagNames": [
+     "F_HAS_TEXT",
+     "F_PURE_TEXT",
+     "F_HAS_FWD_KEY"
+    ],
+    "senderKey": "17ab98926df20b5d",
+    "store": true,
+    "endorsing": false
+   }
+  },
+  {
+   "id": "forward-hidden",
+   "description": "隱藏來源的轉發：用來源名稱",
+   "message": {
+    "id": 22,
+    "date": 1795000022,
+    "sender": {
+     "id": 7022,
+     "role": "member"
+    },
+    "text": "明天上午九點在禮堂集合，記得帶學生證",
+    "forward": {
+     "fromKind": "hidden",
+     "fromName": "Teacher Wang",
+     "date": 1794900000
+    }
+   },
+   "expect": {
+    "fold": "明天上午九点在礼堂集合,记得带学生证",
+    "foldNoLinks": "明天上午九点在礼堂集合,记得带学生证",
+    "text": "明天上午九点在礼堂集合记得带学生证",
+    "cjk": "明天上午九点在礼堂集合记得带学生证",
+    "wlen": 34,
+    "cjkCount": 17,
+    "otherLetterCount": 0,
+    "paragraphs": [
+     "明天上午九点在礼堂集合记得带学生证"
+    ],
+    "links": [],
+    "strong": [],
+    "weak": [],
+    "mentionCount": 0,
+    "keys": [
+     {
+      "kind": "FWD",
+      "tag": "fwd",
+      "payload": "u|n:teacherwang|1794900000|t:明天上午九点在礼堂集合记得带学生证",
+      "hash": "744f15eefe5cf1cf"
+     },
+     {
+      "kind": "TEXT",
+      "tag": "text",
+      "payload": "明天上午九点在礼堂集合记得带学生证",
+      "hash": "df2d14c56ea69a2a"
+     },
+     {
+      "kind": "CJK",
+      "tag": "cjk",
+      "payload": "明天上午九点在礼堂集合记得带学生证",
+      "hash": "09953cabe1ce1df6"
+     },
+     {
+      "kind": "PARA",
+      "tag": "para",
+      "payload": "明天上午九点在礼堂集合记得带学生证",
+      "hash": "2d5e57e930a8a98b"
+     }
+    ],
+    "flags": 268763136,
+    "flagNames": [
+     "F_HAS_TEXT",
+     "F_PURE_TEXT",
+     "F_HAS_FWD_KEY"
+    ],
+    "subsetLinks": [],
+    "pending": [],
+    "resolvedStrong": [],
+    "resolvedWeak": [],
+    "resolvedFlags": 268763136,
+    "resolvedFlagNames": [
+     "F_HAS_TEXT",
+     "F_PURE_TEXT",
+     "F_HAS_FWD_KEY"
+    ],
+    "senderKey": "2ae33edf384f1d6f",
+    "store": true,
+    "endorsing": false
+   }
+  },
+  {
+   "id": "photo-caption",
+   "description": "照片 + 標題",
+   "message": {
+    "id": 23,
+    "date": 1795000023,
+    "sender": {
+     "id": 7023,
+     "role": "member"
+    },
+    "text": "新品到貨 私聊",
+    "media": {
+     "kind": "photo",
+     "id": "5123456789012345678"
+    },
+    "album": 777001
+   },
+   "expect": {
+    "fold": "新品到货 私聊",
+    "foldNoLinks": "新品到货 私聊",
+    "text": "新品到货私聊",
+    "cjk": "新品到货私聊",
+    "wlen": 12,
+    "cjkCount": 6,
+    "otherLetterCount": 0,
+    "paragraphs": [],
+    "links": [],
+    "strong": [
+     "pointer"
+    ],
+    "weak": [],
+    "mentionCount": 0,
+    "keys": [
+     {
+      "kind": "MEDIA",
+      "tag": "media",
+      "payload": "p:5123456789012345678",
+      "hash": "d09e40e17639ce07"
+     },
+     {
+      "kind": "TEXT",
+      "tag": "text",
+      "payload": "新品到货私聊",
+      "hash": "edff77c83317438c"
+     },
+     {
+      "kind": "TMPL",
+      "tag": "tmpl",
+      "payload": "新品到货私聊\u001e",
+      "hash": "82f870bf06642e67"
+     }
+    ],
+    "flags": 134283520,
+    "flagNames": [
+     "S_pointer",
+     "F_HAS_TEXT",
+     "F_HAS_MEDIA_KEY"
+    ],
+    "subsetLinks": [
+     "5bc9075af64dbfa6"
+    ],
+    "pending": [],
+    "resolvedStrong": [
+     "pointer"
+    ],
+    "resolvedWeak": [],
+    "resolvedFlags": 134283520,
+    "resolvedFlagNames": [
+     "S_pointer",
+     "F_HAS_TEXT",
+     "F_HAS_MEDIA_KEY"
+    ],
+    "senderKey": "f0a08d897641081e",
+    "store": true,
+    "endorsing": false
+   }
+  },
+  {
+   "id": "excluded-media",
+   "description": "貼圖/GIF/語音等不建媒體指紋",
+   "message": {
+    "id": 24,
+    "date": 1795000024,
+    "sender": {
+     "id": 7024,
+     "role": "member"
+    },
+    "text": "",
+    "media": {
+     "kind": "sticker",
+     "id": "999"
+    }
+   },
+   "expect": {
+    "fold": "",
+    "foldNoLinks": "",
+    "text": "",
+    "cjk": "",
+    "wlen": 0,
+    "cjkCount": 0,
+    "otherLetterCount": 0,
+    "paragraphs": [],
+    "links": [],
+    "strong": [],
+    "weak": [],
+    "mentionCount": 0,
+    "keys": [],
+    "flags": 0,
+    "flagNames": [],
+    "subsetLinks": [],
+    "pending": [],
+    "resolvedStrong": [],
+    "resolvedWeak": [],
+    "resolvedFlags": 0,
+    "resolvedFlagNames": [],
+    "senderKey": "102c9654798d2076",
+    "store": false,
+    "endorsing": false
+   }
+  },
+  {
+   "id": "contact-card",
+   "description": "分享名片是強特徵",
+   "message": {
+    "id": 25,
+    "date": 1795000025,
+    "sender": {
+     "id": 7025,
+     "role": "member"
+    },
+    "text": "",
+    "media": {
+     "kind": "contact",
+     "userId": 424242,
+     "phone": "+8613900001111"
+    }
+   },
+   "expect": {
+    "fold": "",
+    "foldNoLinks": "",
+    "text": "",
+    "cjk": "",
+    "wlen": 0,
+    "cjkCount": 0,
+    "otherLetterCount": 0,
+    "paragraphs": [],
+    "links": [
+     {
+      "token": "tel:8613900001111",
+      "type": "PHONE",
+      "kind": "phone",
+      "source": "media",
+      "feature": "strong",
+      "hash": "95303fccf640246e"
+     }
+    ],
+    "strong": [
+     "contact_card",
+     "phone"
+    ],
+    "weak": [],
+    "mentionCount": 0,
+    "keys": [
+     {
+      "kind": "MEDIA",
+      "tag": "media",
+      "payload": "u:424242",
+      "hash": "3737a9569e7c36a8"
+     },
+     {
+      "kind": "CONTACT",
+      "tag": "contact",
+      "payload": "tel:8613900001111",
+      "hash": "dbdf9fd3dba7e8d0"
+     }
+    ],
+    "flags": 134217824,
+    "flagNames": [
+     "S_contact_card",
+     "S_phone",
+     "F_HAS_MEDIA_KEY"
+    ],
+    "subsetLinks": [
+     "95303fccf640246e"
+    ],
+    "pending": [],
+    "resolvedStrong": [
+     "contact_card",
+     "phone"
+    ],
+    "resolvedWeak": [],
+    "resolvedFlags": 134217824,
+    "resolvedFlagNames": [
+     "S_contact_card",
+     "S_phone",
+     "F_HAS_MEDIA_KEY"
+    ],
+    "senderKey": "d332514b9d3d804c",
+    "store": true,
+    "endorsing": false
+   }
+  },
+  {
+   "id": "buttons-via-bot",
+   "description": "網址按鈕與 inline bot",
+   "message": {
+    "id": 26,
+    "date": 1795000026,
+    "sender": {
+     "id": 7026,
+     "role": "member"
+    },
+    "text": "點下面按鈕領取",
+    "buttons": [
+     "https://bit.ly/zz9"
+    ],
+    "viaBot": true
+   },
+   "expect": {
+    "fold": "点下面按钮领取",
+    "foldNoLinks": "点下面按钮领取",
+    "text": "点下面按钮领取",
+    "cjk": "点下面按钮领取",
+    "wlen": 14,
+    "cjkCount": 7,
+    "otherLetterCount": 0,
+    "paragraphs": [],
+    "links": [
+     {
+      "token": "url:bit.ly/zz9",
+      "type": "SHORT",
+      "kind": "url",
+      "source": "button",
+      "feature": "strong",
+      "hash": "ccddbce0157f1196"
+     }
+    ],
+    "strong": [
+     "button",
+     "shortener",
+     "via_bot"
+    ],
+    "weak": [],
+    "mentionCount": 0,
+    "keys": [
+     {
+      "kind": "TEXT",
+      "tag": "text",
+      "payload": "点下面按钮领取",
+      "hash": "c15b03adfff6d103"
+     },
+     {
+      "kind": "TMPL",
+      "tag": "tmpl",
+      "payload": "点下面按钮领取\u001eBUTTON,SHORT,VIABOT",
+      "hash": "d8788f2a75c30473"
+     }
+    ],
+    "flags": 65564,
+    "flagNames": [
+     "S_shortener",
+     "S_button",
+     "S_via_bot",
+     "F_HAS_TEXT"
+    ],
+    "subsetLinks": [
+     "ccddbce0157f1196",
+     "275f9a64e7473c0f"
+    ],
+    "pending": [],
+    "resolvedStrong": [
+     "button",
+     "shortener",
+     "via_bot"
+    ],
+    "resolvedWeak": [],
+    "resolvedFlags": 65564,
+    "resolvedFlagNames": [
+     "S_shortener",
+     "S_button",
+     "S_via_bot",
+     "F_HAS_TEXT"
+    ],
+    "senderKey": "c24d253f2656278b",
+    "store": true,
+    "endorsing": false
+   }
+  },
+  {
+   "id": "hidden-url",
+   "description": "text_url 隱藏連結也抽出",
+   "message": {
+    "id": 27,
+    "date": 1795000027,
+    "sender": {
+     "id": 7027,
+     "role": "member"
+    },
+    "text": "點這裡看詳情",
+    "entities": [
+     {
+      "type": "text_url",
+      "url": "https://t.me/hidden_deals"
+     }
+    ]
+   },
+   "expect": {
+    "fold": "点这里看详情",
+    "foldNoLinks": "点这里看详情",
+    "text": "点这里看详情",
+    "cjk": "点这里看详情",
+    "wlen": 12,
+    "cjkCount": 6,
+    "otherLetterCount": 0,
+    "paragraphs": [],
+    "links": [
+     {
+      "token": "@hidden_deals",
+      "type": "HANDLE",
+      "kind": "handle",
+      "source": "hidden",
+      "feature": "pending",
+      "hash": "d4fb0c2de2d5fb9b"
+     }
+    ],
+    "strong": [],
+    "weak": [],
+    "mentionCount": 0,
+    "keys": [
+     {
+      "kind": "TEXT",
+      "tag": "text",
+      "payload": "点这里看详情",
+      "hash": "88c8571e1736e844"
+     },
+     {
+      "kind": "TMPL",
+      "tag": "tmpl",
+      "payload": "点这里看详情\u001eHANDLE",
+      "hash": "ca61704e6a5f5a5e"
+     }
+    ],
+    "flags": 1073807360,
+    "flagNames": [
+     "F_HAS_TEXT",
+     "F_TMPL_COND"
+    ],
+    "subsetLinks": [],
+    "pending": [
+     "d4fb0c2de2d5fb9b"
+    ],
+    "resolvedStrong": [
+     "handle"
+    ],
+    "resolvedWeak": [],
+    "resolvedFlags": 1073807362,
+    "resolvedFlagNames": [
+     "S_handle",
+     "F_HAS_TEXT",
+     "F_TMPL_COND"
+    ],
+    "senderKey": "5a7896dd0a14a5a0",
+    "store": true,
+    "endorsing": false
+   }
+  },
+  {
+   "id": "paragraphs",
+   "description": "段落鍵（16 字以上的段落）",
+   "message": {
+    "id": 28,
+    "date": 1795000028,
+    "sender": {
+     "id": 7028,
+     "role": "member"
+    },
+    "text": "本群提供最新的海外投資機會與每日行情分析服務。加入會員即可獲得專屬導師一對一的指導與帶單。名額有限請速聯絡 t.me/+VipRoom9"
+   },
+   "expect": {
+    "fold": "本群提供最新的海外投资机会与每日行情分析服务.加入会员即可获得专属导师一对一的指导与带单.名额有限请速联络 t.me/+viproom9",
+    "foldNoLinks": "本群提供最新的海外投资机会与每日行情分析服务.加入会员即可获得专属导师一对一的指导与带单.名额有限请速联络  ",
+    "text": "本群提供最新的海外投资机会与每日行情分析服务加入会员即可获得专属导师一对一的指导与带单名额有限请速联络",
+    "cjk": "本群提供最新的海外投资机会与每日行情分析服务加入会员即可获得专属导师一对一的指导与带单名额有限请速联络",
+    "wlen": 102,
+    "cjkCount": 51,
+    "otherLetterCount": 0,
+    "paragraphs": [
+     "本群提供最新的海外投资机会与每日行情分析服务",
+     "加入会员即可获得专属导师一对一的指导与带单"
+    ],
+    "links": [
+     {
+      "token": "invite:viproom9",
+      "type": "INVITE",
+      "kind": "invite",
+      "source": "text",
+      "feature": "strong",
+      "hash": "2458e70c19456bc1"
+     }
+    ],
+    "strong": [
+     "invite"
+    ],
+    "weak": [],
+    "mentionCount": 0,
+    "keys": [
+     {
+      "kind": "TEXT",
+      "tag": "text",
+      "payload": "本群提供最新的海外投资机会与每日行情分析服务加入会员即可获得专属导师一对一的指导与带单名额有限请速联络",
+      "hash": "bd0882d5f0bee36c"
+     },
+     {
+      "kind": "CJK",
+      "tag": "cjk",
+      "payload": "本群提供最新的海外投资机会与每日行情分析服务加入会员即可获得专属导师一对一的指导与带单名额有限请速联络",
+      "hash": "942c7e824371c258"
+     },
+     {
+      "kind": "TMPL",
+      "tag": "tmpl",
+      "payload": "本群提供最新的海外投资机会与每日行情分析服务加入会员即可获得专属导师一对一的指导与带单名额有限请速联络\u001eINVITE",
+      "hash": "bcb53fa21f3c0de9"
+     },
+     {
+      "kind": "CONTACT",
+      "tag": "contact",
+      "payload": "invite:viproom9",
+      "hash": "f2cc617a961f59b4"
+     },
+     {
+      "kind": "PARA",
+      "tag": "para",
+      "payload": "本群提供最新的海外投资机会与每日行情分析服务",
+      "hash": "a8fbae4e0e0ee650"
+     },
+     {
+      "kind": "PARA",
+      "tag": "para",
+      "payload": "加入会员即可获得专属导师一对一的指导与带单",
+      "hash": "47ab2f0c56b4a2ac"
+     }
+    ],
+    "flags": 327681,
+    "flagNames": [
+     "S_invite",
+     "F_HAS_TEXT",
+     "F_PURE_TEXT"
+    ],
+    "subsetLinks": [
+     "2458e70c19456bc1"
+    ],
+    "pending": [],
+    "resolvedStrong": [
+     "invite"
+    ],
+    "resolvedWeak": [],
+    "resolvedFlags": 327681,
+    "resolvedFlagNames": [
+     "S_invite",
+     "F_HAS_TEXT",
+     "F_PURE_TEXT"
+    ],
+    "senderKey": "e26e03d958030fab",
+    "store": true,
+    "endorsing": false
+   }
+  },
+  {
+   "id": "ack-reply",
+   "description": "回覆別人的「收到謝謝」是確認句",
+   "message": {
+    "id": 29,
+    "date": 1795000029,
+    "sender": {
+     "id": 7029,
+     "role": "member"
+    },
+    "text": "收到，謝謝老師！",
+    "replyTo": 100
+   },
+   "expect": {
+    "fold": "收到,谢谢老师!",
+    "foldNoLinks": "收到,谢谢老师!",
+    "text": "收到谢谢老师",
+    "cjk": "收到谢谢老师",
+    "wlen": 12,
+    "cjkCount": 6,
+    "otherLetterCount": 0,
+    "paragraphs": [],
+    "links": [],
+    "strong": [],
+    "weak": [],
+    "mentionCount": 0,
+    "keys": [
+     {
+      "kind": "TEXT",
+      "tag": "text",
+      "payload": "收到谢谢老师",
+      "hash": "2afb19bad62c5882"
+     }
+    ],
+    "flags": 4784128,
+    "flagNames": [
+     "F_HAS_TEXT",
+     "F_ACK",
+     "F_IS_REPLY"
+    ],
+    "subsetLinks": [],
+    "pending": [],
+    "resolvedStrong": [],
+    "resolvedWeak": [],
+    "resolvedFlags": 4784128,
+    "resolvedFlagNames": [
+     "F_HAS_TEXT",
+     "F_ACK",
+     "F_IS_REPLY"
+    ],
+    "senderKey": "64de4f6535dbe9b3",
+    "store": false,
+    "endorsing": false
+   }
+  },
+  {
+   "id": "email-weak",
+   "description": "email 是弱特徵",
+   "message": {
+    "id": 30,
+    "date": 1795000030,
+    "sender": {
+     "id": 7030,
+     "role": "member"
+    },
+    "text": "有問題寄信到 support@example-mail.com 謝謝"
+   },
+   "expect": {
+    "fold": "有问题寄信到 support@example-mail.com 谢谢",
+    "foldNoLinks": "有问题寄信到   谢谢",
+    "text": "有问题寄信到谢谢",
+    "cjk": "有问题寄信到谢谢",
+    "wlen": 16,
+    "cjkCount": 8,
+    "otherLetterCount": 0,
+    "paragraphs": [],
+    "links": [
+     {
+      "token": "mail:support@example-mail.com",
+      "type": "MAIL",
+      "kind": "mail",
+      "source": "text",
+      "feature": "weak",
+      "hash": "8fe86bdfe88c68ad"
+     }
+    ],
+    "strong": [],
+    "weak": [
+     "email"
+    ],
+    "mentionCount": 0,
+    "keys": [
+     {
+      "kind": "TEXT",
+      "tag": "text",
+      "payload": "有问题寄信到谢谢",
+      "hash": "4260c136029a1863"
+     },
+     {
+      "kind": "CJK",
+      "tag": "cjk",
+      "payload": "有问题寄信到谢谢",
+      "hash": "bcdf88c9f2419062"
+     }
+    ],
+    "flags": 81920,
+    "flagNames": [
+     "W_email",
+     "F_HAS_TEXT"
+    ],
+    "subsetLinks": [
+     "8fe86bdfe88c68ad"
+    ],
+    "pending": [],
+    "resolvedStrong": [],
+    "resolvedWeak": [
+     "email"
+    ],
+    "resolvedFlags": 81920,
+    "resolvedFlagNames": [
+     "W_email",
+     "F_HAS_TEXT"
+    ],
+    "senderKey": "82592dbd25f870bf",
+    "store": true,
+    "endorsing": false
+   }
+  },
+  {
+   "id": "anon-admin",
+   "description": "匿名管理員（背書）",
+   "message": {
+    "id": 31,
+    "date": 1795000031,
+    "sender": {
+     "id": -1001234567890,
+     "role": "anon_admin"
+    },
+    "text": "本週活動報名 https://lumina-test.example.org/event"
+   },
+   "expect": {
+    "fold": "本周活动报名 https://lumina-test.example.org/event",
+    "foldNoLinks": "本周活动报名  ",
+    "text": "本周活动报名",
+    "cjk": "本周活动报名",
+    "wlen": 12,
+    "cjkCount": 6,
+    "otherLetterCount": 0,
+    "paragraphs": [],
+    "links": [
+     {
+      "token": "url:lumina-test.example.org/event",
+      "type": "URL:example.org",
+      "kind": "url",
+      "source": "text",
+      "feature": "none",
+      "hash": "a8847a7c15960eff"
+     }
+    ],
+    "strong": [],
+    "weak": [],
+    "mentionCount": 0,
+    "keys": [
+     {
+      "kind": "TEXT",
+      "tag": "text",
+      "payload": "本周活动报名",
+      "hash": "05edd368c35b5967"
+     }
+    ],
+    "flags": 8454144,
+    "flagNames": [
+     "F_HAS_TEXT",
+     "F_ENDORSING"
+    ],
+    "subsetLinks": [],
+    "pending": [],
+    "resolvedStrong": [],
+    "resolvedWeak": [],
+    "resolvedFlags": 8454144,
+    "resolvedFlagNames": [
+     "F_HAS_TEXT",
+     "F_ENDORSING"
+    ],
+    "senderKey": "f15fd4037164e3d7",
+    "store": true,
+    "endorsing": true
+   }
+  },
+  {
+   "id": "scalar-gap",
+   "description": "§4.6 間隔以 scalar 計：3 個 emoji 仍在 4 以內（UTF-16 計數會停在第 3 個 emoji）",
+   "message": {
+    "id": 32,
+    "date": 1795000032,
+    "sender": {
+     "id": 7032,
+     "role": "member"
+    },
+    "text": "加V🔥🔥🔥abc_888"
+   },
+   "expect": {
+    "fold": "加v🔥🔥🔥abc_888",
+    "foldNoLinks": "加v🔥🔥🔥 ",
+    "text": "加v",
+    "cjk": "加",
+    "wlen": 3,
+    "cjkCount": 1,
+    "otherLetterCount": 1,
+    "paragraphs": [],
+    "links": [
+     {
+      "token": "acct:wx:abc_888",
+      "type": "ACCT:wx",
+      "kind": "acct",
+      "source": "text",
+      "feature": "strong",
+      "hash": "bbb2a8273918db1a"
+     }
+    ],
+    "strong": [
+     "account"
+    ],
+    "weak": [],
+    "mentionCount": 0,
+    "keys": [
+     {
+      "kind": "CONTACT",
+      "tag": "contact",
+      "payload": "acct:wx:abc_888",
+      "hash": "f5059b26704f086e"
+     }
+    ],
+    "flags": 128,
+    "flagNames": [
+     "S_account"
+    ],
+    "subsetLinks": [
+     "bbb2a8273918db1a"
+    ],
+    "pending": [],
+    "resolvedStrong": [
+     "account"
+    ],
+    "resolvedWeak": [],
+    "resolvedFlags": 128,
+    "resolvedFlagNames": [
+     "S_account"
+    ],
+    "senderKey": "9778752028c03095",
+    "store": true,
+    "endorsing": false
+   }
+  },
+  {
+   "id": "scalar-window",
+   "description": "§4.8 視窗以 scalar 計：8 個 emoji + 空白後仍看得到「订单」",
+   "message": {
+    "id": 33,
+    "date": 1795000033,
+    "sender": {
+     "id": 7033,
+     "role": "member"
+    },
+    "text": "订单🔥🔥🔥🔥🔥🔥🔥🔥 12345678"
+   },
+   "expect": {
+    "fold": "订单🔥🔥🔥🔥🔥🔥🔥🔥 12345678",
+    "foldNoLinks": "订单🔥🔥🔥🔥🔥🔥🔥🔥 12345678",
+    "text": "订单#",
+    "cjk": "订单",
+    "wlen": 5,
+    "cjkCount": 2,
+    "otherLetterCount": 0,
+    "paragraphs": [],
+    "links": [],
+    "strong": [],
+    "weak": [],
+    "mentionCount": 0,
+    "keys": [],
+    "flags": 0,
+    "flagNames": [],
+    "subsetLinks": [],
+    "pending": [],
+    "resolvedStrong": [],
+    "resolvedWeak": [],
+    "resolvedFlags": 0,
+    "resolvedFlagNames": [],
+    "senderKey": "7a0bf877fa4d4952",
+    "store": false,
+    "endorsing": false
+   }
+  },
+  {
+   "id": "order-window-edge-in",
+   "description": "視窗是獨立子字串：12 個 scalar 的視窗切掉 x，剩下的 order 前面沒有字母 → 豁免",
+   "message": {
+    "id": 34,
+    "date": 1795000034,
+    "sender": {
+     "id": 7034,
+     "role": "member"
+    },
+    "text": "xorder,,,,,,,1234567"
+   },
+   "expect": {
+    "fold": "xorder,,,,,,,1234567",
+    "foldNoLinks": "xorder,,,,,,,1234567",
+    "text": "xorder#",
+    "cjk": "",
+    "wlen": 7,
+    "cjkCount": 0,
+    "otherLetterCount": 6,
+    "paragraphs": [],
+    "links": [],
+    "strong": [],
+    "weak": [],
+    "mentionCount": 0,
+    "keys": [],
+    "flags": 0,
+    "flagNames": [],
+    "subsetLinks": [],
+    "pending": [],
+    "resolvedStrong": [],
+    "resolvedWeak": [],
+    "resolvedFlags": 0,
+    "resolvedFlagNames": [],
+    "senderKey": "91a21f54ffed029a",
+    "store": false,
+    "endorsing": false
+   }
+  },
+  {
+   "id": "order-window-edge-out",
+   "description": "視窗內是 xorder → 不是 order → 弱特徵 long_number",
+   "message": {
+    "id": 35,
+    "date": 1795000035,
+    "sender": {
+     "id": 7035,
+     "role": "member"
+    },
+    "text": "xorder,,,,,,1234567"
+   },
+   "expect": {
+    "fold": "xorder,,,,,,1234567",
+    "foldNoLinks": "xorder,,,,,,1234567",
+    "text": "xorder#",
+    "cjk": "",
+    "wlen": 7,
+    "cjkCount": 0,
+    "otherLetterCount": 6,
+    "paragraphs": [],
+    "links": [],
+    "strong": [],
+    "weak": [
+     "long_number"
+    ],
+    "mentionCount": 0,
+    "keys": [],
+    "flags": 4096,
+    "flagNames": [
+     "W_long_number"
+    ],
+    "subsetLinks": [],
+    "pending": [],
+    "resolvedStrong": [],
+    "resolvedWeak": [
+     "long_number"
+    ],
+    "resolvedFlags": 4096,
+    "resolvedFlagNames": [
+     "W_long_number"
+    ],
+    "senderKey": "d0885db5ed33af81",
+    "store": false,
+    "endorsing": false
+   }
+  },
+  {
+   "id": "digit-buttons",
+   "description": "按鈕裡的雙圈數字 fold 成 ASCII：t.me/+⓵…→電話、t.me/c/⓵⓶⓷→tgc（全數字＝[0-9]+）",
+   "message": {
+    "id": 36,
+    "date": 1795000036,
+    "sender": {
+     "id": 7036,
+     "role": "member"
+    },
+    "text": "看下面按鈕",
+    "buttons": [
+     "https://t.me/+⓵⓶⓷⓸⓹⓺⓻",
+     "https://t.me/c/⓵⓶⓷/5"
+    ]
+   },
+   "expect": {
+    "fold": "看下面按钮",
+    "foldNoLinks": "看下面按钮",
+    "text": "看下面按钮",
+    "cjk": "看下面按钮",
+    "wlen": 10,
+    "cjkCount": 5,
+    "otherLetterCount": 0,
+    "paragraphs": [],
+    "links": [
+     {
+      "token": "tel:1234567",
+      "type": "PHONE",
+      "kind": "phone",
+      "source": "button",
+      "feature": "strong",
+      "hash": "516f598d85269a10"
+     },
+     {
+      "token": "tgc:123",
+      "type": "HANDLE",
+      "kind": "handle",
+      "source": "button",
+      "feature": "strong",
+      "hash": "3fc057fe7712f987"
+     }
+    ],
+    "strong": [
+     "button",
+     "handle",
+     "phone"
+    ],
+    "weak": [],
+    "mentionCount": 0,
+    "keys": [
+     {
+      "kind": "TMPL",
+      "tag": "tmpl",
+      "payload": "看下面按钮\u001eBUTTON,HANDLE,PHONE",
+      "hash": "3a9a309208dcf4a4"
+     },
+     {
+      "kind": "CONTACT",
+      "tag": "contact",
+      "payload": "tel:1234567",
+      "hash": "05893256435c86d7"
+     }
+    ],
+    "flags": 74,
+    "flagNames": [
+     "S_handle",
+     "S_button",
+     "S_phone"
+    ],
+    "subsetLinks": [
+     "516f598d85269a10",
+     "3fc057fe7712f987"
+    ],
+    "pending": [],
+    "resolvedStrong": [
+     "button",
+     "handle",
+     "phone"
+    ],
+    "resolvedWeak": [],
+    "resolvedFlags": 74,
+    "resolvedFlagNames": [
+     "S_handle",
+     "S_button",
+     "S_phone"
+    ],
+    "senderKey": "8acc0433a5a339ae",
+    "store": true,
+    "endorsing": false
+   }
+  },
+  {
+   "id": "dup-query",
+   "description": "重複的 query 鍵取最後一個（Swift 不可用 uniqueKeysWithValues）",
+   "message": {
+    "id": 37,
+    "date": 1795000037,
+    "sender": {
+     "id": 7037,
+     "role": "member"
+    },
+    "text": "找 tg://resolve?domain=aaaa1&domain=bbbb2 下單"
+   },
+   "expect": {
+    "fold": "找 tg://resolve?domain=aaaa1&domain=bbbb2 下单",
+    "foldNoLinks": "找   下单",
+    "text": "找下单",
+    "cjk": "找下单",
+    "wlen": 6,
+    "cjkCount": 3,
+    "otherLetterCount": 0,
+    "paragraphs": [],
+    "links": [
+     {
+      "token": "@bbbb2",
+      "type": "HANDLE",
+      "kind": "handle",
+      "source": "text",
+      "feature": "pending",
+      "hash": "e93e5151eefd6d8b"
+     }
+    ],
+    "strong": [],
+    "weak": [],
+    "mentionCount": 0,
+    "keys": [
+     {
+      "kind": "TMPL",
+      "tag": "tmpl",
+      "payload": "找下单\u001eHANDLE",
+      "hash": "64e5f16ebfd64925"
+     }
+    ],
+    "flags": 1073741824,
+    "flagNames": [
+     "F_TMPL_COND"
+    ],
+    "subsetLinks": [],
+    "pending": [
+     "e93e5151eefd6d8b"
+    ],
+    "resolvedStrong": [
+     "handle"
+    ],
+    "resolvedWeak": [],
+    "resolvedFlags": 1073741826,
+    "resolvedFlagNames": [
+     "S_handle",
+     "F_TMPL_COND"
+    ],
+    "senderKey": "81e0cb378a32acfd",
+    "store": true,
+    "endorsing": false
+   }
+  },
+  {
+   "id": "fwd-channel-no-id",
+   "description": "頻道轉發但沒有 fromId：走 u| 分支（不會出現 None/null/nil）",
+   "message": {
+    "id": 38,
+    "date": 1795000038,
+    "sender": {
+     "id": 7038,
+     "role": "member"
+    },
+    "text": "今日快訊摘要內容很長很長",
+    "forward": {
+     "fromKind": "channel",
+     "postId": 5,
+     "fromName": "Daily News",
+     "date": 1794990000
+    }
+   },
+   "expect": {
+    "fold": "今日快讯摘要内容很长很长",
+    "foldNoLinks": "今日快讯摘要内容很长很长",
+    "text": "今日快讯摘要内容很长很长",
+    "cjk": "今日快讯摘要内容很长很长",
+    "wlen": 24,
+    "cjkCount": 12,
+    "otherLetterCount": 0,
+    "paragraphs": [],
+    "links": [],
+    "strong": [],
+    "weak": [],
+    "mentionCount": 0,
+    "keys": [
+     {
+      "kind": "FWD",
+      "tag": "fwd",
+      "payload": "u|n:dailynews|1794990000|t:今日快讯摘要内容很长很长",
+      "hash": "615929351cc0fa45"
+     },
+     {
+      "kind": "TEXT",
+      "tag": "text",
+      "payload": "今日快讯摘要内容很长很长",
+      "hash": "022dd635048e6022"
+     },
+     {
+      "kind": "CJK",
+      "tag": "cjk",
+      "payload": "今日快讯摘要内容很长很长",
+      "hash": "5cfebd16dafcab0e"
+     }
+    ],
+    "flags": 268763136,
+    "flagNames": [
+     "F_HAS_TEXT",
+     "F_PURE_TEXT",
+     "F_HAS_FWD_KEY"
+    ],
+    "subsetLinks": [],
+    "pending": [],
+    "resolvedStrong": [],
+    "resolvedWeak": [],
+    "resolvedFlags": 268763136,
+    "resolvedFlagNames": [
+     "F_HAS_TEXT",
+     "F_PURE_TEXT",
+     "F_HAS_FWD_KEY"
+    ],
+    "senderKey": "c0636113bb431c10",
+    "store": true,
+    "endorsing": false
+   }
+  },
+  {
+   "id": "stress-domain",
+   "description": "壓力向量：a.a.….com（2048 段；Java regex 遞迴深度）",
+   "message": {
+    "id": 39,
+    "date": 1795000039,
+    "sender": {
+     "id": 7039,
+     "role": "member"
+    },
+    "text": "a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.com"
+   },
+   "expect": {
+    "fold": "a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.com",
+    "foldNoLinks": " ",
+    "text": "",
+    "cjk": "",
+    "wlen": 0,
+    "cjkCount": 0,
+    "otherLetterCount": 0,
+    "paragraphs": [],
+    "links": [
+     {
+      "token": "url:a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.com",
+      "type": "URL:a.com",
+      "kind": "url",
+      "source": "text",
+      "feature": "weak",
+      "hash": "17d8bf84db975119"
+     }
+    ],
+    "strong": [],
+    "weak": [
+     "url"
+    ],
+    "mentionCount": 0,
+    "keys": [],
+    "flags": 1024,
+    "flagNames": [
+     "W_url"
+    ],
+    "subsetLinks": [
+     "17d8bf84db975119"
+    ],
+    "pending": [],
+    "resolvedStrong": [],
+    "resolvedWeak": [
+     "url"
+    ],
+    "resolvedFlags": 1024,
+    "resolvedFlagNames": [
+     "W_url"
+    ],
+    "senderKey": "bd20261382fb0e35",
+    "store": false,
+    "endorsing": false
+   }
+  },
+  {
+   "id": "stress-email",
+   "description": "壓力向量：x@b.b.….zz9（2048 段，最後不是合法 TLD）",
+   "message": {
+    "id": 40,
+    "date": 1795000040,
+    "sender": {
+     "id": 7040,
+     "role": "member"
+    },
+    "text": "x@b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.zz9"
+   },
+   "expect": {
+    "fold": "x@b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.zz9",
+    "foldNoLinks": "x@b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.zz9",
+    "text": "xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbzz#",
+    "cjk": "",
+    "wlen": 2052,
+    "cjkCount": 0,
+    "otherLetterCount": 2051,
+    "paragraphs": [],
+    "links": [],
+    "strong": [],
+    "weak": [],
+    "mentionCount": 0,
+    "keys": [
+     {
+      "kind": "TEXT",
+      "tag": "text",
+      "payload": "xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbzz#",
+      "hash": "f43f0ac6ba9e2f9d"
+     }
+    ],
+    "flags": 65536,
+    "flagNames": [
+     "F_HAS_TEXT"
+    ],
+    "subsetLinks": [],
+    "pending": [],
+    "resolvedStrong": [],
+    "resolvedWeak": [],
+    "resolvedFlags": 65536,
+    "resolvedFlagNames": [
+     "F_HAS_TEXT"
+    ],
+    "senderKey": "87add3b51ed6cf6a",
+    "store": false,
+    "endorsing": false
+   }
+  },
+  {
+   "id": "leading-address",
+   "description": "開頭的 @（稱呼對方）→ 弱 member_mention",
+   "message": {
+    "id": 41,
+    "date": 1795000041,
+    "sender": {
+     "id": 7041,
+     "role": "member"
+    },
+    "text": "@alice_member @stranger_x 你好，請先看置頂群規再發問"
+   },
+   "expect": {
+    "fold": "@alice_member @stranger_x 你好,请先看置顶群规再发问",
+    "foldNoLinks": "    你好,请先看置顶群规再发问",
+    "text": "你好请先看置顶群规再发问",
+    "cjk": "你好请先看置顶群规再发问",
+    "wlen": 24,
+    "cjkCount": 12,
+    "otherLetterCount": 0,
+    "paragraphs": [],
+    "links": [
+     {
+      "token": "@alice_member",
+      "type": "HANDLE",
+      "kind": "handle",
+      "source": "text",
+      "feature": "member",
+      "hash": "041f152e80e7b188"
+     },
+     {
+      "token": "@stranger_x",
+      "type": "HANDLE",
+      "kind": "handle",
+      "source": "text",
+      "feature": "member",
+      "hash": "2e1f3a00e627ec79"
+     }
+    ],
+    "strong": [],
+    "weak": [
+     "member_mention"
+    ],
+    "mentionCount": 2,
+    "keys": [
+     {
+      "kind": "TEXT",
+      "tag": "text",
+      "payload": "你好请先看置顶群规再发问",
+      "hash": "75f56afc5a52047a"
+     },
+     {
+      "kind": "CJK",
+      "tag": "cjk",
+      "payload": "你好请先看置顶群规再发问",
+      "hash": "552c78681967f194"
+     }
+    ],
+    "flags": 329728,
+    "flagNames": [
+     "W_member_mention",
+     "F_HAS_TEXT",
+     "F_PURE_TEXT"
+    ],
+    "subsetLinks": [],
+    "pending": [],
+    "resolvedStrong": [],
+    "resolvedWeak": [
+     "member_mention"
+    ],
+    "resolvedFlags": 329728,
+    "resolvedFlagNames": [
+     "W_member_mention",
+     "F_HAS_TEXT",
+     "F_PURE_TEXT"
+    ],
+    "senderKey": "b013eaddddbed7d9",
+    "store": true,
+    "endorsing": false
+   }
+  },
+  {
+   "id": "self-mention",
+   "description": "非開頭的 @我（context.selfUsername）不算特徵",
+   "message": {
+    "id": 42,
+    "date": 1795000042,
+    "sender": {
+     "id": 7042,
+     "role": "member"
+    },
+    "text": "謝謝 @lumina_me 幫忙整理資料"
+   },
+   "expect": {
+    "fold": "谢谢 @lumina_me 帮忙整理资料",
+    "foldNoLinks": "谢谢   帮忙整理资料",
+    "text": "谢谢帮忙整理资料",
+    "cjk": "谢谢帮忙整理资料",
+    "wlen": 16,
+    "cjkCount": 8,
+    "otherLetterCount": 0,
+    "paragraphs": [],
+    "links": [
+     {
+      "token": "@lumina_me",
+      "type": "HANDLE",
+      "kind": "handle",
+      "source": "text",
+      "feature": "none",
+      "hash": "24da403925163a5a"
+     }
+    ],
+    "strong": [],
+    "weak": [],
+    "mentionCount": 1,
+    "keys": [
+     {
+      "kind": "TEXT",
+      "tag": "text",
+      "payload": "谢谢帮忙整理资料",
+      "hash": "c407833e8440059c"
+     },
+     {
+      "kind": "CJK",
+      "tag": "cjk",
+      "payload": "谢谢帮忙整理资料",
+      "hash": "46c40d13a79ce9d8"
+     }
+    ],
+    "flags": 65536,
+    "flagNames": [
+     "F_HAS_TEXT"
+    ],
+    "subsetLinks": [],
+    "pending": [],
+    "resolvedStrong": [],
+    "resolvedWeak": [],
+    "resolvedFlags": 65536,
+    "resolvedFlagNames": [
+     "F_HAS_TEXT"
+    ],
+    "senderKey": "2aa65c020ce6b1bb",
+    "store": false,
+    "endorsing": false
+   }
+  },
+  {
+   "id": "tw-phone",
+   "description": "台灣手機 09xx-xxx-xxx → tel:8869…",
+   "message": {
+    "id": 43,
+    "date": 1795000043,
+    "sender": {
+     "id": 7043,
+     "role": "member"
+    },
+    "text": "急用錢 免保人 0912-345-678 陳先生"
+   },
+   "expect": {
+    "fold": "急用钱 免保人 0912-345-678 陈先生",
+    "foldNoLinks": "急用钱 免保人   陈先生",
+    "text": "急用钱免保人陈先生",
+    "cjk": "急用钱免保人陈先生",
+    "wlen": 18,
+    "cjkCount": 9,
+    "otherLetterCount": 0,
+    "paragraphs": [],
+    "links": [
+     {
+      "token": "tel:886912345678",
+      "type": "PHONE",
+      "kind": "phone",
+      "source": "text",
+      "feature": "strong",
+      "hash": "77790807a8f5235f"
+     }
+    ],
+    "strong": [
+     "phone"
+    ],
+    "weak": [],
+    "mentionCount": 0,
+    "keys": [
+     {
+      "kind": "TEXT",
+      "tag": "text",
+      "payload": "急用钱免保人陈先生",
+      "hash": "0f1bd5fc27e225fb"
+     },
+     {
+      "kind": "CJK",
+      "tag": "cjk",
+      "payload": "急用钱免保人陈先生",
+      "hash": "7284370535d5f80c"
+     },
+     {
+      "kind": "TMPL",
+      "tag": "tmpl",
+      "payload": "急用钱免保人陈先生\u001ePHONE",
+      "hash": "b7a444557b89dd75"
+     },
+     {
+      "kind": "CONTACT",
+      "tag": "contact",
+      "payload": "tel:886912345678",
+      "hash": "cbb5d4c18cdb8fd7"
+     }
+    ],
+    "flags": 65600,
+    "flagNames": [
+     "S_phone",
+     "F_HAS_TEXT"
+    ],
+    "subsetLinks": [
+     "77790807a8f5235f"
+    ],
+    "pending": [],
+    "resolvedStrong": [
+     "phone"
+    ],
+    "resolvedWeak": [],
+    "resolvedFlags": 65600,
+    "resolvedFlagNames": [
+     "S_phone",
+     "F_HAS_TEXT"
+    ],
+    "senderKey": "c5cd77ae5af55450",
+    "store": true,
+    "endorsing": false
+   }
+  },
+  {
+   "id": "phone-order-price",
+   "description": "訂單語境、價格裡的號碼不是電話",
+   "message": {
+    "id": 44,
+    "date": 1795000044,
+    "sender": {
+     "id": 7044,
+     "role": "member"
+    },
+    "text": "訂單號 15012345678 已出貨，金價 +1.500.000đ"
+   },
+   "expect": {
+    "fold": "订单号 15012345678 已出货,金价 +1.500.000đ",
+    "foldNoLinks": "订单号 15012345678 已出货,金价 +1.500.000đ",
+    "text": "订单号#已出货金价###đ",
+    "cjk": "订单号已出货金价",
+    "wlen": 21,
+    "cjkCount": 8,
+    "otherLetterCount": 1,
+    "paragraphs": [],
+    "links": [],
+    "strong": [],
+    "weak": [],
+    "mentionCount": 0,
+    "keys": [
+     {
+      "kind": "TEXT",
+      "tag": "text",
+      "payload": "订单号#已出货金价###đ",
+      "hash": "91674c4abf1df7fe"
+     },
+     {
+      "kind": "CJK",
+      "tag": "cjk",
+      "payload": "订单号已出货金价",
+      "hash": "c500ca1432cd1d4a"
+     }
+    ],
+    "flags": 65536,
+    "flagNames": [
+     "F_HAS_TEXT"
+    ],
+    "subsetLinks": [],
+    "pending": [],
+    "resolvedStrong": [],
+    "resolvedWeak": [],
+    "resolvedFlags": 65536,
+    "resolvedFlagNames": [
+     "F_HAS_TEXT"
+    ],
+    "senderKey": "36b6d1ec03a4c09f",
+    "store": false,
+    "endorsing": false
+   }
+  },
+  {
+   "id": "channel-fwd-downgrade",
+   "description": "轉發頻道貼文：邀請連結、投稿 bot、網址按鈕降為弱",
+   "message": {
+    "id": 45,
+    "date": 1795000045,
+    "sender": {
+     "id": 7045,
+     "role": "member"
+    },
+    "text": "【快訊】科技展覽今日開幕。投稿 @news_tips_bot 討論 t.me/+NewsChat9",
+    "forward": {
+     "fromKind": "channel",
+     "fromId": -1003000000003,
+     "postId": 556,
+     "username": "daily_news_demo",
+     "date": 1794990000
+    },
+    "buttons": [
+     "https://news-demo.example.com/a/556"
+    ]
+   },
+   "expect": {
+    "fold": "【快讯】科技展览今日开幕.投稿 @news_tips_bot 讨论 t.me/+newschat9",
+    "foldNoLinks": "【快讯】科技展览今日开幕.投稿   讨论  ",
+    "text": "快讯科技展览今日开幕投稿讨论",
+    "cjk": "快讯科技展览今日开幕投稿讨论",
+    "wlen": 28,
+    "cjkCount": 14,
+    "otherLetterCount": 0,
+    "paragraphs": [],
+    "links": [
+     {
+      "token": "invite:newschat9",
+      "type": "INVITE",
+      "kind": "invite",
+      "source": "text",
+      "feature": "weak",
+      "hash": "0f36df6e36835128"
+     },
+     {
+      "token": "@news_tips_bot",
+      "type": "HANDLE",
+      "kind": "handle",
+      "source": "text",
+      "feature": "weak",
+      "hash": "162ea76eb31016bf"
+     },
+     {
+      "token": "url:news-demo.example.com/a/556",
+      "type": "URL:example.com",
+      "kind": "url",
+      "source": "button",
+      "feature": "weak",
+      "hash": "bcb722f425ccdca1"
+     }
+    ],
+    "strong": [],
+    "weak": [
+     "url"
+    ],
+    "mentionCount": 1,
+    "keys": [
+     {
+      "kind": "FWD",
+      "tag": "fwd",
+      "payload": "c|-1003000000003|556",
+      "hash": "8a0fc5f2133075bb"
+     },
+     {
+      "kind": "TEXT",
+      "tag": "text",
+      "payload": "快讯科技展览今日开幕投稿讨论",
+      "hash": "5c933e43339104c7"
+     },
+     {
+      "kind": "CJK",
+      "tag": "cjk",
+      "payload": "快讯科技展览今日开幕投稿讨论",
+      "hash": "1a6ef935e40473ea"
+     }
+    ],
+    "flags": 268764160,
+    "flagNames": [
+     "W_url",
+     "F_HAS_TEXT",
+     "F_PURE_TEXT",
+     "F_HAS_FWD_KEY"
+    ],
+    "subsetLinks": [
+     "0f36df6e36835128",
+     "162ea76eb31016bf",
+     "bcb722f425ccdca1"
+    ],
+    "pending": [],
+    "resolvedStrong": [],
+    "resolvedWeak": [
+     "url"
+    ],
+    "resolvedFlags": 268764160,
+    "resolvedFlagNames": [
+     "W_url",
+     "F_HAS_TEXT",
+     "F_PURE_TEXT",
+     "F_HAS_FWD_KEY"
+    ],
+    "senderKey": "3829c3014478c4e6",
+    "store": true,
+    "endorsing": false
+   }
+  },
+  {
+   "id": "uid-links",
+   "description": "tg://user?id=N → uid:N；mention_name 指向發送者自己 → uid（自我推銷）",
+   "message": {
+    "id": 46,
+    "date": 1795000046,
+    "sender": {
+     "id": 7046,
+     "role": "member"
+    },
+    "text": "點這裡聯繫我",
+    "entities": [
+     {
+      "type": "text_url",
+      "url": "tg://user?id=123456"
+     },
+     {
+      "type": "mention_name",
+      "userId": 7046
+     }
+    ]
+   },
+   "expect": {
+    "fold": "点这里联系我",
+    "foldNoLinks": "点这里联系我",
+    "text": "点这里联系我",
+    "cjk": "点这里联系我",
+    "wlen": 12,
+    "cjkCount": 6,
+    "otherLetterCount": 0,
+    "paragraphs": [],
+    "links": [
+     {
+      "token": "uid:123456",
+      "type": "HANDLE",
+      "kind": "handle",
+      "source": "hidden",
+      "feature": "strong",
+      "hash": "6850e12fa460cb6b"
+     },
+     {
+      "token": "uid:7046",
+      "type": "HANDLE",
+      "kind": "handle",
+      "source": "hidden",
+      "feature": "strong",
+      "hash": "45baea3aee79225f"
+     }
+    ],
+    "strong": [
+     "handle"
+    ],
+    "weak": [],
+    "mentionCount": 1,
+    "keys": [
+     {
+      "kind": "TEXT",
+      "tag": "text",
+      "payload": "点这里联系我",
+      "hash": "451d10f070299acf"
+     },
+     {
+      "kind": "TMPL",
+      "tag": "tmpl",
+      "payload": "点这里联系我\u001eHANDLE",
+      "hash": "f26dffab48b38991"
+     }
+    ],
+    "flags": 65538,
+    "flagNames": [
+     "S_handle",
+     "F_HAS_TEXT"
+    ],
+    "subsetLinks": [
+     "6850e12fa460cb6b",
+     "45baea3aee79225f"
+    ],
+    "pending": [],
+    "resolvedStrong": [
+     "handle"
+    ],
+    "resolvedWeak": [],
+    "resolvedFlags": 65538,
+    "resolvedFlagNames": [
+     "S_handle",
+     "F_HAS_TEXT"
+    ],
+    "senderKey": "a8c9c939f85aad03",
+    "store": true,
+    "endorsing": false
+   }
+  },
+  {
+   "id": "pointer-negation",
+   "description": "否定（不會主動私聊）與方向（私訊你了）都不算指向詞",
+   "message": {
+    "id": 47,
+    "date": 1795000047,
+    "sender": {
+     "id": 7047,
+     "role": "member"
+    },
+    "text": "管理員不會主動私聊任何人，我已經私訊你了"
+   },
+   "expect": {
+    "fold": "管理员不会主动私聊任何人,我已经私讯你了",
+    "foldNoLinks": "管理员不会主动私聊任何人,我已经私讯你了",
+    "text": "管理员不会主动私聊任何人我已经私讯你了",
+    "cjk": "管理员不会主动私聊任何人我已经私讯你了",
+    "wlen": 38,
+    "cjkCount": 19,
+    "otherLetterCount": 0,
+    "paragraphs": [
+     "管理员不会主动私聊任何人我已经私讯你了"
+    ],
+    "links": [],
+    "strong": [],
+    "weak": [],
+    "mentionCount": 0,
+    "keys": [
+     {
+      "kind": "TEXT",
+      "tag": "text",
+      "payload": "管理员不会主动私聊任何人我已经私讯你了",
+      "hash": "c770cb5d10dc0e9c"
+     },
+     {
+      "kind": "CJK",
+      "tag": "cjk",
+      "payload": "管理员不会主动私聊任何人我已经私讯你了",
+      "hash": "725aefbe37375448"
+     },
+     {
+      "kind": "PARA",
+      "tag": "para",
+      "payload": "管理员不会主动私聊任何人我已经私讯你了",
+      "hash": "3f04cfd7e6c5d89f"
+     }
+    ],
+    "flags": 327680,
+    "flagNames": [
+     "F_HAS_TEXT",
+     "F_PURE_TEXT"
+    ],
+    "subsetLinks": [],
+    "pending": [],
+    "resolvedStrong": [],
+    "resolvedWeak": [],
+    "resolvedFlags": 327680,
+    "resolvedFlagNames": [
+     "F_HAS_TEXT",
+     "F_PURE_TEXT"
+    ],
+    "senderKey": "4e4273c88b6647d8",
+    "store": true,
+    "endorsing": false
+   }
+  },
+  {
+   "id": "pointer-negation-break",
+   "description": "「不要錯過，私聊了解」：錯過打斷否定 → 仍算",
+   "message": {
+    "id": 48,
+    "date": 1795000048,
+    "sender": {
+     "id": 7048,
+     "role": "member"
+    },
+    "text": "機會難得不要錯過，私聊了解"
+   },
+   "expect": {
+    "fold": "机会难得不要错过,私聊了解",
+    "foldNoLinks": "机会难得不要错过,私聊了解",
+    "text": "机会难得不要错过私聊了解",
+    "cjk": "机会难得不要错过私聊了解",
+    "wlen": 24,
+    "cjkCount": 12,
+    "otherLetterCount": 0,
+    "paragraphs": [],
+    "links": [],
+    "strong": [
+     "pointer"
+    ],
+    "weak": [],
+    "mentionCount": 0,
+    "keys": [
+     {
+      "kind": "TEXT",
+      "tag": "text",
+      "payload": "机会难得不要错过私聊了解",
+      "hash": "6b8a5a300c7c6217"
+     },
+     {
+      "kind": "CJK",
+      "tag": "cjk",
+      "payload": "机会难得不要错过私聊了解",
+      "hash": "7b712385a53b6ccc"
+     },
+     {
+      "kind": "TMPL",
+      "tag": "tmpl",
+      "payload": "机会难得不要错过私聊了解\u001e",
+      "hash": "7be6142a63dcb23e"
+     }
+    ],
+    "flags": 327936,
+    "flagNames": [
+     "S_pointer",
+     "F_HAS_TEXT",
+     "F_PURE_TEXT"
+    ],
+    "subsetLinks": [
+     "5bc9075af64dbfa6"
+    ],
+    "pending": [],
+    "resolvedStrong": [
+     "pointer"
+    ],
+    "resolvedWeak": [],
+    "resolvedFlags": 327936,
+    "resolvedFlagNames": [
+     "S_pointer",
+     "F_HAS_TEXT",
+     "F_PURE_TEXT"
+    ],
+    "senderKey": "da3241f6df6ec495",
+    "store": true,
+    "endorsing": false
+   }
+  },
+  {
+   "id": "contact-strict",
+   "description": "飛機（嚴格）、加我V、加賴算；坐飛機 A380、依賴 numpy2 不算",
+   "message": {
+    "id": 49,
+    "date": 1795000049,
+    "sender": {
+     "id": 7049,
+     "role": "member"
+    },
+    "text": "飛機：deal_aa1 加我V：abc_123 加賴 lumina_ok88 坐飛機 A380 去東京 依賴 numpy2"
+   },
+   "expect": {
+    "fold": "飞机:deal_aa1 加我v:abc_123 加赖 lumina_ok88 坐飞机 a380 去东京 依赖 numpy2",
+    "foldNoLinks": "飞机:  加我v:  加赖   坐飞机 a380 去东京 依赖 numpy2",
+    "text": "飞机加我v加赖坐飞机a#去东京依赖numpy#",
+    "cjk": "飞机加我加赖坐飞机去东京依赖",
+    "wlen": 37,
+    "cjkCount": 14,
+    "otherLetterCount": 7,
+    "paragraphs": [
+     "飞机加我v加赖坐飞机a#去东京依赖numpy#"
+    ],
+    "links": [
+     {
+      "token": "acct:tg:deal_aa1",
+      "type": "ACCT:tg",
+      "kind": "acct",
+      "source": "text",
+      "feature": "strong",
+      "hash": "635c555a4b445d4e"
+     },
+     {
+      "token": "acct:wx:abc_123",
+      "type": "ACCT:wx",
+      "kind": "acct",
+      "source": "text",
+      "feature": "strong",
+      "hash": "863c8e6c816215ff"
+     },
+     {
+      "token": "acct:line:lumina_ok88",
+      "type": "ACCT:line",
+      "kind": "acct",
+      "source": "text",
+      "feature": "strong",
+      "hash": "353bab58023b52c5"
+     }
+    ],
+    "strong": [
+     "account"
+    ],
+    "weak": [],
+    "mentionCount": 0,
+    "keys": [
+     {
+      "kind": "TEXT",
+      "tag": "text",
+      "payload": "飞机加我v加赖坐飞机a#去东京依赖numpy#",
+      "hash": "10d76402fb438cbd"
+     },
+     {
+      "kind": "CJK",
+      "tag": "cjk",
+      "payload": "飞机加我加赖坐飞机去东京依赖",
+      "hash": "5ca5f7e4e240988b"
+     },
+     {
+      "kind": "TMPL",
+      "tag": "tmpl",
+      "payload": "飞机加我v加赖坐飞机a#去东京依赖numpy#\u001eACCT:line,ACCT:tg,ACCT:wx",
+      "hash": "621d9b030ec9a95c"
+     },
+     {
+      "kind": "CONTACT",
+      "tag": "contact",
+      "payload": "acct:line:lumina_ok88,acct:tg:deal_aa1,acct:wx:abc_123",
+      "hash": "73b4fa8475942c41"
+     },
+     {
+      "kind": "PARA",
+      "tag": "para",
+      "payload": "飞机加我v加赖坐飞机a#去东京依赖numpy#",
+      "hash": "45db197e921c4072"
+     }
+    ],
+    "flags": 65664,
+    "flagNames": [
+     "S_account",
+     "F_HAS_TEXT"
+    ],
+    "subsetLinks": [
+     "635c555a4b445d4e",
+     "863c8e6c816215ff",
+     "353bab58023b52c5"
+    ],
+    "pending": [],
+    "resolvedStrong": [
+     "account"
+    ],
+    "resolvedWeak": [],
+    "resolvedFlags": 65664,
+    "resolvedFlagNames": [
+     "S_account",
+     "F_HAS_TEXT"
+    ],
+    "senderKey": "84737f2e87a28825",
+    "store": true,
+    "endorsing": false
+   }
+  },
+  {
+   "id": "mention-space",
+   "description": "「@ 帳號」含數字或底線才算；「@ home」不算",
+   "message": {
+    "id": 50,
+    "date": 1795000050,
+    "sender": {
+     "id": 7050,
+     "role": "member"
+    },
+    "text": "私聊 @ deal_aa1，週末 @ home 休息"
+   },
+   "expect": {
+    "fold": "私聊 @ deal_aa1,周末 @ home 休息",
+    "foldNoLinks": "私聊  ,周末 @ home 休息",
+    "text": "私聊周末home休息",
+    "cjk": "私聊周末休息",
+    "wlen": 16,
+    "cjkCount": 6,
+    "otherLetterCount": 4,
+    "paragraphs": [],
+    "links": [
+     {
+      "token": "@deal_aa1",
+      "type": "HANDLE",
+      "kind": "handle",
+      "source": "text",
+      "feature": "pending",
+      "hash": "7648b497f3aacc1b"
+     }
+    ],
+    "strong": [
+     "pointer"
+    ],
+    "weak": [],
+    "mentionCount": 1,
+    "keys": [
+     {
+      "kind": "TEXT",
+      "tag": "text",
+      "payload": "私聊周末home休息",
+      "hash": "33b7da488b1fda58"
+     },
+     {
+      "kind": "TMPL",
+      "tag": "tmpl",
+      "payload": "私聊周末home休息\u001eHANDLE",
+      "hash": "8078fff1a0e89cc4"
+     }
+    ],
+    "flags": 65792,
+    "flagNames": [
+     "S_pointer",
+     "F_HAS_TEXT"
+    ],
+    "subsetLinks": [
+     "5bc9075af64dbfa6"
+    ],
+    "pending": [
+     "7648b497f3aacc1b"
+    ],
+    "resolvedStrong": [
+     "handle",
+     "pointer"
+    ],
+    "resolvedWeak": [],
+    "resolvedFlags": 65794,
+    "resolvedFlagNames": [
+     "S_handle",
+     "S_pointer",
+     "F_HAS_TEXT"
+    ],
+    "senderKey": "08eb375226082c0b",
+    "store": true,
+    "endorsing": false
+   }
+  },
+  {
+   "id": "tme-space",
+   "description": "t .me/帳號（點前空白）",
+   "message": {
+    "id": 51,
+    "date": 1795000051,
+    "sender": {
+     "id": 7051,
+     "role": "member"
+    },
+    "text": "👉 t .me/deal_aa1"
+   },
+   "expect": {
+    "fold": "👉 t .me/deal_aa1",
+    "foldNoLinks": "👉  ",
+    "text": "",
+    "cjk": "",
+    "wlen": 0,
+    "cjkCount": 0,
+    "otherLetterCount": 0,
+    "paragraphs": [],
+    "links": [
+     {
+      "token": "@deal_aa1",
+      "type": "HANDLE",
+      "kind": "handle",
+      "source": "text",
+      "feature": "pending",
+      "hash": "7648b497f3aacc1b"
+     }
+    ],
+    "strong": [],
+    "weak": [],
+    "mentionCount": 0,
+    "keys": [],
+    "flags": 0,
+    "flagNames": [],
+    "subsetLinks": [],
+    "pending": [
+     "7648b497f3aacc1b"
+    ],
+    "resolvedStrong": [
+     "handle"
+    ],
+    "resolvedWeak": [],
+    "resolvedFlags": 2,
+    "resolvedFlagNames": [
+     "S_handle"
+    ],
+    "senderKey": "271ac7e5d23a292f",
+    "store": false,
+    "endorsing": false
+   }
+  },
+  {
+   "id": "version-number",
+   "description": "版本號 10.14.2 不是帳號",
+   "message": {
+    "id": 52,
+    "date": 1795000052,
+    "sender": {
+     "id": 7052,
+     "role": "member"
+    },
+    "text": "我的版本 Telegram: 10.14.2，開影片會閃退"
+   },
+   "expect": {
+    "fold": "我的版本 telegram: 10.14.2,开影片会闪退",
+    "foldNoLinks": "我的版本 telegram: 10.14.2,开影片会闪退",
+    "text": "我的版本telegram###开影片会闪退",
+    "cjk": "我的版本开影片会闪退",
+    "wlen": 31,
+    "cjkCount": 10,
+    "otherLetterCount": 8,
+    "paragraphs": [],
+    "links": [],
+    "strong": [],
+    "weak": [],
+    "mentionCount": 0,
+    "keys": [
+     {
+      "kind": "TEXT",
+      "tag": "text",
+      "payload": "我的版本telegram###开影片会闪退",
+      "hash": "e4ab4efcca2889cc"
+     },
+     {
+      "kind": "CJK",
+      "tag": "cjk",
+      "payload": "我的版本开影片会闪退",
+      "hash": "db44a3f1a0b785fd"
+     }
+    ],
+    "flags": 65536,
+    "flagNames": [
+     "F_HAS_TEXT"
+    ],
+    "subsetLinks": [],
+    "pending": [],
+    "resolvedStrong": [],
+    "resolvedWeak": [],
+    "resolvedFlags": 65536,
+    "resolvedFlagNames": [
+     "F_HAS_TEXT"
+    ],
+    "senderKey": "20ff157cbb8c9110",
+    "store": false,
+    "endorsing": false
+   }
+  },
+  {
+   "id": "contact-key-invite-only",
+   "description": "只有邀請連結、沒有文字 → 聯絡鍵 CONTACT",
+   "message": {
+    "id": 53,
+    "date": 1795000053,
+    "sender": {
+     "id": 7053,
+     "role": "member"
+    },
+    "text": "🔥🔥 t.me/+VipRoom9 🔥🔥"
+   },
+   "expect": {
+    "fold": "🔥🔥 t.me/+viproom9 🔥🔥",
+    "foldNoLinks": "🔥🔥   🔥🔥",
+    "text": "",
+    "cjk": "",
+    "wlen": 0,
+    "cjkCount": 0,
+    "otherLetterCount": 0,
+    "paragraphs": [],
+    "links": [
+     {
+      "token": "invite:viproom9",
+      "type": "INVITE",
+      "kind": "invite",
+      "source": "text",
+      "feature": "strong",
+      "hash": "2458e70c19456bc1"
+     }
+    ],
+    "strong": [
+     "invite"
+    ],
+    "weak": [],
+    "mentionCount": 0,
+    "keys": [
+     {
+      "kind": "CONTACT",
+      "tag": "contact",
+      "payload": "invite:viproom9",
+      "hash": "f2cc617a961f59b4"
+     }
+    ],
+    "flags": 1,
+    "flagNames": [
+     "S_invite"
+    ],
+    "subsetLinks": [
+     "2458e70c19456bc1"
+    ],
+    "pending": [],
+    "resolvedStrong": [
+     "invite"
+    ],
+    "resolvedWeak": [],
+    "resolvedFlags": 1,
+    "resolvedFlagNames": [
+     "S_invite"
+    ],
+    "senderKey": "bcbb79b4a6853ede",
+    "store": true,
+    "endorsing": false
+   }
+  },
+  {
+   "id": "tmpl-url-domainless",
+   "description": "模板鍵裡的一般網址類型不帶網域",
+   "message": {
+    "id": 54,
+    "date": 1795000054,
+    "sender": {
+     "id": 7054,
+     "role": "member"
+    },
+    "text": "👉 私聊我 https://aa11.xyz"
+   },
+   "expect": {
+    "fold": "👉 私聊我 https://aa11.xyz",
+    "foldNoLinks": "👉 私聊我  ",
+    "text": "私聊我",
+    "cjk": "私聊我",
+    "wlen": 6,
+    "cjkCount": 3,
+    "otherLetterCount": 0,
+    "paragraphs": [],
+    "links": [
+     {
+      "token": "url:aa11.xyz",
+      "type": "URL:aa11.xyz",
+      "kind": "url",
+      "source": "text",
+      "feature": "weak",
+      "hash": "3607ea2e95180a1e"
+     }
+    ],
+    "strong": [
+     "pointer"
+    ],
+    "weak": [
+     "url"
+    ],
+    "mentionCount": 0,
+    "keys": [
+     {
+      "kind": "TMPL",
+      "tag": "tmpl",
+      "payload": "私聊我\u001eURL",
+      "hash": "d284fb15d137ca4d"
+     }
+    ],
+    "flags": 1280,
+    "flagNames": [
+     "S_pointer",
+     "W_url"
+    ],
+    "subsetLinks": [
+     "3607ea2e95180a1e",
+     "5bc9075af64dbfa6"
+    ],
+    "pending": [],
+    "resolvedStrong": [
+     "pointer"
+    ],
+    "resolvedWeak": [
+     "url"
+    ],
+    "resolvedFlags": 1280,
+    "resolvedFlagNames": [
+     "S_pointer",
+     "W_url"
+    ],
+    "senderKey": "1c24006d6e432f66",
+    "store": true,
+    "endorsing": false
+   }
+  },
+  {
+   "id": "spam-tld-and-hosted",
+   "description": "垃圾 TLD 抽成網址；託管網域只信任同一個子網域；foo.bar 不是網址",
+   "message": {
+    "id": 55,
+    "date": 1795000055,
+    "sender": {
+     "id": 7055,
+     "role": "member"
+    },
+    "text": "官網 lucky-gain.sbs 教學 https://free-claim.github.io/x 文件 https://lumina-org.github.io/faq 程式 foo.bar"
+   },
+   "expect": {
+    "fold": "官网 lucky-gain.sbs 教学 https://free-claim.github.io/x 文件 https://lumina-org.github.io/faq 程式 foo.bar",
+    "foldNoLinks": "官网   教学   文件   程式 foo.bar",
+    "text": "官网教学文件程式foobar",
+    "cjk": "官网教学文件程式",
+    "wlen": 22,
+    "cjkCount": 8,
+    "otherLetterCount": 6,
+    "paragraphs": [],
+    "links": [
+     {
+      "token": "url:free-claim.github.io/x",
+      "type": "URL:free-claim.github.io",
+      "kind": "url",
+      "source": "text",
+      "feature": "weak",
+      "hash": "0015bdbdc0cba90e"
+     },
+     {
+      "token": "url:lumina-org.github.io/faq",
+      "type": "URL:lumina-org.github.io",
+      "kind": "url",
+      "source": "text",
+      "feature": "none",
+      "hash": "8cb77602c10f046f"
+     },
+     {
+      "token": "url:lucky-gain.sbs",
+      "type": "URL:lucky-gain.sbs",
+      "kind": "url",
+      "source": "text",
+      "feature": "weak",
+      "hash": "dae3ddf9d251f8e2"
+     }
+    ],
+    "strong": [],
+    "weak": [
+     "url"
+    ],
+    "mentionCount": 0,
+    "keys": [
+     {
+      "kind": "TEXT",
+      "tag": "text",
+      "payload": "官网教学文件程式foobar",
+      "hash": "1b12fa053ca8353d"
+     },
+     {
+      "kind": "CJK",
+      "tag": "cjk",
+      "payload": "官网教学文件程式",
+      "hash": "2e6adbc28fa8e1c4"
+     }
+    ],
+    "flags": 66560,
+    "flagNames": [
+     "W_url",
+     "F_HAS_TEXT"
+    ],
+    "subsetLinks": [
+     "0015bdbdc0cba90e",
+     "dae3ddf9d251f8e2"
+    ],
+    "pending": [],
+    "resolvedStrong": [],
+    "resolvedWeak": [
+     "url"
+    ],
+    "resolvedFlags": 66560,
+    "resolvedFlagNames": [
+     "W_url",
+     "F_HAS_TEXT"
+    ],
+    "senderKey": "e1566e9b360c8684",
+    "store": true,
+    "endorsing": false
+   }
+  },
+  {
+   "id": "media-only-long-caption",
+   "description": "純媒體＝有媒體鍵且沒有強特徵（不看說明長度）",
+   "message": {
+    "id": 56,
+    "date": 1795000056,
+    "sender": {
+     "id": 7056,
+     "role": "member"
+    },
+    "text": "今天天氣真好大家早安喔",
+    "media": {
+     "kind": "photo",
+     "id": "ph-adx"
+    }
+   },
+   "expect": {
+    "fold": "今天天气真好大家早安喔",
+    "foldNoLinks": "今天天气真好大家早安喔",
+    "text": "今天天气真好大家早安喔",
+    "cjk": "今天天气真好大家早安喔",
+    "wlen": 22,
+    "cjkCount": 11,
+    "otherLetterCount": 0,
+    "paragraphs": [],
+    "links": [],
+    "strong": [],
+    "weak": [],
+    "mentionCount": 0,
+    "keys": [
+     {
+      "kind": "MEDIA",
+      "tag": "media",
+      "payload": "p:ph-adx",
+      "hash": "f8965b336c2929c2"
+     },
+     {
+      "kind": "TEXT",
+      "tag": "text",
+      "payload": "今天天气真好大家早安喔",
+      "hash": "7fb49198890e7f8e"
+     },
+     {
+      "kind": "CJK",
+      "tag": "cjk",
+      "payload": "今天天气真好大家早安喔",
+      "hash": "734823aaddaec7df"
+     }
+    ],
+    "flags": 134283264,
+    "flagNames": [
+     "F_HAS_TEXT",
+     "F_HAS_MEDIA_KEY"
+    ],
+    "subsetLinks": [],
+    "pending": [],
+    "resolvedStrong": [],
+    "resolvedWeak": [],
+    "resolvedFlags": 134414336,
+    "resolvedFlagNames": [
+     "F_HAS_TEXT",
+     "F_MEDIA_ONLY",
+     "F_HAS_MEDIA_KEY"
+    ],
+    "senderKey": "5feace0490e387df",
+    "store": true,
+    "endorsing": false
+   }
+  },
+  {
+   "id": "pending-member",
+   "description": "待定 handle：條件式模板鍵；用 memberHandles 解開後是弱 member_mention",
+   "message": {
+    "id": 57,
+    "date": 1795000057,
+    "sender": {
+     "id": 7057,
+     "role": "member"
+    },
+    "text": "有問題可以問 @bob_member"
+   },
+   "expect": {
+    "fold": "有问题可以问 @bob_member",
+    "foldNoLinks": "有问题可以问  ",
+    "text": "有问题可以问",
+    "cjk": "有问题可以问",
+    "wlen": 12,
+    "cjkCount": 6,
+    "otherLetterCount": 0,
+    "paragraphs": [],
+    "links": [
+     {
+      "token": "@bob_member",
+      "type": "HANDLE",
+      "kind": "handle",
+      "source": "text",
+      "feature": "pending",
+      "hash": "97cb1daeef893a1c"
+     }
+    ],
+    "strong": [],
+    "weak": [],
+    "mentionCount": 1,
+    "keys": [
+     {
+      "kind": "TEXT",
+      "tag": "text",
+      "payload": "有问题可以问",
+      "hash": "871dc81e8a7955fc"
+     },
+     {
+      "kind": "TMPL",
+      "tag": "tmpl",
+      "payload": "有问题可以问\u001eHANDLE",
+      "hash": "167ab41e18ed810a"
+     }
+    ],
+    "flags": 1073807360,
+    "flagNames": [
+     "F_HAS_TEXT",
+     "F_TMPL_COND"
+    ],
+    "subsetLinks": [],
+    "pending": [
+     "97cb1daeef893a1c"
+    ],
+    "resolvedStrong": [],
+    "resolvedWeak": [
+     "member_mention"
+    ],
+    "resolvedFlags": 1073809408,
+    "resolvedFlagNames": [
+     "W_member_mention",
+     "F_HAS_TEXT",
+     "F_TMPL_COND"
+    ],
+    "senderKey": "db53099df39ea572",
+    "store": true,
+    "endorsing": false
+   }
+  }
+ ]
+}
