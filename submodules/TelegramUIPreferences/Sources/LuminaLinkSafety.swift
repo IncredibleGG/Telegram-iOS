@@ -3,10 +3,12 @@ import Foundation
 /// LuminaGram link-safety inspector — local URL analysis before opening.
 ///
 /// Port of Android's link-safety block in `org.telegram.messenger.browser.Browser.openUrl`
-/// (gated by `linkSafetyCheck`). Entirely heuristic and offline: no network lookup, no
-/// reputation service. When a link is about to open, the caller (the choke point is
+/// (gated by `linkSafetyCheck`). The warnings below are heuristic and offline: no reputation
+/// service. When a link is about to open, the caller (the choke point is
 /// `ChatController.openUrl` in `submodules/TelegramUI/Sources/ChatController.swift`) shows a
-/// confirmation sheet listing the full resolved URL plus any of the warnings below.
+/// confirmation sheet listing the full resolved URL plus any of the warnings below. The one
+/// network lookup is for a known URL shortener only: its sheet asks that short-link service once
+/// where the link leads (`LuminaShortLinkResolver` in LuminaShortLink.swift).
 public enum LuminaLinkSafety {
     /// Common URL shorteners (registrable host, lower-case, no "www."). Ported from Android's
     /// `LUMINA_URL_SHORTENERS`.
@@ -16,6 +18,13 @@ public enum LuminaLinkSafety {
         "t.ly", "s.id", "v.gd", "clck.ru", "vk.cc", "adf.ly", "shorte.st",
         "lnkd.in", "db.tt", "qr.ae", "u.to", "x.co", "trib.al", "shrtco.de",
     ]
+
+    /// Whether `host` is one of `urlShorteners` (case-insensitive, a leading "www." ignored).
+    public static func isKnownShortenerHost(_ host: String) -> Bool {
+        let lowercased = host.lowercased()
+        let bare = lowercased.hasPrefix("www.") ? String(lowercased.dropFirst(4)) : lowercased
+        return urlShorteners.contains(bare)
+    }
 
     public enum Warning {
         /// The address hides its real destination behind userinfo, e.g.
@@ -84,8 +93,7 @@ public enum LuminaLinkSafety {
                 warnings.append(.mixedScript)
             }
             // (d) known URL shorteners.
-            let bare = host.hasPrefix("www.") ? String(host.dropFirst(4)) : host
-            if urlShorteners.contains(bare) {
+            if isKnownShortenerHost(host) {
                 warnings.append(.shortener)
             }
         }

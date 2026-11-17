@@ -10352,8 +10352,13 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
         // submodules/TelegramUIPreferences/Sources); shares confusable-domain detection with the
         // homoglyph profile-row warning (LuminaHomoglyph.swift). Fails open: any unexpected
         // state, or the setting being off, proceeds with the original behavior unchanged.
-        self.luminaCheckLinkSafetyBeforeOpening(url, proceed: { [weak self] in
-            self?.luminaOpenUrlAfterLinkSafety(url, concealed: concealed, forceExternal: forceExternal, forceUpdate: forceUpdate, skipUrlAuth: skipUrlAuth, skipConcealedAlert: skipConcealedAlert, message: message, allowInlineWebpageResolution: allowInlineWebpageResolution, progress: progress, commit: commit)
+        // A short link's sheet may hand back another address than `url` (the resolved or edited
+        // one). One confirmation per tap: once a LuminaGram sheet that showed the whole address is
+        // accepted, upstream's "Open this link?" prompt for a concealed link is not shown on top of
+        // it. A widget's link (`forceConcealed`) keeps that prompt, which MessageWidgetLinkDialog
+        // tracks, and a login part is still confirmed by the external-URL opener (real host shown).
+        self.luminaCheckLinkSafetyBeforeOpening(url, proceed: { [weak self] urlToOpen, confirmedBySheet in
+            self?.luminaOpenUrlAfterLinkSafety(urlToOpen, concealed: concealed, forceConcealed: forceConcealed, forceExternal: forceExternal, forceUpdate: forceUpdate, skipUrlAuth: skipUrlAuth, skipConcealedAlert: skipConcealedAlert || (confirmedBySheet && !forceConcealed), message: message, allowInlineWebpageResolution: allowInlineWebpageResolution, progress: progress, fullUrl: fullUrl, alertDisplayUpdated: alertDisplayUpdated, commit: commit)
         })
     }
 
@@ -10363,6 +10368,7 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
     private func luminaOpenUrlAfterLinkSafety(
         _ url: String,
         concealed: Bool,
+        forceConcealed: Bool = false,
         forceExternal: Bool = false,
         forceUpdate: Bool = false,
         skipUrlAuth: Bool = false,
@@ -10370,6 +10376,8 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
         message: Message? = nil,
         allowInlineWebpageResolution: Bool = false,
         progress: Promise<Bool>? = nil,
+        fullUrl: Bool = false,
+        alertDisplayUpdated: ((ViewController?) -> Void)? = nil,
         commit: @escaping () -> Void = {}
     ) {
         self.commitPurposefulAction()
