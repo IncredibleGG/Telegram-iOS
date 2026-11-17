@@ -191,8 +191,10 @@ struct LuminaAdShieldRoles {
     let creatorId: PeerId?
 }
 
-/// SPEC §9.1 (v3): the first that holds, in this fixed order – self (anything I sent, also as a channel or as an
-/// anonymous admin) > bot (also a bot that is an admin) > anonymous admin / channel / creator / admin > contact > member.
+/// SPEC §9.1: the first that holds, in this fixed order – self (anything I sent, also as a channel or as an
+/// anonymous admin) > anonymous admin / channel / creator / admin > bot > contact > member. Admin here means real
+/// admin rights (the loaded admin list), never a custom rank alone. A bot that is also an admin or the creator of the
+/// group stays admin / creator (endorsing), exactly as before v3.
 private func luminaAdShieldRole(message: Message, authorIsContact: Bool, roles: LuminaAdShieldRoles) -> LuminaAdShield.Role {
     if !message.effectivelyIncoming(roles.accountPeerId) {
         return .selfUser
@@ -202,9 +204,6 @@ private func luminaAdShieldRole(message: Message, authorIsContact: Bool, roles: 
     }
     if author.id == roles.accountPeerId {
         return .selfUser
-    }
-    if let user = author as? TelegramUser, user.botInfo != nil {
-        return .bot
     }
     if author.id == roles.chatPeerId {
         return .anonAdmin
@@ -217,6 +216,9 @@ private func luminaAdShieldRole(message: Message, authorIsContact: Bool, roles: 
     }
     if roles.adminIds.contains(author.id) {
         return .admin
+    }
+    if let user = author as? TelegramUser, user.botInfo != nil {
+        return .bot
     }
     if authorIsContact {
         return .contact
