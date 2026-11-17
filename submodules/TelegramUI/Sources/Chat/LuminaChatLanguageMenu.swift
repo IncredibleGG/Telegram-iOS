@@ -28,7 +28,8 @@ import TranslationLanguagesContextMenuContent
 // (ChatTranslationPanelNode.morePressed): makeContextController with a .reference source
 // anchored to the capsule, then presentInGlobalOverlay; each row pushes a sub-menu via
 // pushItems, exactly like the stock "Choose Language" flow. The anchor view is the translate
-// item's own glass pill, reached through NavigationBar.rightButtonView(for:) (13.2's NavigationBarNode).
+// item's own glass pill, reached through NavigationBar.rightButtonView(for:) (13.2's NavigationBarNode),
+// or the navigation bar itself when the item sits in iPhone Duo's "..." overflow menu.
 //
 // The rows are built fresh from one settings snapshot on every open, so they never carry stale
 // state; each picker re-derives its target through the same interactive updaters the settings
@@ -45,7 +46,7 @@ func luminaPresentChatLanguageMenu(
     presentInGlobalOverlay: @escaping (ViewController) -> Void,
     present: @escaping (ViewController) -> Void
 ) {
-    // No anchor means the translate button is not on screen; there is nothing to hang the menu
+    // No anchor means the chat has no navigation bar at all; there is nothing to hang the menu
     // off, so do nothing rather than present a floating menu with no source.
     guard let sourceView else {
         return

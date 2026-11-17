@@ -2127,9 +2127,13 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
     }
     
     func runForegroundTasks() {
+        // LuminaGram: the outer capture is spelled out because the session guard below captures self
+        // weakly in a nested closure; Swift 6.4 (Xcode 27.1) rejects that under -warnings-as-errors when
+        // the enclosing closure captures self implicitly and strongly (ImplicitStrongCapture). Same fix
+        // and semantics as upstream 17926bd4a2 / e03c42c3b7: AppDelegate lives for the whole process.
         let _ = (self.sharedContextPromise.get()
         |> take(1)
-        |> deliverOnMainQueue).start(next: { sharedApplicationContext in
+        |> deliverOnMainQueue).start(next: { [self] sharedApplicationContext in
             let _ = (sharedApplicationContext.sharedContext.activeAccountContexts
              |> take(1)
              |> deliverOnMainQueue).start(next: { [weak self] activeAccounts in

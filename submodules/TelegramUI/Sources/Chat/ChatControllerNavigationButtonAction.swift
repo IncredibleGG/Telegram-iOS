@@ -731,9 +731,11 @@ extension ChatControllerImpl {
             // row into the full per-chat translate settings. See LuminaChatLanguageMenu.swift.
             if let peerId = self.chatLocation.peerId {
                 self.chatDisplayNode.dismissInput()
-                // The translate item's own glass pill in 13.2's NavigationBarNode (nil when the bar shows no
-                // view for it, e.g. its row is hidden by an active search; the menu then is not shown).
-                let luminaTranslateAnchorView = self.luminaTranslateNavigationButton.flatMap { self.navigationBar?.rightButtonView(for: $0.buttonItem) }
+                // The translate item's own glass pill in 13.2's NavigationBarNode. The bar shows no view for it
+                // when iPhone Duo's side column moved it into the "..." overflow menu (that menu runs the item's
+                // action but drops its source view), so fall back to the navigation bar itself: the menu then
+                // hangs off the top bar instead of silently not opening.
+                let luminaTranslateAnchorView = self.luminaTranslateNavigationButton.flatMap { self.navigationBar?.rightButtonView(for: $0.buttonItem) } ?? self.navigationBar?.view
                 luminaPresentChatLanguageMenu(
                     context: self.context,
                     peerId: peerId,
