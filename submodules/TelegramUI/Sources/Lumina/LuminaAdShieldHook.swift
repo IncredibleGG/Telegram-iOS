@@ -191,6 +191,8 @@ struct LuminaAdShieldRoles {
     let creatorId: PeerId?
 }
 
+/// SPEC §9.1 (v3): the first that holds, in this fixed order – self (anything I sent, also as a channel or as an
+/// anonymous admin) > bot (also a bot that is an admin) > anonymous admin / channel / creator / admin > contact > member.
 private func luminaAdShieldRole(message: Message, authorIsContact: Bool, roles: LuminaAdShieldRoles) -> LuminaAdShield.Role {
     if !message.effectivelyIncoming(roles.accountPeerId) {
         return .selfUser
@@ -200,6 +202,9 @@ private func luminaAdShieldRole(message: Message, authorIsContact: Bool, roles: 
     }
     if author.id == roles.accountPeerId {
         return .selfUser
+    }
+    if let user = author as? TelegramUser, user.botInfo != nil {
+        return .bot
     }
     if author.id == roles.chatPeerId {
         return .anonAdmin
@@ -212,9 +217,6 @@ private func luminaAdShieldRole(message: Message, authorIsContact: Bool, roles: 
     }
     if roles.adminIds.contains(author.id) {
         return .admin
-    }
-    if let user = author as? TelegramUser, user.botInfo != nil {
-        return .bot
     }
     if authorIsContact {
         return .contact
@@ -695,7 +697,8 @@ final class LuminaAdShieldHistoryObserver {
     private func settingsUpdated(_ settings: LuminaSettings?) {
         let effective = settings?.luminaAdShieldIsOn(peerId: self.peerId.toInt64()) ?? false
         let trialRun = settings?.adShieldDryRun ?? false
-        let engineSettings = settings?.luminaAdShieldEngineSettings
+        // The group's own engine settings (incl. 「連管理員和頻道的也收」): any change re-decides every loaded message.
+        let engineSettings = settings?.luminaAdShieldEngineSettings(peerId: self.peerId.toInt64())
         self.trialRun = trialRun
         if effective != self.isEffective {
             self.isEffective = effective

@@ -5,8 +5,9 @@ import TelegramCore
 // Integration checks for LuminaAdShieldService / LuminaAdShieldChatSession (the iOS plumbing around the engine):
 // lifecycle (activation only while effectively on, ForgetAll on logout / full deactivation, startup purge of
 // leftovers), per-group policy, debounced flush + flush on demand, the similar-image table (SPEC §5.4), deletions,
-// "Not an ad", clear-local-data, the 7-day count and the session UI API (segments, expand, shown-unfolded, trial,
-// the on-screen grace rules and the opening toast).
+// "Not an ad", clear-local-data, the 7-day count, the session UI API (segments, expand, shown-unfolded, trial,
+// the on-screen grace rules and the opening toast) and the per-group switch 「連管理員和頻道的也收」 (stored per group,
+// passed into that chat's engine settings only, cleared with the per-group modes).
 //
 // Compiled together with the TelegramUIPreferences sources by run.sh in this directory (same module, so the test
 // can use the internal init with a temp directory and a fixed key). NOT part of any Bazel target.
@@ -171,7 +172,7 @@ struct ServiceCheck {
 
             // 7-day count after "not an ad" is 0
             var count = -1
-            let _ = service.foldedCountLast7Days(basePath: accountDir, chatId: chatId).start(next: { count = $0 })
+            let _ = service.foldedCountLast7Days(basePath: accountDir, chatId: chatId, peerId: peerId).start(next: { count = $0 })
             T.check(waitUntil { count >= 0 } && count == 0, "count: 0 after not-an-ad (\(count))")
 
             // flush on demand
@@ -314,7 +315,7 @@ struct ServiceCheck {
             // The last ChatContext of at most 32 chats is remembered (the 7-day count needs it): the oldest is forgotten.
             func count(_ chat: Int64) -> Int {
                 var result = -1
-                let _ = service.foldedCountLast7Days(basePath: accountDir, chatId: chat).start(next: { result = $0 })
+                let _ = service.foldedCountLast7Days(basePath: accountDir, chatId: chat, peerId: peerId + 100 + (base - chat)).start(next: { result = $0 })
                 let _ = waitUntil { result >= 0 }
                 return result
             }
@@ -509,12 +510,70 @@ struct ServiceCheck {
             T.check(!s.luminaAdShieldIsOn(peerId: 5) && s.luminaAdShieldIsOn(peerId: 6), "mode: off beats global on")
             s = s.withLuminaAdShieldMode(.followDefault, peerId: 5)
             T.check(s.adShieldDialogs.isEmpty && s.luminaAdShieldIsOn(peerId: 5), "mode: follow default")
-            T.check(LuminaSettings.defaultSettings.luminaAdShieldEngineSettings == LuminaAdShield.Settings(), "defaults match the engine defaults")
+            T.check(LuminaSettings.defaultSettings.luminaAdShieldEngineSettings(peerId: 5) == LuminaAdShield.Settings(), "defaults match the engine defaults")
+            // 「連管理員和頻道的也收」: per group, default off
+            T.check(!s.luminaAdShieldFoldPrivileged(peerId: 5) && !s.luminaAdShieldEngineSettings(peerId: 5).foldPrivilegedRepeats, "fold privileged: default off")
+            s = s.withLuminaAdShieldFoldPrivileged(true, peerId: 5)
+            s = s.withLuminaAdShieldFoldPrivileged(true, peerId: 5)
+            T.check(s.adShieldFoldPrivilegedDialogs == [5] && s.luminaAdShieldEngineSettings(peerId: 5).foldPrivilegedRepeats && !s.luminaAdShieldEngineSettings(peerId: 6).foldPrivilegedRepeats, "fold privileged: on for this group only, no duplicates")
+            T.check(s.luminaAdShieldEngineSettings(peerId: 5).sensitivity == s.luminaAdShieldEngineSettings(peerId: 6).sensitivity, "fold privileged: other settings unchanged")
             let encoded = try? JSONEncoder().encode(s)
             let decoded = encoded.flatMap { try? JSONDecoder().decode(LuminaSettings.self, from: $0) }
-            T.check(decoded == s, "settings: Codable round trip")
+            T.check(decoded == s && decoded?.adShieldFoldPrivilegedDialogs == [5], "settings: Codable round trip")
             let legacy = try? JSONDecoder().decode(LuminaSettings.self, from: Data("{}".utf8))
-            T.check(legacy == LuminaSettings.defaultSettings && legacy?.adShieldEnabled == false, "settings: old blob decodes with the feature off")
+            T.check(legacy == LuminaSettings.defaultSettings && legacy?.adShieldEnabled == false && legacy?.adShieldFoldPrivilegedDialogs == [], "settings: old blob decodes with the feature off")
+            var withMode = s.withLuminaAdShieldMode(.on, peerId: 7)
+            withMode.adShieldSensitivity = "aggressive"
+            let cleared = withMode.withoutLuminaAdShieldGroupSettings()
+            T.check(cleared.adShieldDialogs.isEmpty && cleared.adShieldFoldPrivilegedDialogs.isEmpty && cleared.adShieldSensitivity == "aggressive" && cleared.adShieldEnabled == withMode.adShieldEnabled, "clear: per-group modes and switches go, the rest stays")
+            s = s.withLuminaAdShieldFoldPrivileged(false, peerId: 5)
+            T.check(s.adShieldFoldPrivilegedDialogs.isEmpty && !s.luminaAdShieldFoldPrivileged(peerId: 5), "fold privileged: off removes the entry")
+        }
+
+        // ---- 10. 「連管理員和頻道的也收」 reaches that chat's decisions only -----------------------------------------
+        do {
+            let chat10: Int64 = -1005570001
+            let chat11: Int64 = -1005570002
+            let peer10 = peerId + 500
+            let peer11 = peerId + 501
+            let service = makeService()
+            var s = settings(global: true)
+            service.settingsLoaded(s)
+            service.updateAccounts([accountDir: userId])
+            let admin = LuminaAdShield.Sender(id: 42, role: .admin, username: "grp_admin_demo")
+            let text = "價目表更新 有需要私聊 @vendor_demo_x 下單 t.me/+VendorDemoX"
+            func adminPost(_ id: Int32, _ date: Int64) -> LuminaAdShieldObserveItem {
+                return LuminaAdShieldObserveItem(input: LuminaAdShield.MessageInput(id: id, date: date, sender: admin, text: text))
+            }
+            func memberCopy(_ id: Int32, _ date: Int64) -> LuminaAdShieldObserveItem {
+                return LuminaAdShieldObserveItem(input: LuminaAdShield.MessageInput(id: id, date: date, sender: LuminaAdShield.Sender(id: 43, username: "member_demo"), text: text))
+            }
+            var sessions: [LuminaAdShieldChatSession] = []
+            for (chat, peer) in [(chat10, peer10), (chat11, peer11)] {
+                let session = LuminaAdShieldChatSession(userId: userId, basePath: accountDir, chatId: chat, peerId: peer, service: service)
+                session.setActive(true, trialRun: false)
+                session.submit(context: LuminaAdShield.ChatContext(chatId: chat, type: .supergroup, adminsKnown: true), prepare: { [adminPost(1, now - 900), adminPost(2, now - 600), adminPost(3, now - 300), memberCopy(4, now - 100)] }, decideIds: [1, 2, 3, 4])
+                T.check(waitUntil { session.hasDecided }, "privileged: decisions")
+                T.check((1 ... 4).allSatisfy { session.decision(Int32($0))?.state == .endorsed }, "privileged: switch off → the admin's repeats and the member's copy are endorsed")
+                sessions.append(session)
+            }
+            s = s.withLuminaAdShieldFoldPrivileged(true, peerId: peer10)
+            service.settingsLoaded(s)
+            for (session, chat) in zip(sessions, [chat10, chat11]) {
+                session.submit(context: LuminaAdShield.ChatContext(chatId: chat, type: .supergroup, adminsKnown: true), prepare: { [] }, decideIds: [1, 2, 3, 4])
+            }
+            T.check(waitUntil { sessions[0].decision(3)?.state == .fold }, "privileged: switch on → the admin's repeats fold (\(String(describing: sessions[0].decision(3)?.state)))")
+            T.check((1 ... 3).allSatisfy { sessions[0].decision(Int32($0))?.fold == true }, "privileged: all three of the same admin's posts fold")
+            T.check(sessions[0].decision(4)?.state == .endorsed, "privileged: a member's copy of the admin's post is still endorsed")
+            drain(service)
+            T.check((1 ... 4).allSatisfy { sessions[1].decision(Int32($0))?.state == .endorsed }, "privileged: another group's switch is off → unchanged")
+            var count = -1
+            let _ = service.foldedCountLast7Days(basePath: accountDir, chatId: chat10, peerId: peer10).start(next: { count = $0 })
+            T.check(waitUntil { count >= 0 } && count == 3, "privileged: the 7-day count uses the group's switch (\(count))")
+            s = s.withLuminaAdShieldFoldPrivileged(false, peerId: peer10)
+            service.settingsLoaded(s)
+            sessions[0].submit(context: LuminaAdShield.ChatContext(chatId: chat10, type: .supergroup, adminsKnown: true), prepare: { [] }, decideIds: [1, 2, 3, 4])
+            T.check(waitUntil { sessions[0].decision(3)?.state == .endorsed }, "privileged: switch off again → endorsed")
         }
 
         try? FileManager.default.removeItem(atPath: tmp)

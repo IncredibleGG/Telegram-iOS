@@ -4,10 +4,13 @@
 // submodules/TelegramUIPreferences/Sources (AdShieldTables.swift + LuminaAdShield*.swift, which import only
 // Foundation) into one executable, so the checker can also reach `internal` state to forge corrupted files.
 //
-// Checks (definition of done, SPEC §10): normalize 55, fingerprint 57 (every expect field), SipHash 77,
-// all 97 scenarios exactly as README "情境" / ref/test_adshield.py run_scenario, shuffled-load-order invariance,
-// serialize → deserialize round trip, every SPEC §8.3 rejection rule on crafted blobs, no plaintext in blobs,
-// ForgetAll refusing writes, plus the remaining storage tests of test_adshield.py and a 3000-row timing.
+// Checks (definition of done, SPEC §10; algoVersion 3 / formatVersion 3): normalize 55, fingerprint 76 (every expect
+// field, incl. the v3 contentLines / blocks / privileged, VAR / VARL / VARS / BLOCK keys, PRIV / PRIV_STRONG flags),
+// SipHash 77, all 138 scenarios exactly as README "情境" / ref/test_adshield.py run_scenario, shuffled-load-order
+// invariance, serialize → deserialize round trip, every SPEC §8.3 rejection rule on crafted blobs, no plaintext in
+// blobs, ForgetAll refusing writes, the remaining storage tests of test_adshield.py, the v3 tests of TestV3 /
+// TestV3Fixes (VAR / BLOCK rules, key caps, record authors, foldPrivilegedRepeats only touching privileged messages,
+// CR LF, PRIV_STRONG and the author of re-forwarded channel posts) and a 3000-row timing.
 import Foundation
 
 typealias AS = LuminaAdShield
@@ -162,6 +165,7 @@ func settings(_ d: J?, _ sens: AS.Sensitivity) -> AS.Settings {
         if d["exemptBots"] != nil { s.exemptBots = bool(d["exemptBots"]) }
         if d["exemptReplies"] != nil { s.exemptReplies = bool(d["exemptReplies"]) }
         if d["dryRun"] != nil { s.dryRun = bool(d["dryRun"]) }
+        if d["foldPrivilegedRepeats"] != nil { s.foldPrivilegedRepeats = bool(d["foldPrivilegedRepeats"]) }
     }
     return s
 }
@@ -175,7 +179,7 @@ func flagNames(_ flags: UInt32) -> [String] {
         names.append("W_" + n)
     }
     let rest: [(String, UInt32)] = [
-        ("F_HAS_TEXT", AS.Flag.hasText), ("F_MEDIA_ONLY", AS.Flag.mediaOnly), ("F_PURE_TEXT", AS.Flag.pureText),
+        ("F_PRIV_STRONG", AS.Flag.privStrong), ("F_PRIV", AS.Flag.priv), ("F_HAS_TEXT", AS.Flag.hasText), ("F_MEDIA_ONLY", AS.Flag.mediaOnly), ("F_PURE_TEXT", AS.Flag.pureText),
         ("F_ACK", AS.Flag.ack), ("F_REPLY_ME", AS.Flag.replyMe), ("F_MENTION_ME", AS.Flag.mentionMe),
         ("F_IS_REPLY", AS.Flag.isReply), ("F_ENDORSING", AS.Flag.endorsing), ("F_BOT", AS.Flag.bot),
         ("F_CONTACT", AS.Flag.contact), ("F_SELF", AS.Flag.selfSender), ("F_HAS_MEDIA_KEY", AS.Flag.hasMediaKey),
@@ -418,7 +422,7 @@ struct Layout {
         var msgId = 0, album = 0, date = 0, seen = 0, sender = 0, flags = 0, nKeys = 0, firstKeyKind = -1, nLinks = 0, nPend = 0, end = 0
     }
     struct RecL {
-        var kind = 0, stamp = 0, nKeys = 0, firstKeyKind = -1, nLinks = 0, end = 0
+        var kind = 0, stamp = 0, msgKey = 0, author = 0, nKeys = 0, firstKeyKind = -1, nLinks = 0, end = 0
     }
     struct HandleL {
         var hash = 0, first = 0, last = 0, seen = 0
@@ -447,8 +451,8 @@ struct Layout {
         }
         for _ in 0 ..< nRec {
             var r = RecL()
-            r.kind = off; r.stamp = off + 1
-            off += 17
+            r.kind = off; r.stamp = off + 1; r.msgKey = off + 9; r.author = off + 17
+            off += 25
             r.nKeys = off
             let nk = Int(b[off]); off += 1
             if nk > 0 { r.firstKeyKind = off }
@@ -587,7 +591,7 @@ func checkSipHash(_ dir: String) {
 }
 
 func checkFingerprints(_ dir: String) {
-    checkFingerprintFile(dir + "/vectors/fingerprint_vectors.json", title: "fingerprint vectors (all expect fields)", expectedCount: 57)
+    checkFingerprintFile(dir + "/vectors/fingerprint_vectors.json", title: "fingerprint vectors (all expect fields)", expectedCount: 76)
 }
 
 func checkFingerprintFile(_ path: String, title: String, expectedCount: Int?) {
@@ -614,6 +618,12 @@ func checkFingerprintFile(_ path: String, title: String, expectedCount: Int?) {
         eq("cjkCount", fp.cjkCount == Int(i64(e["cjkCount"])), "\(fp.cjkCount)")
         eq("otherLetterCount", fp.letterCount == Int(i64(e["otherLetterCount"])), "\(fp.letterCount)")
         eq("paragraphs", fp.paragraphs == ((e["paragraphs"] as? [String]) ?? []).map(scal), "\(fp.paragraphs.map(string))")
+        if e["contentLines"] != nil {
+            eq("contentLines", fp.contentLines == ((e["contentLines"] as? [String]) ?? []).map(scal), "\(fp.contentLines.map(string))")
+        }
+        if e["blocks"] != nil {
+            eq("blocks", fp.blocks == ((e["blocks"] as? [String]) ?? []).map(scal), "\(fp.blocks.map(string))")
+        }
         let gotLinks = zip(fp.links, fp.linkFeatures).map { l, f in
             [string(l.token), string(l.type), l.kind.rawValue, l.source.rawValue, f.rawValue, hex(AS.khash(key, "link", l.token))]
         }
@@ -643,6 +653,9 @@ func checkFingerprintFile(_ path: String, title: String, expectedCount: Int?) {
         eq("senderKey", hex(fp.senderKey) == str(e["senderKey"]), hex(fp.senderKey))
         eq("store", fp.store == bool(e["store"]), "\(fp.store)")
         eq("endorsing", fp.endorsing == bool(e["endorsing"]), "\(fp.endorsing)")
+        if e["privileged"] != nil {
+            eq("privileged", fp.privileged == bool(e["privileged"]), "\(fp.privileged)")
+        }
         n += 1
     }
     if let expectedCount {
@@ -653,7 +666,7 @@ func checkFingerprintFile(_ path: String, title: String, expectedCount: Int?) {
 }
 
 func checkScenarios(_ dir: String) -> [J] {
-    T.begin("scenarios (97, every expect × 3 sensitivities)")
+    T.begin("scenarios (138, every expect × 3 sensitivities)")
     let data = loadJSON(dir + "/corpus/scenarios.json")
     let scenarios = data["scenarios"] as! [J]
     var scenarioPass = 0
@@ -681,7 +694,7 @@ func checkScenarios(_ dir: String) -> [J] {
             scenarioPass += 1
         }
     }
-    T.check(scenarios.count == 97, "expected 97 scenarios, got \(scenarios.count)")
+    T.check(scenarios.count == 138, "expected 138 scenarios, got \(scenarios.count)")
     print("  \(scenarioPass)/\(scenarios.count) scenarios pass; \(expectChecks) fold-set comparisons, \(stateChecks) state comparisons")
     // required lists (test_required_lists_present)
     for sc in scenarios {
@@ -836,7 +849,7 @@ func checkStorage(_ scenarios: [J]) {
                 T.check(!contains(blob, frag), "\(str(sc["id"]) ?? ""): plaintext fragment found in blob")
             }
         }
-        print("  no-plaintext: TR-03 exact test + \(checked) fragments over all 97 scenario blobs")
+        print("  no-plaintext: TR-03 exact test + \(checked) fragments over all \(scenarios.count) scenario blobs")
     }
     do {
         // delete anonymizes (test_delete_anonymizes)
@@ -896,9 +909,11 @@ func checkStorage(_ scenarios: [J]) {
             firstKeys = rec.keys
         }
         T.check(results.count == 1, "not-ad: record independent of load order (\(results.count) variants)")
-        T.check(firstKeys.count == 64, "not-ad: 64 keys")
-        let kinds = firstKeys.map { $0.isExact ? 0 : 1 }
-        T.check(kinds == kinds.sorted(), "not-ad: exact keys before paragraph keys")
+        T.check(firstKeys.count == AS.maxRecordKeys, "not-ad: \(AS.maxRecordKeys) keys (\(firstKeys.count))")
+        // v2 exact keys → paragraph keys (= the v2 record, 64) → v3 keys
+        let kinds = firstKeys.map { $0.isExact ? 0 : ($0.isV2 ? 1 : 2) }
+        T.check(kinds == kinds.sorted(), "not-ad: v2 exact keys, then paragraph keys, then v3 keys")
+        T.check(firstKeys.filter { $0.isV2 }.count == AS.recordV2Keys, "not-ad: the first \(AS.recordV2Keys) keys are the v2 record")
         let fp3 = AS.fingerprint(msgs[2], context: ctx, key: testKey)
         let own = Set(fp3.keys.filter { $0.kind == .para }.map { AS.Key(kind: $0.kind.rawValue, hash: $0.hash) })
         T.check(own.isSubset(of: Set(firstKeys)), "not-ad: m's own paragraph keys kept")
@@ -1048,10 +1063,10 @@ func checkRejections() {
     reject("length 55 (< 56)", Array(good.prefix(55)))
     reject("header only (56 bytes)", Array(good.prefix(56)))
     reject("magic", patched(0, 0x5341474D, 4))
-    reject("formatVersion 1", patched(4, 1, 2))
-    reject("formatVersion 3", patched(4, 3, 2))
-    reject("algoVersion 1", patched(6, 1, 2))
-    reject("algoVersion 3", patched(6, 3, 2))
+    reject("formatVersion 2 (v2 file: discarded and rebuilt)", patched(4, 2, 2))
+    reject("formatVersion 4", patched(4, 4, 2))
+    reject("algoVersion 2", patched(6, 2, 2))
+    reject("algoVersion 4", patched(6, 4, 2))
     reject("tablesVersion", patched(8, UInt64(AdShieldTables.tablesVersionU32 ^ 1), 4))
     accept("reserved u32 is not checked (as the reference)", patched(12, 7, 4))
     reject("keyCheck field", patched(16, readLE(good, 16, 8) ^ 1, 8))
@@ -1114,10 +1129,30 @@ func checkRejections() {
         reject("duplicate handle", patched(h2.hash, readLE(good, hnd.hash, 8), 8))
     }
     // reserved flag bits
-    for bit in [9, 15, 17, 31] {
+    for bit in [17, 31] {
         reject("row flag bit \(bit)", patched(live.flags, readLE(good, live.flags, 4) | (UInt64(1) << UInt64(bit)), 4))
     }
     accept("row flag bit 30 (TMPL_COND) allowed", patched(live.flags, readLE(good, live.flags, 4) | (UInt64(1) << 30), 4))
+    // v3 PRIV (bit 15) only with ENDORSING; PRIV_STRONG (bit 9) only with PRIV
+    do {
+        let endorsingRow = L.rows.first { readLE(good, $0.flags, 4) & UInt64(AS.Flag.endorsing) != 0 }!
+        let plainRow = L.rows.first { readLE(good, $0.msgId, 4) != 0 && readLE(good, $0.flags, 4) & UInt64(AS.Flag.endorsing) == 0 }!
+        let ef = readLE(good, endorsingRow.flags, 4), pf = readLE(good, plainRow.flags, 4)
+        accept("PRIV with ENDORSING", patched(endorsingRow.flags, ef | UInt64(AS.Flag.priv), 4))
+        accept("PRIV_STRONG with PRIV", patched(endorsingRow.flags, ef | UInt64(AS.Flag.priv | AS.Flag.privStrong), 4))
+        reject("PRIV without ENDORSING", patched(plainRow.flags, pf | UInt64(AS.Flag.priv), 4))
+        reject("PRIV_STRONG without PRIV", patched(endorsingRow.flags, (ef & ~UInt64(AS.Flag.priv)) | UInt64(AS.Flag.privStrong), 4))
+        reject("PRIV_STRONG without PRIV or ENDORSING", patched(plainRow.flags, pf | UInt64(AS.Flag.privStrong), 4))
+    }
+    // v3 record author: any value on an endorsement; a not-ad record has author 0 and msgKey 0
+    do {
+        let endorseRec = L.records.first { readLE(good, $0.kind, 1) == UInt64(AS.recordEndorse) }!
+        let notAdRec = L.records.first { readLE(good, $0.kind, 1) == UInt64(AS.recordNotAd) }!
+        accept("endorsement record with an author", patched(endorseRec.author, 0xFEDC_BA98_7654_3210, 8))
+        reject("not-ad record with an author", patched(notAdRec.author, 7, 8))
+        reject("not-ad record with a msgKey", patched(notAdRec.msgKey, 9, 8))
+        accept("not-ad record author 0 (control)", patched(notAdRec.author, 0, 8))
+    }
     // element counts and kinds
     func keys(_ n: Int, kind: UInt8 = 1) -> [AS.Key] {
         return (0 ..< n).map { AS.Key(kind: kind, hash: UInt64($0) &* 0x9E37_79B9_7F4A_7C15) }
@@ -1125,33 +1160,35 @@ func checkRejections() {
     func hashes(_ n: Int) -> [UInt64] {
         return (0 ..< n).map { UInt64($0) &+ 77 }
     }
-    accept("row with 22 keys", forged { cs in cs.rows[0].keys = keys(22) })
-    reject("row with 23 keys", forged { cs in cs.rows[0].keys = keys(23) })
+    accept("row with 72 keys", forged { cs in cs.rows[0].keys = keys(72) })
+    reject("row with 73 keys", forged { cs in cs.rows[0].keys = keys(73) })
     accept("row with 16 links", forged { cs in cs.rows[0].links = hashes(16) })
     reject("row with 17 links", forged { cs in cs.rows[0].links = hashes(17) })
     accept("row with 16 pending", forged { cs in cs.rows[0].pending = hashes(16) })
     reject("row with 17 pending", forged { cs in cs.rows[0].pending = hashes(17) })
-    accept("record with 64 keys", forged { cs in cs.records[0].keys = keys(64) })
-    reject("record with 65 keys", forged { cs in cs.records[0].keys = keys(65) })
+    accept("record with 128 keys", forged { cs in cs.records[0].keys = keys(128) })
+    reject("record with 129 keys", forged { cs in cs.records[0].keys = keys(129) })
     accept("record with 64 links", forged { cs in cs.records[0].links = hashes(64) })
     reject("record with 65 links", forged { cs in cs.records[0].links = hashes(65) })
-    for kind: UInt8 in [0, 8, 255] {
+    for kind: UInt8 in [0, 12, 255] {
         reject("row key kind \(kind)", forged { cs in cs.rows[0].keys = keys(1, kind: kind) })
         reject("record key kind \(kind)", forged { cs in cs.records[0].keys = keys(1, kind: kind) })
     }
-    for kind: UInt8 in 1 ... 7 {
+    for kind: UInt8 in 1 ... 11 {
         accept("row key kind \(kind)", forged { cs in cs.rows[0].keys = keys(1, kind: kind) })
+        accept("record key kind \(kind)", forged { cs in cs.records[0].keys = keys(1, kind: kind) })
     }
     for kind: UInt64 in [0, 3, 255] {
         reject("record kind \(kind)", patched(rec.kind, kind, 1))
     }
     T.check(live.firstKeyKind >= 0 && rec.firstKeyKind >= 0, "layout has keys")
-    reject("row key kind byte 9 (patched)", patched(live.firstKeyKind, 9, 1))
+    reject("row key kind byte 12 (patched)", patched(live.firstKeyKind, 12, 1))
     reject("record key kind byte 0 (patched)", patched(rec.firstKeyKind, 0, 1))
-    reject("row nKeys 23 (patched)", patched(live.nKeys, 23, 1))
+    accept("row key kind byte 11 (patched)", patched(live.firstKeyKind, 11, 1))
+    reject("row nKeys 73 (patched)", patched(live.nKeys, 73, 1))
     reject("row nLinks 17 (patched)", patched(live.nLinks, 17, 1))
     reject("row nPend 17 (patched)", patched(live.nPend, 17, 1))
-    reject("record nKeys 65 (patched)", patched(rec.nKeys, 65, 1))
+    reject("record nKeys 129 (patched)", patched(rec.nKeys, 129, 1))
     reject("record nLinks 65 (patched)", patched(rec.nLinks, 65, 1))
     // truncation and trailing bytes
     var truncRejected = 0
@@ -1166,6 +1203,276 @@ func checkRejections() {
     reject("8 trailing bytes (rehashed)", rehash(good + [UInt8](repeating: 0, count: 8)))
     reject("trailing bytes (not rehashed)", good + [0])
     print("  base blob \(good.count) bytes: \(L.rows.count) rows, \(L.records.count) records, \(L.handles.count) handles")
+    T.end()
+}
+
+// MARK: - v3 (ref/test_adshield.py TestV3 / TestV3Fixes)
+
+/// Message ids of the live rows in G(msgId) (test helper; reaches the internal unit cache).
+func groupMsgIds(_ chat: AS.ChatStore, _ ctx: AS.ChatContext, _ msgId: Int32, _ now: Int64) -> [Int32] {
+    let c = chat.units(ctx, now: now)
+    guard let mi = chat.unitIndex(c, msgId: msgId) else {
+        return []
+    }
+    let members = Set(chat.group(c, mi))
+    var out: [Int32] = []
+    for r in chat.rows where r.live {
+        let uid = r.album != 0 ? AS.UnitId(isAlbum: true, value: r.album) : AS.UnitId(isAlbum: false, value: Int64(r.rid))
+        if let ui = c.byUid[uid], members.contains(ui) {
+            out.append(r.msgId)
+        }
+    }
+    return out.sorted()
+}
+
+func joined(_ parts: [[UInt32]]) -> [UInt32] {
+    return parts.flatMap { $0 }
+}
+
+func checkV3(_ scenarios: [J]) {
+    T.begin("v3: VAR / BLOCK, caps, authors, option, CR LF")
+    let V = AS.KeyKind.variant, VL = AS.KeyKind.variantLoose, VS = AS.KeyKind.variantStrict
+    func kp(_ v: [(kind: AS.KeyKind, payload: [UInt32])]) -> [String] {
+        return v.map { "\($0.kind.name):\(string($0.payload))" }
+    }
+    do {
+        // test_var_key_rules
+        let lines = ["丝滑提交", "限时特价云端会员年卡全网最低价格", "有需要的请私聊我下单先到先得"].map(scal)
+        T.check(kp(AS.varKeys(lines)) == kp([(V, joined(lines)), (VS, joined(Array(lines[1...])))]), "var: D=8 K=60 → VAR + VARS only: \(kp(AS.varKeys(lines)))")
+        let loose = [scal("一二三四五六七八九十")] + Array(lines[1...])
+        T.check(kp(AS.varKeys(loose)) == kp([(V, joined(loose)), (VL, joined(Array(loose[1...])))]), "var: D=20 K=60 → VARL: \(kp(AS.varKeys(loose)))")
+        T.check(AS.varKeys([scal("短")]).isEmpty, "var: K < 24 emits nothing")
+        T.check(kp(AS.varKeys([scal("一二三四五六七八九十一二")])) == ["VAR:一二三四五六七八九十一二"], "var: one line → VAR only")
+        let dup = ["价目表如下请参考", "#件起", "#件起", "详情请私聊客服人员"].map(scal)
+        let dps = AS.varKeys(dup).map { $0.payload }
+        T.check(dps.count == Set(dps).count, "var: deduped by payload")
+        let many = (0 ..< 50).map { scal(String(format: "第%02d行商品名称", $0)) }
+        let v = AS.varKeys(many)
+        T.check(v.count == AS.maxVar && AS.maxVar == 34, "var: at most 34 (\(v.count))")
+        T.check(v.map { $0.kind } == [V] + [AS.KeyKind](repeating: VS, count: AS.maxVar - 1), "var: VAR then VARS")
+        let ps = Set(v.map { $0.payload })
+        T.check(!ps.contains(joined(Array(many[..<25]) + Array(many[26...]))), "var: no leave-one-out in the middle")
+        T.check(ps.contains(joined(Array(many[..<15]) + Array(many[16...]))) && ps.contains(joined(Array(many[..<34]) + Array(many[35...]))), "var: leave-one-out at both edges")
+    }
+    do {
+        // test_var_matching_rules
+        let ctx = AS.ChatContext(chatId: -1)
+        func groupIds(_ texts: [String]) -> [Int32] {
+            let chat = AS.ChatStore(chatId: -1, key: testKey)
+            for (i, t) in texts.enumerated() {
+                _ = try! chat.observe(AS.MessageInput(id: Int32(i + 1), date: 1000 + Int64(i), sender: AS.Sender(id: 5), text: t), context: ctx, now: 2000)
+            }
+            return groupMsgIds(chat, ctx, 1, 2000)
+        }
+        let head = "【社區公告】本週社區活動與重要事項", tail = "如有疑問請私聊管理員\n感謝各位鄰居配合"
+        T.check(groupIds([head + "\n週六上午九點大樓消防演練\n" + tail, head + "\n週日下午兩點社區二手市集\n" + tail]) == [1], "var match: a replaced long line (VARL vs VARL) does not cluster")
+        T.check(groupIds([head + "\n" + tail, head + "\n週六上午九點大樓消防演練\n" + tail]) == [1, 2], "var match: one line added clusters")
+        let long = ["本店雲端會員年卡限時特價全網最低價格", "季卡月卡全部現貨下單後五分鐘內開通", "企業採購量大可議歡迎私聊客服詢價", "售後保固一年有任何問題隨時找我們"].joined(separator: "\n")
+        T.check(groupIds([long + "\n今日特價", long + "\n明日特價"]) == [1, 2], "var match: a short line replaced (VARS vs VARS) clusters")
+        // VAR / BLOCK never link two senders
+        let chat = AS.ChatStore(chatId: -1, key: testKey)
+        _ = try! chat.observe(AS.MessageInput(id: 1, date: 1000, sender: AS.Sender(id: 5), text: head + "\n" + tail), context: ctx, now: 2000)
+        _ = try! chat.observe(AS.MessageInput(id: 2, date: 1001, sender: AS.Sender(id: 6), text: head + "\n週六上午九點大樓消防演練\n" + tail), context: ctx, now: 2000)
+        T.check(groupMsgIds(chat, ctx, 1, 2000) == [1], "var match: other senders never cluster by VAR")
+    }
+    do {
+        // test_block_rules
+        let f = "標題\n\n第一區塊的內容長度足夠\n第二行\n🔥🔥🔥\n第二區塊的內容長度也足夠\n\n短\n\n第一區塊的內容長度足夠\n第二行"
+        let fn = AS.extractLinks(AdShieldTables.fold(f)).fNoLinks
+        let bs = AS.blocks(fn)
+        T.check(bs == ["标题", "第一区块的内容长度足够第二行", "第二区块的内容长度也足够", "短", "第一区块的内容长度足够第二行"].map(scal), "blocks: \(bs.map(string))")
+        T.check(AS.blockPayloads(bs) == ["第一区块的内容长度足够第二行", "第二区块的内容长度也足够"].map(scal), "block payloads")
+        T.check(AS.blockPayloads(["第一区块的内容长度足够第二行", "短"].map(scal)).isEmpty, "block payloads: one qualifying block → none")
+        T.check(AS.blockContained(5, 6, 6) && AS.blockContained(2, 2, 9) && AS.blockContained(4, 5, 5), "block containment: true cases")
+        T.check(!AS.blockContained(2, 3, 3) && !AS.blockContained(1, 1, 1) && !AS.blockContained(3, 4, 4), "block containment: false cases")
+        T.check(AS.contentLines(fn) == ["标题", "第一区块的内容长度足够", "第二行", "第二区块的内容长度也足够", "短", "第一区块的内容长度足够", "第二行"].map(scal), "content lines")
+    }
+    do {
+        // test_row_key_cap_reached_and_serializable
+        let digits = Array("零一二三四五六七八九"), stems = Array("甲乙丙丁戊")
+        let lines = (0 ..< 40).map { "第\(digits[$0 % 10])段是一行足夠長的內容，用來產生段落鍵與區塊鍵，順便測試上限\(stems[$0 / 10])" }
+        let text = lines.joined(separator: "\n\n") + "\n\n客服電話 0912-345-678 有需要私聊"
+        let chat = AS.ChatStore(chatId: -1, key: testKey)
+        let ctx = AS.ChatContext(chatId: -1)
+        let fp = try! chat.observe(AS.MessageInput(id: 1, date: 1000, sender: AS.Sender(id: 5), text: text, media: AS.Media(kind: .photo, id: "-42"), forward: AS.Forward(fromKind: .user, fromId: 77, date: 900)), context: ctx, now: 2000)!
+        let kinds = fp.keys.map { $0.kind }
+        T.check(fp.keys.count == AS.maxRowKeys && AS.maxRowKeys == 72, "row key cap: 72 keys (\(fp.keys.count))")
+        let nVar = kinds.filter { $0 == V || $0 == VL || $0 == VS }.count
+        T.check(kinds.filter { $0 == .para }.count == 16 && nVar == 34 && kinds.filter { $0 == .block }.count == 16, "row key cap: 16 PARA, 34 VAR family, 16 BLOCK")
+        let rank: [AS.KeyKind: Int] = [.fwd: 0, .media: 1, .text: 2, .cjk: 3, .tmpl: 4, .contact: 5, .para: 6, V: 7, VL: 7, VS: 7, .block: 8]
+        let ranks = kinds.map { rank[$0]! }
+        T.check(ranks == ranks.sorted(), "row key cap: key order")
+        let blob = chat.serialize()
+        let back = AS.ChatStore.deserialize(blob, chatId: -1, key: testKey)
+        T.check(back != nil && back?.serialize() == blob, "row key cap: 72-key row round trip")
+        T.check(chat.records.isEmpty, "row key cap: no endorsement record")
+    }
+    do {
+        // test_record_author_and_format
+        let chat = AS.ChatStore(chatId: -1, key: testKey)
+        let ctx = AS.ChatContext(chatId: -1, linkedChannelId: -100777)
+        _ = try! chat.observe(AS.MessageInput(id: 1, date: 1000, sender: AS.Sender(id: 9, role: .admin), text: "本群合作推廣：雲端會員特價，私聊管理員"), context: ctx, now: 2000)
+        _ = try! chat.observe(AS.MessageInput(id: 2, date: 1001, sender: AS.Sender(id: 8), text: "本群公告：雲端會員特價，私聊管理員", pinned: true), context: ctx, now: 2000)
+        _ = try! chat.observe(AS.MessageInput(id: 3, date: 1002, sender: AS.Sender(id: -100777, role: .channel), text: "頻道公告：私聊客服"), context: ctx, now: 2000)
+        _ = try! chat.observe(AS.MessageInput(id: 4, date: 1003, sender: AS.Sender(id: 10, role: .selfUser), text: "我的公告：私聊我報名"), context: ctx, now: 2000)
+        let sk = { (i: Int64) -> UInt64 in AS.khash(testKey, "sender", scal(String(i))) }
+        let mk = { (i: Int64) -> UInt64 in AS.khash(testKey, "msg", scal(String(i))) }
+        var authors: [UInt64: UInt64] = [:]
+        for r in chat.records {
+            authors[r.msgKey] = r.author
+        }
+        T.check(authors == [mk(1): sk(9), mk(2): 0, mk(3): sk(-100777), mk(4): 0], "record authors: admin, pinned member 0, linked channel, self 0")
+        let blob = chat.serialize()
+        let back = AS.ChatStore.deserialize(blob, chatId: -1, key: testKey)
+        T.check(back.map { $0.records.map { "\($0.msgKey):\($0.author)" } } == chat.records.map { "\($0.msgKey):\($0.author)" }, "record authors survive a round trip")
+        T.check(readLE(blob, 4, 2) == 3 && readLE(blob, 6, 2) == 3, "header formatVersion 3, algoVersion 3")
+        var old = blob
+        putLE(&old, 4, 2, 2)
+        T.check(AS.ChatStore.deserialize(old, chatId: -1, key: testKey) == nil, "a v2 file is discarded")
+    }
+    do {
+        // test_option_only_affects_privileged
+        var checkedPriv = 0
+        var checkedOther = 0
+        for sc in scenarios {
+            let acct = AS.AccountStore(userId: 424242, key: testKey, root: nil, fs: MemoryFS())
+            var ctx = context(sc["context"] as! J)
+            let chat = try! acct.chat(ctx.chatId)
+            var seen: [Int32] = []
+            var now: Int64 = 0
+            for ev in sc["events"] as! [J] {
+                switch str(ev["op"]) ?? "" {
+                case "observe":
+                    let msg = message(ev["message"] as! J)
+                    now = ev["now"] != nil ? i64(ev["now"]) : max(now, msg.date)
+                    _ = try! chat.observe(msg, context: ctx, now: now)
+                    if !seen.contains(msg.id) {
+                        seen.append(msg.id)
+                    }
+                case "delete":
+                    now = ev["now"] != nil ? i64(ev["now"]) : now
+                    try! chat.delete(((ev["ids"] as? [NSNumber]) ?? []).map { Int32(truncatingIfNeeded: $0.int64Value) }, now: now)
+                case "notAd":
+                    now = ev["now"] != nil ? i64(ev["now"]) : now
+                    _ = try! chat.markNotAd(Int32(truncatingIfNeeded: i64(ev["id"])), context: ctx, now: now)
+                case "context":
+                    ctx = context(ev["context"] as! J)
+                case "expect":
+                    now = ev["now"] != nil ? i64(ev["now"]) : now
+                    for i in seen {
+                        let priv = chat.byMsg[i].flatMap { chat.rowIndex(rid: $0) }.map { chat.rows[$0].flags & AS.Flag.priv != 0 } ?? false
+                        for sens in AS.Sensitivity.allCases {
+                            var off = settings(sc["settings"] as? J, sens)
+                            off.foldPrivilegedRepeats = false
+                            var on = off
+                            on.foldPrivilegedRepeats = true
+                            let dOff = chat.decide(i, context: ctx, settings: off, now: now)
+                            let dOn = chat.decide(i, context: ctx, settings: on, now: now)
+                            if priv {
+                                checkedPriv += 1
+                                if ctx.adminsKnown && AS.isEligible(ctx) {
+                                    T.check(dOff.state == .endorsed, "\(str(sc["id"]) ?? "") id \(i) \(sens): option off → privileged endorsed (\(dOff.state))")
+                                }
+                            } else {
+                                checkedOther += 1
+                                T.check(dOn == dOff, "\(str(sc["id"]) ?? "") id \(i) \(sens): option changes a non-privileged decision")
+                            }
+                        }
+                    }
+                default:
+                    break
+                }
+            }
+        }
+        T.check(checkedPriv > 50, "option: privileged decisions checked (\(checkedPriv))")
+        print("  foldPrivilegedRepeats only affects privileged: \(checkedOther) non-privileged decision pairs identical, \(checkedPriv) privileged off-state checks")
+    }
+    do {
+        // test_privileged_definition
+        let ctx = AS.ChatContext(chatId: -100, linkedChannelId: -200)
+        let cases: [(AS.Sender, Bool, AS.Forward?, Bool, Bool, Bool)] = [
+            (AS.Sender(id: 1, role: .admin), false, nil, false, true, true),
+            (AS.Sender(id: 1, role: .creator), false, nil, false, true, true),
+            (AS.Sender(id: -100, role: .anonAdmin), false, nil, false, true, true),
+            (AS.Sender(id: -200, role: .channel), false, nil, false, true, true),
+            (AS.Sender(id: -300, role: .channel), false, nil, false, false, false),
+            (AS.Sender(id: -200, role: .channel), true, nil, false, true, true),
+            (AS.Sender(id: 1, role: .selfUser), false, nil, false, true, false),
+            (AS.Sender(id: 1, role: .member), false, nil, true, true, false),
+            (AS.Sender(id: 1, role: .member), false, AS.Forward(fromKind: .channel, fromId: -200, postId: 5, date: 1), false, true, false),
+            (AS.Sender(id: 1, role: .admin), false, AS.Forward(fromKind: .user, fromId: 5, date: 1), false, false, false),
+            (AS.Sender(id: 1, role: .admin), false, AS.Forward(fromKind: .channel, fromId: -900, postId: 5, date: 1), false, true, true),
+            (AS.Sender(id: -200, role: .selfUser), false, nil, false, true, false),
+            (AS.Sender(id: -100, role: .selfUser), false, nil, false, true, false)
+        ]
+        for (i, (sender, auto, fwd, pinned, endorsing, priv)) in cases.enumerated() {
+            let fp = AS.fingerprint(AS.MessageInput(id: 1, date: 1, sender: sender, text: "本群公告：雲端會員特價，私聊客服", forward: fwd, pinned: pinned, autoForward: auto), context: ctx, key: testKey)
+            T.check(fp.endorsing == endorsing && fp.privileged == priv && (fp.flags & AS.Flag.priv != 0) == priv, "privileged definition case \(i): endorsing \(fp.endorsing) privileged \(fp.privileged)")
+        }
+    }
+    do {
+        // test_crlf_collapsed_before_fold
+        let ctx = AS.ChatContext(chatId: -1)
+        let lf = "雲端會員限時調價\n企業採購請私聊\n\n雲端硬碟會員年卡特價\n季卡特價月卡特價"
+        var crlfScalars = String.UnicodeScalarView()
+        for u in lf.unicodeScalars {
+            if u.value == 0x0A {
+                crlfScalars.append(Unicode.Scalar(UInt8(0x0D)))
+            }
+            crlfScalars.append(u)
+        }
+        let crlf = String(crlfScalars)
+        let a = AS.fingerprint(AS.MessageInput(id: 1, date: 1, sender: AS.Sender(id: 5), text: lf), context: ctx, key: testKey)
+        let b = AS.fingerprint(AS.MessageInput(id: 1, date: 1, sender: AS.Sender(id: 5), text: crlf), context: ctx, key: testKey)
+        T.check(a.f == b.f && a.keys.map { $0.hash } == b.keys.map { $0.hash } && a.blocks == b.blocks && a.flags == b.flags, "CR LF: same fingerprint as LF")
+        T.check(scal(AS.collapseCrlf("a\r\r\nb\rc\n\r")) == [0x61, 0x0D, 0x0A, 0x62, 0x0D, 0x63, 0x0A, 0x0D], "collapseCrlf: only the CR right before LF, one pass")
+        T.check(scal(AS.collapseCrlf("\r\n\r\n")) == [0x0A, 0x0A] && scal(AS.collapseCrlf("\r")) == [0x0D] && AS.collapseCrlf("").isEmpty, "collapseCrlf: edge cases")
+        T.check(AS.blocks(AdShieldTables.fold("一\u{2028}二\n \t\n三\n🔥\n四")) == ["一二", "三", "四"].map(scal), "blocks: U+2028, whitespace-only and emoji-only lines")
+    }
+    do {
+        // test_author_and_priv_strong
+        let ctx = AS.ChatContext(chatId: -100, username: "grp_demo", linkedChannelId: -200, linkedChannelUsername: "ch_demo", description: "官方客服 @desk_demo_helper", pinnedTexts: ["最新價目 私聊 @seller_demo_a 交流群 t.me/+PinInvDemo"])
+        let sk = { (i: Int64) -> UInt64 in AS.khash(testKey, "sender", scal(String(i))) }
+        let text = "最新價目 有需要聯繫 @seller_demo_a 交流群 t.me/+PinInvDemo"
+        let fwd = AS.Forward(fromKind: .channel, fromId: -200, postId: 9, username: "ch_demo", date: 1)
+        func fp(_ sender: AS.Sender, forward: AS.Forward? = nil, text t: String = text) -> AS.Fingerprint {
+            return AS.fingerprint(AS.MessageInput(id: 1, date: 1, sender: sender, text: t, forward: forward), context: ctx, key: testKey)
+        }
+        let adm = fp(AS.Sender(id: 7, role: .admin))
+        T.check(adm.strong.isEmpty && adm.flags & AS.Flag.privStrong != 0 && adm.senderKey == sk(7), "PRIV_STRONG: pinned-only account / invite of an admin")
+        let mem = fp(AS.Sender(id: 8))
+        T.check(mem.flags & (AS.Flag.priv | AS.Flag.privStrong) == 0 && mem.senderKey == sk(8), "member: no PRIV / PRIV_STRONG")
+        T.check(fp(AS.Sender(id: 7, role: .admin), forward: fwd).senderKey == sk(-200), "admin forwarding the linked channel: author = channel")
+        T.check(fp(AS.Sender(id: 8), forward: fwd).senderKey == sk(8), "member forwarding the linked channel: author = member")
+        var other = fwd
+        other.fromId = -900
+        T.check(fp(AS.Sender(id: 7, role: .admin), forward: other).senderKey == sk(7), "admin forwarding another channel: author = admin")
+        let auto = AS.fingerprint(AS.MessageInput(id: 2, date: 1, sender: AS.Sender(id: -200, role: .channel), text: "新品上架 私訊 @other_seller_demo", forward: fwd, autoForward: true), context: ctx, key: testKey)
+        T.check(auto.flags & AS.Flag.privStrong != 0, "automatic forward: the downgraded account is PRIV_STRONG")
+        let desc = fp(AS.Sender(id: 7, role: .admin), text: "有問題找 @desk_demo_helper 或看 @ch_demo")
+        T.check(desc.flags & AS.Flag.privStrong == 0, "description / own usernames are not PRIV_STRONG")
+    }
+    do {
+        // test_tolerant_record_overlap_never_impersonation
+        let ctx = AS.ChatContext(chatId: -1)
+        let chat = AS.ChatStore(chatId: -1, key: testKey)
+        let ann = "本週六下午兩點社區讀書會\n地點在市立圖書館三樓會議室\n歡迎大家帶朋友一起參加"
+        _ = try! chat.observe(AS.MessageInput(id: 1, date: 1000, sender: AS.Sender(id: 1, role: .admin), text: ann), context: ctx, now: 9000)
+        _ = try! chat.observe(AS.MessageInput(id: 2, date: 2000, sender: AS.Sender(id: 2), text: ann + "\n我整理的書單 https://notes-alpha.example/l"), context: ctx, now: 9000)
+        _ = try! chat.observe(AS.MessageInput(id: 3, date: 3000, sender: AS.Sender(id: 3), text: ann + "\n我整理的書單 https://notes-beta.example/l"), context: ctx, now: 9000)
+        _ = try! chat.observe(AS.MessageInput(id: 4, date: 4000, sender: AS.Sender(id: 4), text: ann + "\n讀書會加油"), context: ctx, now: 9000)
+        var last: [Int32: AS.Decision] = [:]
+        for sens in AS.Sensitivity.allCases {
+            var ds: [Int32: AS.Decision] = [:]
+            for i: Int32 in 2 ... 4 {
+                ds[i] = chat.decide(i, context: ctx, settings: AS.Settings(sensitivity: sens), now: 9000)
+            }
+            T.check(ds[2]?.cls == .weak && ds[3]?.cls == .weak, "edit overlap: \(sens) members' copies with their own URL are weak, not impersonation")
+            T.check(!ds.values.contains { $0.fold }, "edit overlap: \(sens) nothing folds")
+            last = ds
+        }
+        T.check(last[4]?.state == .endorsed, "edit overlap: a copy without new links is endorsed")
+    }
     T.end()
 }
 
@@ -1391,6 +1698,64 @@ func checkTiming() {
     print(String(format: "  decide cold (after a change, rebuilds units): median %.2f ms, max %.2f ms", coldMedian, coldTimes.max() ?? 0))
     print(String(format: "  decide warm: all 3000 messages %.1f ms (%.4f ms each), slowest single %.3f ms; %d folded", warmAll, warmAll / 3000, maxOne, folded))
     print(String(format: "  serialize %.2f ms, deserialize %.2f ms (%d bytes)", blobEnd - blobStart, loadEnd - blobEnd, blob.count))
+
+    // v3 worst case: a flood of multi-line price lists (short lines and blank lines: ~30 keys per row, VAR family and
+    // BLOCK keys), 400 senders, every message a small edit of one of 40 lists.
+    let flood = AS.ChatStore(chatId: ctx.chatId, key: testKey)
+    let items = Array("雲端會員年卡季卡月卡企業採購兌換碼禮品卡遊戲點數儲值影音串流音樂訂閱網盤空間")
+    var lists: [[String]] = []
+    for l in 0 ..< 40 {
+        var lines: [String] = []
+        for j in 0 ..< 24 {
+            let a = items[(l * 7 + j * 3) % items.count], b = items[(l * 5 + j) % items.count], c = items[(l + j * 11) % items.count]
+            lines.append("\(a)\(b)\(c)\(a)服務 \(10 + (l * j) % 90)元")
+            if j % 4 == 3 {
+                lines.append("")
+            }
+        }
+        lines.append("私聊 @vendor_\(l)_demo 下單 t.me/+List\(l)Demo")
+        lists.append(lines)
+    }
+    var fmsgs: [AS.MessageInput] = []
+    for i in 0 ..< 3000 {
+        var lines = lists[i % 40]
+        switch (i / 40) % 3 {
+        case 0:
+            lines.insert(contentsOf: ["絲滑提交：", ""], at: 0)
+        case 1:
+            lines[5] = "今日新品\(i % 7)號"
+        default:
+            break
+        }
+        let sender = Int64(20_000 + (i * 7919) % 400)
+        fmsgs.append(AS.MessageInput(id: Int32(i + 1), date: base + Int64(i) * 150, sender: AS.Sender(id: sender, username: "vendor_\(sender)"), text: lines.joined(separator: "\n")))
+    }
+    let f0 = now()
+    var keyCount = 0
+    for m in fmsgs {
+        keyCount += (try! flood.observe(m, context: ctx, now: m.date))?.keys.count ?? 0
+    }
+    let f1 = now()
+    let floodNow = fmsgs.last!.date
+    var floodCold: [Double] = []
+    for k in 0 ..< 5 {
+        try! flood.delete([Int32(3000 - k)], now: floodNow)
+        let a = now()
+        _ = flood.decide(Int32(1500 + k), context: ctx, settings: st, now: floodNow)
+        floodCold.append(now() - a)
+    }
+    let fa = now()
+    var floodFolded = 0
+    for i in 1 ... 2995 where flood.decide(Int32(i), context: ctx, settings: st, now: floodNow).fold {
+        floodFolded += 1
+    }
+    let floodWarm = now() - fa
+    let floodBlob = flood.serialize()
+    T.check(AS.ChatStore.deserialize(floodBlob, chatId: ctx.chatId, key: testKey) != nil, "flood blob loads")
+    T.check(floodFolded > 0, "the flood has folded messages (\(floodFolded))")
+    print(String(format: "  v3 flood (multi-line lists, %.1f keys per row): observe %.1f ms total (%.3f ms each)", Double(keyCount) / 3000, f1 - f0, (f1 - f0) / 3000))
+    print(String(format: "  v3 flood decide cold (rebuilds units): median %.2f ms, max %.2f ms", floodCold.sorted()[floodCold.count / 2], floodCold.max() ?? 0))
+    print(String(format: "  v3 flood decide warm: 2995 messages %.1f ms (%.4f ms each); %d folded; blob %d bytes", floodWarm, floodWarm / 2995, floodFolded, floodBlob.count))
     T.end()
 }
 
@@ -1456,6 +1821,7 @@ struct AdShieldCheck {
         checkStorage(scenarios)
         checkRejections()
         checkAccount(scenarios)
+        checkV3(scenarios)
         for p in extraFingerprints {
             checkFingerprintFile(p, title: "extra fingerprints: " + (p as NSString).lastPathComponent, expectedCount: nil)
         }

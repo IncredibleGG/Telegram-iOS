@@ -11801,6 +11801,3666 @@
      }
     }
    ]
+  },
+  {
+   "id": "R3-01",
+   "category": "regression_v3",
+   "title": "價目表開頭加一行（同一人重發）",
+   "note": "每行都短於段落門檻、沒有聯絡鍵；v3 的 VAR 家族（第 3 則去掉第 1 個內容行＝前兩則的全文：增刪一行）與 BLOCK 鍵（開頭那行自成一個不合格的區塊，其餘 6 個區塊完全相同）都把第 3 則連回同一人的前兩則。標準：7 天內同一人 3 次（同一人重發 → 第一則也收）。v2 只有 2 次：標準不收、積極只收 1、2。",
+   "context": {
+    "chatId": -1001000000001,
+    "type": "supergroup",
+    "username": "lumina_demo_grp",
+    "linkedChannel": {
+     "id": -1002000000002,
+     "username": "lumina_demo_ch"
+    },
+    "description": "LuminaGram 合成測試群。官網 https://lumina-demo.example.org 新人請看置頂。邀請 t.me/+DemoGroupInv",
+    "pinnedTexts": [],
+    "adminsKnown": true,
+    "memberHandles": [
+     "me_demo_user"
+    ]
+   },
+   "settings": {},
+   "events": [
+    {
+     "op": "observe",
+     "message": {
+      "id": 1,
+      "date": 1794268800,
+      "sender": {
+       "id": 6001,
+       "role": "member"
+      },
+      "text": "雲端會員限時調價：\n企業採購請私聊 全網最低價\n月卡 季卡 年卡 全部現貨\n\n🔥 雲端硬碟會員\n年卡特價：320\n季卡特價：99\n月卡特價：38\n\n⭐ 影音會員 168\n【5件起165】\n【10件起160】\n【20件起155】\n\n⭐ 翻譯點數\n100點=30\n300點=85\n1000點=260\n\n📍 下單入口\n👉 https://shop-demo-cloud.example/ （需要先註冊）\n\n有任何問題 隨時私聊 @cloud_demo_seller\n\n售後頻道： https://t.me/cloud_demo_ch\n交流群： https://t.me/cloud_demo_grp"
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 2,
+      "date": 1794441600,
+      "sender": {
+       "id": 6001,
+       "role": "member"
+      },
+      "text": "雲端會員限時調價：\n企業採購請私聊 全網最低價\n月卡 季卡 年卡 全部現貨\n\n🔥 雲端硬碟會員\n年卡特價：320\n季卡特價：99\n月卡特價：38\n\n⭐ 影音會員 168\n【5件起165】\n【10件起160】\n【20件起155】\n\n⭐ 翻譯點數\n100點=30\n300點=85\n1000點=260\n\n📍 下單入口\n👉 https://shop-demo-cloud.example/ （需要先註冊）\n\n有任何問題 隨時私聊 @cloud_demo_seller\n\n售後頻道： https://t.me/cloud_demo_ch\n交流群： https://t.me/cloud_demo_grp"
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 3,
+      "date": 1794614400,
+      "sender": {
+       "id": 6001,
+       "role": "member"
+      },
+      "text": "絲滑提交：\n\n雲端會員限時調價：\n企業採購請私聊 全網最低價\n月卡 季卡 年卡 全部現貨\n\n🔥 雲端硬碟會員\n年卡特價：320\n季卡特價：99\n月卡特價：38\n\n⭐ 影音會員 168\n【5件起165】\n【10件起160】\n【20件起155】\n\n⭐ 翻譯點數\n100點=30\n300點=85\n1000點=260\n\n📍 下單入口\n👉 https://shop-demo-cloud.example/ （需要先註冊）\n\n有任何問題 隨時私聊 @cloud_demo_seller\n\n售後頻道： https://t.me/cloud_demo_ch\n交流群： https://t.me/cloud_demo_grp"
+     }
+    },
+    {
+     "op": "expect",
+     "fold": {
+      "loose": [],
+      "standard": [
+       1,
+       2,
+       3
+      ],
+      "aggressive": [
+       1,
+       2,
+       3
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "R3-02",
+   "category": "regression_v3",
+   "title": "價目表開頭加一行＋改掉一個區塊（同一人；BLOCK）",
+   "note": "第 2 則與第 1 則差兩處（開頭一行＋影音區塊），VAR 對不上；6 個合格區塊共用 5 個（≥2 且 5×5 ≥ 4×6）→ BLOCK 成簇。第 2、3 則只差開頭那行（兩邊各去掉開頭那行後相同，去掉的都 ≤ 剩下的 1/4 → 都是 VARS：替換一行）。",
+   "context": {
+    "chatId": -1001000000001,
+    "type": "supergroup",
+    "username": "lumina_demo_grp",
+    "linkedChannel": {
+     "id": -1002000000002,
+     "username": "lumina_demo_ch"
+    },
+    "description": "LuminaGram 合成測試群。官網 https://lumina-demo.example.org 新人請看置頂。邀請 t.me/+DemoGroupInv",
+    "pinnedTexts": [],
+    "adminsKnown": true,
+    "memberHandles": [
+     "me_demo_user"
+    ]
+   },
+   "settings": {},
+   "events": [
+    {
+     "op": "observe",
+     "message": {
+      "id": 1,
+      "date": 1794268800,
+      "sender": {
+       "id": 6011,
+       "role": "member"
+      },
+      "text": "雲端會員限時調價：\n企業採購請私聊 全網最低價\n月卡 季卡 年卡 全部現貨\n\n🔥 雲端硬碟會員\n年卡特價：320\n季卡特價：99\n月卡特價：38\n\n⭐ 影音會員 168\n【5件起165】\n【10件起160】\n【20件起155】\n\n⭐ 翻譯點數\n100點=30\n300點=85\n1000點=260\n\n📍 下單入口\n👉 https://shop-demo-cloud.example/ （需要先註冊）\n\n有任何問題 隨時私聊 @cloud_demo_seller\n\n售後頻道： https://t.me/cloud_demo_ch\n交流群： https://t.me/cloud_demo_grp"
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 2,
+      "date": 1794355200,
+      "sender": {
+       "id": 6011,
+       "role": "member"
+      },
+      "text": "今日更新：\n\n雲端會員限時調價：\n企業採購請私聊 全網最低價\n月卡 季卡 年卡 全部現貨\n\n🔥 雲端硬碟會員\n年卡特價：320\n季卡特價：99\n月卡特價：38\n\n⭐ 影音會員 年度方案 168\n【5件起165】\n【10件起160】\n【20件起155】\n\n⭐ 翻譯點數\n100點=30\n300點=85\n1000點=260\n\n📍 下單入口\n👉 https://shop-demo-cloud.example/ （需要先註冊）\n\n有任何問題 隨時私聊 @cloud_demo_seller\n\n售後頻道： https://t.me/cloud_demo_ch\n交流群： https://t.me/cloud_demo_grp"
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 3,
+      "date": 1794441600,
+      "sender": {
+       "id": 6011,
+       "role": "member"
+      },
+      "text": "絲滑提交：\n\n雲端會員限時調價：\n企業採購請私聊 全網最低價\n月卡 季卡 年卡 全部現貨\n\n🔥 雲端硬碟會員\n年卡特價：320\n季卡特價：99\n月卡特價：38\n\n⭐ 影音會員 年度方案 168\n【5件起165】\n【10件起160】\n【20件起155】\n\n⭐ 翻譯點數\n100點=30\n300點=85\n1000點=260\n\n📍 下單入口\n👉 https://shop-demo-cloud.example/ （需要先註冊）\n\n有任何問題 隨時私聊 @cloud_demo_seller\n\n售後頻道： https://t.me/cloud_demo_ch\n交流群： https://t.me/cloud_demo_grp"
+     }
+    },
+    {
+     "op": "expect",
+     "fold": {
+      "loose": [],
+      "standard": [
+       1,
+       2,
+       3
+      ],
+      "aggressive": [
+       1,
+       2,
+       3
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "R3-03",
+   "category": "regression_v3",
+   "title": "單段廣告前後各加一行（同一人；去頭尾）",
+   "note": "第 2 則的「去頭尾」與第 3 則的「去第 1 行」都等於第 1 則全文（增刪：去掉的 ≤ 剩下的一半）；第 2、3 則之間是「兩邊各去掉後相同」，去掉的都 ≤ 剩下的 1/4（VARS）→ 也成簇。",
+   "context": {
+    "chatId": -1001000000001,
+    "type": "supergroup",
+    "username": "lumina_demo_grp",
+    "linkedChannel": {
+     "id": -1002000000002,
+     "username": "lumina_demo_ch"
+    },
+    "description": "LuminaGram 合成測試群。官網 https://lumina-demo.example.org 新人請看置頂。邀請 t.me/+DemoGroupInv",
+    "pinnedTexts": [],
+    "adminsKnown": true,
+    "memberHandles": [
+     "me_demo_user"
+    ]
+   },
+   "settings": {},
+   "events": [
+    {
+     "op": "observe",
+     "message": {
+      "id": 1,
+      "date": 1794268800,
+      "sender": {
+       "id": 6021,
+       "role": "member"
+      },
+      "text": "代辦各國簽證與護照加急服務，出簽率高價格實惠，有需要的私聊我諮詢詳情"
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 2,
+      "date": 1794355200,
+      "sender": {
+       "id": 6021,
+       "role": "member"
+      },
+      "text": "🔥今日特價🔥\n代辦各國簽證與護照加急服務，出簽率高價格實惠，有需要的私聊我諮詢詳情\n限時三天"
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 3,
+      "date": 1794441600,
+      "sender": {
+       "id": 6021,
+       "role": "member"
+      },
+      "text": "【最新】\n代辦各國簽證與護照加急服務，出簽率高價格實惠，有需要的私聊我諮詢詳情"
+     }
+    },
+    {
+     "op": "expect",
+     "fold": {
+      "loose": [],
+      "standard": [
+       1,
+       2,
+       3
+      ],
+      "aggressive": [
+       1,
+       2,
+       3
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "R3-04",
+   "category": "regression_v3",
+   "title": "群組綁定頻道自己重發價目表（選項關＝預設）",
+   "note": "以連結頻道身分發送 → 背書；選項關時與 v2 完全相同：頻道的每一則都 endorsed，成員照抄也 endorsed。",
+   "context": {
+    "chatId": -1001000000001,
+    "type": "supergroup",
+    "username": "cloud_demo_grp",
+    "linkedChannel": {
+     "id": -1002000000777,
+     "username": "cloud_demo_ch"
+    },
+    "description": "LuminaGram 合成測試群。官網 https://lumina-demo.example.org 新人請看置頂。邀請 t.me/+DemoGroupInv",
+    "pinnedTexts": [
+     "雲端會員限時調價：\n企業採購請私聊 全網最低價\n月卡 季卡 年卡 全部現貨\n\n🔥 雲端硬碟會員\n年卡特價：320\n季卡特價：99\n月卡特價：38\n\n⭐ 影音會員 168\n【5件起165】\n【10件起160】\n【20件起155】\n\n⭐ 翻譯點數\n100點=30\n300點=85\n1000點=260\n\n📍 下單入口\n👉 https://shop-demo-cloud.example/ （需要先註冊）\n\n有任何問題 隨時私聊 @cloud_demo_seller\n\n售後頻道： https://t.me/cloud_demo_ch\n交流群： https://t.me/cloud_demo_grp"
+    ],
+    "adminsKnown": true,
+    "memberHandles": [
+     "me_demo_user"
+    ]
+   },
+   "settings": {},
+   "events": [
+    {
+     "op": "observe",
+     "message": {
+      "id": 1,
+      "date": 1794009600,
+      "sender": {
+       "id": -1002000000777,
+       "role": "channel"
+      },
+      "text": "雲端會員限時調價：\n企業採購請私聊 全網最低價\n月卡 季卡 年卡 全部現貨\n\n🔥 雲端硬碟會員\n年卡特價：320\n季卡特價：99\n月卡特價：38\n\n⭐ 影音會員 168\n【5件起165】\n【10件起160】\n【20件起155】\n\n⭐ 翻譯點數\n100點=30\n300點=85\n1000點=260\n\n📍 下單入口\n👉 https://shop-demo-cloud.example/ （需要先註冊）\n\n有任何問題 隨時私聊 @cloud_demo_seller\n\n售後頻道： https://t.me/cloud_demo_ch\n交流群： https://t.me/cloud_demo_grp",
+      "pinned": true
+     },
+     "now": 1794789000
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 2,
+      "date": 1794700800,
+      "sender": {
+       "id": -1002000000777,
+       "role": "channel"
+      },
+      "text": "雲端會員限時調價：\n企業採購請私聊 全網最低價\n月卡 季卡 年卡 全部現貨\n\n🔥 雲端硬碟會員\n年卡特價：320\n季卡特價：99\n月卡特價：38\n\n⭐ 影音會員 168\n【5件起165】\n【10件起160】\n【20件起155】\n\n⭐ 翻譯點數\n100點=30\n300點=85\n1000點=260\n\n📍 下單入口\n👉 https://shop-demo-cloud.example/ （需要先註冊）\n\n有任何問題 隨時私聊 @cloud_demo_seller\n\n售後頻道： https://t.me/cloud_demo_ch\n交流群： https://t.me/cloud_demo_grp",
+      "pinned": true
+     },
+     "now": 1794789000
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 3,
+      "date": 1794787200,
+      "sender": {
+       "id": -1002000000777,
+       "role": "channel"
+      },
+      "text": "雲端會員限時調價：\n企業採購請私聊 全網最低價\n月卡 季卡 年卡 全部現貨\n\n🔥 雲端硬碟會員\n年卡特價：320\n季卡特價：99\n月卡特價：38\n\n⭐ 影音會員 168\n【5件起165】\n【10件起160】\n【20件起155】\n\n⭐ 翻譯點數\n100點=30\n300點=85\n1000點=260\n\n📍 下單入口\n👉 https://shop-demo-cloud.example/ （需要先註冊）\n\n有任何問題 隨時私聊 @cloud_demo_seller\n\n售後頻道： https://t.me/cloud_demo_ch\n交流群： https://t.me/cloud_demo_grp"
+     },
+     "now": 1794789000
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 4,
+      "date": 1794788220,
+      "sender": {
+       "id": -1002000000777,
+       "role": "channel"
+      },
+      "text": "絲滑提交：\n\n雲端會員限時調價：\n企業採購請私聊 全網最低價\n月卡 季卡 年卡 全部現貨\n\n🔥 雲端硬碟會員\n年卡特價：320\n季卡特價：99\n月卡特價：38\n\n⭐ 影音會員 168\n【5件起165】\n【10件起160】\n【20件起155】\n\n⭐ 翻譯點數\n100點=30\n300點=85\n1000點=260\n\n📍 下單入口\n👉 https://shop-demo-cloud.example/ （需要先註冊）\n\n有任何問題 隨時私聊 @cloud_demo_seller\n\n售後頻道： https://t.me/cloud_demo_ch\n交流群： https://t.me/cloud_demo_grp",
+      "pinned": true
+     },
+     "now": 1794789000
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 5,
+      "date": 1794788400,
+      "sender": {
+       "id": 6031,
+       "role": "member"
+      },
+      "text": "雲端會員限時調價：\n企業採購請私聊 全網最低價\n月卡 季卡 年卡 全部現貨\n\n🔥 雲端硬碟會員\n年卡特價：320\n季卡特價：99\n月卡特價：38\n\n⭐ 影音會員 168\n【5件起165】\n【10件起160】\n【20件起155】\n\n⭐ 翻譯點數\n100點=30\n300點=85\n1000點=260\n\n📍 下單入口\n👉 https://shop-demo-cloud.example/ （需要先註冊）\n\n有任何問題 隨時私聊 @cloud_demo_seller\n\n售後頻道： https://t.me/cloud_demo_ch\n交流群： https://t.me/cloud_demo_grp"
+     },
+     "now": 1794789000
+    },
+    {
+     "op": "expect",
+     "fold": {
+      "loose": [],
+      "standard": [],
+      "aggressive": []
+     },
+     "now": 1794789000,
+     "states": {
+      "loose": {
+       "1": "endorsed",
+       "2": "endorsed",
+       "3": "endorsed",
+       "4": "endorsed",
+       "5": "endorsed"
+      },
+      "standard": {
+       "1": "endorsed",
+       "2": "endorsed",
+       "3": "endorsed",
+       "4": "endorsed",
+       "5": "endorsed"
+      },
+      "aggressive": {
+       "1": "endorsed",
+       "2": "endorsed",
+       "3": "endorsed",
+       "4": "endorsed",
+       "5": "endorsed"
+      }
+     }
+    }
+   ]
+  },
+  {
+   "id": "R3-05",
+   "category": "regression_v3",
+   "title": "群組綁定頻道自己重發價目表（選項開：連管理員和頻道的也收）",
+   "note": "使用者截圖的情況（合成文字）：置頂的也照算。只數同一作者（頻道）自己的單位：第 2–4 則 7 天內 3 次 → 標準收；第 1 則早 8 天、時間窗裡只有自己 → 不收。寬鬆 72 小時內只有 3 次（要 ≥4）。成員照抄仍被頻道的背書保護。",
+   "context": {
+    "chatId": -1001000000001,
+    "type": "supergroup",
+    "username": "cloud_demo_grp",
+    "linkedChannel": {
+     "id": -1002000000777,
+     "username": "cloud_demo_ch"
+    },
+    "description": "LuminaGram 合成測試群。官網 https://lumina-demo.example.org 新人請看置頂。邀請 t.me/+DemoGroupInv",
+    "pinnedTexts": [
+     "雲端會員限時調價：\n企業採購請私聊 全網最低價\n月卡 季卡 年卡 全部現貨\n\n🔥 雲端硬碟會員\n年卡特價：320\n季卡特價：99\n月卡特價：38\n\n⭐ 影音會員 168\n【5件起165】\n【10件起160】\n【20件起155】\n\n⭐ 翻譯點數\n100點=30\n300點=85\n1000點=260\n\n📍 下單入口\n👉 https://shop-demo-cloud.example/ （需要先註冊）\n\n有任何問題 隨時私聊 @cloud_demo_seller\n\n售後頻道： https://t.me/cloud_demo_ch\n交流群： https://t.me/cloud_demo_grp"
+    ],
+    "adminsKnown": true,
+    "memberHandles": [
+     "me_demo_user"
+    ]
+   },
+   "settings": {
+    "foldPrivilegedRepeats": true
+   },
+   "events": [
+    {
+     "op": "observe",
+     "message": {
+      "id": 1,
+      "date": 1794009600,
+      "sender": {
+       "id": -1002000000777,
+       "role": "channel"
+      },
+      "text": "雲端會員限時調價：\n企業採購請私聊 全網最低價\n月卡 季卡 年卡 全部現貨\n\n🔥 雲端硬碟會員\n年卡特價：320\n季卡特價：99\n月卡特價：38\n\n⭐ 影音會員 168\n【5件起165】\n【10件起160】\n【20件起155】\n\n⭐ 翻譯點數\n100點=30\n300點=85\n1000點=260\n\n📍 下單入口\n👉 https://shop-demo-cloud.example/ （需要先註冊）\n\n有任何問題 隨時私聊 @cloud_demo_seller\n\n售後頻道： https://t.me/cloud_demo_ch\n交流群： https://t.me/cloud_demo_grp",
+      "pinned": true
+     },
+     "now": 1794789000
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 2,
+      "date": 1794700800,
+      "sender": {
+       "id": -1002000000777,
+       "role": "channel"
+      },
+      "text": "雲端會員限時調價：\n企業採購請私聊 全網最低價\n月卡 季卡 年卡 全部現貨\n\n🔥 雲端硬碟會員\n年卡特價：320\n季卡特價：99\n月卡特價：38\n\n⭐ 影音會員 168\n【5件起165】\n【10件起160】\n【20件起155】\n\n⭐ 翻譯點數\n100點=30\n300點=85\n1000點=260\n\n📍 下單入口\n👉 https://shop-demo-cloud.example/ （需要先註冊）\n\n有任何問題 隨時私聊 @cloud_demo_seller\n\n售後頻道： https://t.me/cloud_demo_ch\n交流群： https://t.me/cloud_demo_grp",
+      "pinned": true
+     },
+     "now": 1794789000
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 3,
+      "date": 1794787200,
+      "sender": {
+       "id": -1002000000777,
+       "role": "channel"
+      },
+      "text": "雲端會員限時調價：\n企業採購請私聊 全網最低價\n月卡 季卡 年卡 全部現貨\n\n🔥 雲端硬碟會員\n年卡特價：320\n季卡特價：99\n月卡特價：38\n\n⭐ 影音會員 168\n【5件起165】\n【10件起160】\n【20件起155】\n\n⭐ 翻譯點數\n100點=30\n300點=85\n1000點=260\n\n📍 下單入口\n👉 https://shop-demo-cloud.example/ （需要先註冊）\n\n有任何問題 隨時私聊 @cloud_demo_seller\n\n售後頻道： https://t.me/cloud_demo_ch\n交流群： https://t.me/cloud_demo_grp"
+     },
+     "now": 1794789000
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 4,
+      "date": 1794788220,
+      "sender": {
+       "id": -1002000000777,
+       "role": "channel"
+      },
+      "text": "絲滑提交：\n\n雲端會員限時調價：\n企業採購請私聊 全網最低價\n月卡 季卡 年卡 全部現貨\n\n🔥 雲端硬碟會員\n年卡特價：320\n季卡特價：99\n月卡特價：38\n\n⭐ 影音會員 168\n【5件起165】\n【10件起160】\n【20件起155】\n\n⭐ 翻譯點數\n100點=30\n300點=85\n1000點=260\n\n📍 下單入口\n👉 https://shop-demo-cloud.example/ （需要先註冊）\n\n有任何問題 隨時私聊 @cloud_demo_seller\n\n售後頻道： https://t.me/cloud_demo_ch\n交流群： https://t.me/cloud_demo_grp",
+      "pinned": true
+     },
+     "now": 1794789000
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 5,
+      "date": 1794788400,
+      "sender": {
+       "id": 6031,
+       "role": "member"
+      },
+      "text": "雲端會員限時調價：\n企業採購請私聊 全網最低價\n月卡 季卡 年卡 全部現貨\n\n🔥 雲端硬碟會員\n年卡特價：320\n季卡特價：99\n月卡特價：38\n\n⭐ 影音會員 168\n【5件起165】\n【10件起160】\n【20件起155】\n\n⭐ 翻譯點數\n100點=30\n300點=85\n1000點=260\n\n📍 下單入口\n👉 https://shop-demo-cloud.example/ （需要先註冊）\n\n有任何問題 隨時私聊 @cloud_demo_seller\n\n售後頻道： https://t.me/cloud_demo_ch\n交流群： https://t.me/cloud_demo_grp"
+     },
+     "now": 1794789000
+    },
+    {
+     "op": "expect",
+     "fold": {
+      "loose": [],
+      "standard": [
+       2,
+       3,
+       4
+      ],
+      "aggressive": [
+       2,
+       3,
+       4
+      ]
+     },
+     "now": 1794789000,
+     "states": {
+      "standard": {
+       "1": "none",
+       "5": "endorsed"
+      },
+      "loose": {
+       "2": "none",
+       "5": "endorsed"
+      }
+     }
+    }
+   ]
+  },
+  {
+   "id": "R3-06a",
+   "category": "regression_v3",
+   "title": "討論群：頻道自動轉發的貼文重發（選項關）",
+   "note": "頻道自動轉發、成員轉發連結頻道貼文都是背書；成員照抄被背書紀錄涵蓋。",
+   "context": {
+    "chatId": -1001000000001,
+    "type": "supergroup",
+    "username": "cloud_demo_grp",
+    "linkedChannel": {
+     "id": -1002000000777,
+     "username": "cloud_demo_ch"
+    },
+    "description": "LuminaGram 合成測試群。官網 https://lumina-demo.example.org 新人請看置頂。邀請 t.me/+DemoGroupInv",
+    "pinnedTexts": [],
+    "adminsKnown": true,
+    "memberHandles": [
+     "me_demo_user"
+    ]
+   },
+   "settings": {},
+   "events": [
+    {
+     "op": "observe",
+     "message": {
+      "id": 1,
+      "date": 1794268800,
+      "sender": {
+       "id": -1002000000777,
+       "role": "channel"
+      },
+      "text": "雲端會員年卡特價\n企業採購量大可議\n有需要的私聊客服\n下單入口 https://shop-demo-cloud.example/ 售後 @cloud_demo_ch",
+      "autoForward": true,
+      "forward": {
+       "fromKind": "channel",
+       "fromId": -1002000000777,
+       "postId": 101,
+       "username": "cloud_demo_ch",
+       "date": 1794268800
+      }
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 2,
+      "date": 1794355200,
+      "sender": {
+       "id": -1002000000777,
+       "role": "channel"
+      },
+      "text": "雲端會員年卡特價\n企業採購量大可議\n有需要的私聊客服\n下單入口 https://shop-demo-cloud.example/ 售後 @cloud_demo_ch",
+      "autoForward": true,
+      "forward": {
+       "fromKind": "channel",
+       "fromId": -1002000000777,
+       "postId": 102,
+       "username": "cloud_demo_ch",
+       "date": 1794268800
+      }
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 3,
+      "date": 1794441600,
+      "sender": {
+       "id": -1002000000777,
+       "role": "channel"
+      },
+      "text": "絲滑提交：\n\n雲端會員年卡特價\n企業採購量大可議\n有需要的私聊客服\n下單入口 https://shop-demo-cloud.example/ 售後 @cloud_demo_ch",
+      "autoForward": true,
+      "forward": {
+       "fromKind": "channel",
+       "fromId": -1002000000777,
+       "postId": 103,
+       "username": "cloud_demo_ch",
+       "date": 1794268800
+      }
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 4,
+      "date": 1794445200,
+      "sender": {
+       "id": 6041,
+       "role": "member"
+      },
+      "text": "雲端會員年卡特價\n企業採購量大可議\n有需要的私聊客服\n下單入口 https://shop-demo-cloud.example/ 售後 @cloud_demo_ch",
+      "forward": {
+       "fromKind": "channel",
+       "fromId": -1002000000777,
+       "postId": 102,
+       "username": "cloud_demo_ch",
+       "date": 1794268800
+      }
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 5,
+      "date": 1794448800,
+      "sender": {
+       "id": 6042,
+       "role": "member"
+      },
+      "text": "雲端會員年卡特價\n企業採購量大可議\n有需要的私聊客服\n下單入口 https://shop-demo-cloud.example/ 售後 @cloud_demo_ch"
+     }
+    },
+    {
+     "op": "expect",
+     "fold": {
+      "loose": [],
+      "standard": [],
+      "aggressive": []
+     },
+     "states": {
+      "standard": {
+       "1": "endorsed",
+       "2": "endorsed",
+       "3": "endorsed",
+       "4": "endorsed",
+       "5": "endorsed"
+      }
+     }
+    }
+   ]
+  },
+  {
+   "id": "R3-06b",
+   "category": "regression_v3",
+   "title": "討論群：頻道自動轉發的貼文重發（選項開）",
+   "note": "頻道（同一作者）7 天內 3 則（第 3 則開頭多一行；每行都短、沒有段落鍵與區塊鍵，只靠 VAR）→ 標準收，第一則因同一作者重發也收。成員手動轉發（背書但不是特權作者）不保護頻道的重發，自己仍 endorsed；成員照抄仍 endorsed。",
+   "context": {
+    "chatId": -1001000000001,
+    "type": "supergroup",
+    "username": "cloud_demo_grp",
+    "linkedChannel": {
+     "id": -1002000000777,
+     "username": "cloud_demo_ch"
+    },
+    "description": "LuminaGram 合成測試群。官網 https://lumina-demo.example.org 新人請看置頂。邀請 t.me/+DemoGroupInv",
+    "pinnedTexts": [],
+    "adminsKnown": true,
+    "memberHandles": [
+     "me_demo_user"
+    ]
+   },
+   "settings": {
+    "foldPrivilegedRepeats": true
+   },
+   "events": [
+    {
+     "op": "observe",
+     "message": {
+      "id": 1,
+      "date": 1794268800,
+      "sender": {
+       "id": -1002000000777,
+       "role": "channel"
+      },
+      "text": "雲端會員年卡特價\n企業採購量大可議\n有需要的私聊客服\n下單入口 https://shop-demo-cloud.example/ 售後 @cloud_demo_ch",
+      "autoForward": true,
+      "forward": {
+       "fromKind": "channel",
+       "fromId": -1002000000777,
+       "postId": 101,
+       "username": "cloud_demo_ch",
+       "date": 1794268800
+      }
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 2,
+      "date": 1794355200,
+      "sender": {
+       "id": -1002000000777,
+       "role": "channel"
+      },
+      "text": "雲端會員年卡特價\n企業採購量大可議\n有需要的私聊客服\n下單入口 https://shop-demo-cloud.example/ 售後 @cloud_demo_ch",
+      "autoForward": true,
+      "forward": {
+       "fromKind": "channel",
+       "fromId": -1002000000777,
+       "postId": 102,
+       "username": "cloud_demo_ch",
+       "date": 1794268800
+      }
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 3,
+      "date": 1794441600,
+      "sender": {
+       "id": -1002000000777,
+       "role": "channel"
+      },
+      "text": "絲滑提交：\n\n雲端會員年卡特價\n企業採購量大可議\n有需要的私聊客服\n下單入口 https://shop-demo-cloud.example/ 售後 @cloud_demo_ch",
+      "autoForward": true,
+      "forward": {
+       "fromKind": "channel",
+       "fromId": -1002000000777,
+       "postId": 103,
+       "username": "cloud_demo_ch",
+       "date": 1794268800
+      }
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 4,
+      "date": 1794445200,
+      "sender": {
+       "id": 6041,
+       "role": "member"
+      },
+      "text": "雲端會員年卡特價\n企業採購量大可議\n有需要的私聊客服\n下單入口 https://shop-demo-cloud.example/ 售後 @cloud_demo_ch",
+      "forward": {
+       "fromKind": "channel",
+       "fromId": -1002000000777,
+       "postId": 102,
+       "username": "cloud_demo_ch",
+       "date": 1794268800
+      }
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 5,
+      "date": 1794448800,
+      "sender": {
+       "id": 6042,
+       "role": "member"
+      },
+      "text": "雲端會員年卡特價\n企業採購量大可議\n有需要的私聊客服\n下單入口 https://shop-demo-cloud.example/ 售後 @cloud_demo_ch"
+     }
+    },
+    {
+     "op": "expect",
+     "fold": {
+      "loose": [],
+      "standard": [
+       1,
+       2,
+       3
+      ],
+      "aggressive": [
+       1,
+       2,
+       3
+      ]
+     },
+     "states": {
+      "standard": {
+       "4": "endorsed",
+       "5": "endorsed"
+      }
+     }
+    }
+   ]
+  },
+  {
+   "id": "R3-07",
+   "category": "regression_v3",
+   "title": "管理員公告被成員轉貼（選項開）",
+   "note": "同 NT-01 但選項開：管理員只發 1 次 → 不收（state 從 endorsed 變 none）；成員的照抄、轉發仍 endorsed。",
+   "context": {
+    "chatId": -1001000000001,
+    "type": "supergroup",
+    "username": "lumina_demo_grp",
+    "linkedChannel": {
+     "id": -1002000000002,
+     "username": "lumina_demo_ch"
+    },
+    "description": "LuminaGram 合成測試群。官網 https://lumina-demo.example.org 新人請看置頂。邀請 t.me/+DemoGroupInv",
+    "pinnedTexts": [],
+    "adminsKnown": true,
+    "memberHandles": [
+     "me_demo_user"
+    ]
+   },
+   "settings": {
+    "foldPrivilegedRepeats": true
+   },
+   "events": [
+    {
+     "op": "observe",
+     "message": {
+      "id": 1,
+      "date": 1794268800,
+      "sender": {
+       "id": 101,
+       "role": "admin"
+      },
+      "text": "【公告】本週六晚上八點線上分享會，報名表 https://lumina-demo.example.org/signup ，請大家準時參加！"
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 2,
+      "date": 1794272400,
+      "sender": {
+       "id": 201,
+       "role": "member"
+      },
+      "text": "【公告】本週六晚上八點線上分享會，報名表 https://lumina-demo.example.org/signup ，請大家準時參加！"
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 3,
+      "date": 1794276000,
+      "sender": {
+       "id": 202,
+       "role": "member"
+      },
+      "text": "【公告】本週六晚上八點線上分享會，報名表 https://lumina-demo.example.org/signup ，請大家準時參加！"
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 4,
+      "date": 1794279600,
+      "sender": {
+       "id": 203,
+       "role": "member"
+      },
+      "text": "【公告】本週六晚上八點線上分享會，報名表 https://lumina-demo.example.org/signup ，請大家準時參加！"
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 5,
+      "date": 1794283200,
+      "sender": {
+       "id": 204,
+       "role": "member"
+      },
+      "text": "【公告】本週六晚上八點線上分享會，報名表 https://lumina-demo.example.org/signup ，請大家準時參加！",
+      "forward": {
+       "fromKind": "user",
+       "fromId": 101,
+       "date": 1794268800
+      }
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 6,
+      "date": 1794441600,
+      "sender": {
+       "id": 205,
+       "role": "member"
+      },
+      "text": "【公告】本週六晚上八點線上分享會，報名表 https://lumina-demo.example.org/signup ，請大家準時參加！"
+     }
+    },
+    {
+     "op": "expect",
+     "fold": {
+      "loose": [],
+      "standard": [],
+      "aggressive": []
+     },
+     "states": {
+      "standard": {
+       "1": "none",
+       "2": "endorsed",
+       "5": "endorsed",
+       "6": "endorsed"
+      }
+     }
+    }
+   ]
+  },
+  {
+   "id": "R3-08a",
+   "category": "regression_v3",
+   "title": "管理員自己重發推廣 ×3、成員照抄（選項關）",
+   "note": "",
+   "context": {
+    "chatId": -1001000000001,
+    "type": "supergroup",
+    "username": "lumina_demo_grp",
+    "linkedChannel": {
+     "id": -1002000000002,
+     "username": "lumina_demo_ch"
+    },
+    "description": "LuminaGram 合成測試群。官網 https://lumina-demo.example.org 新人請看置頂。邀請 t.me/+DemoGroupInv",
+    "pinnedTexts": [],
+    "adminsKnown": true,
+    "memberHandles": [
+     "me_demo_user"
+    ]
+   },
+   "settings": {},
+   "events": [
+    {
+     "op": "observe",
+     "message": {
+      "id": 1,
+      "date": 1794268800,
+      "sender": {
+       "id": 6051,
+       "role": "admin"
+      },
+      "text": "本群合作推廣：雲端會員年卡限時特價，全網最低價格，有需要的私聊管理員"
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 2,
+      "date": 1794272400,
+      "sender": {
+       "id": 6061,
+       "role": "member"
+      },
+      "text": "本群合作推廣：雲端會員年卡限時特價，全網最低價格，有需要的私聊管理員"
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 3,
+      "date": 1794355200,
+      "sender": {
+       "id": 6051,
+       "role": "admin"
+      },
+      "text": "本群合作推廣：雲端會員年卡限時特價，全網最低價格，有需要的私聊管理員"
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 4,
+      "date": 1794358800,
+      "sender": {
+       "id": 6062,
+       "role": "member"
+      },
+      "text": "本群合作推廣：雲端會員年卡限時特價，全網最低價格，有需要的私聊管理員"
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 5,
+      "date": 1794441600,
+      "sender": {
+       "id": 6051,
+       "role": "admin"
+      },
+      "text": "【置頂】\n本群合作推廣：雲端會員年卡限時特價，全網最低價格，有需要的私聊管理員",
+      "pinned": true
+     }
+    },
+    {
+     "op": "expect",
+     "fold": {
+      "loose": [],
+      "standard": [],
+      "aggressive": []
+     },
+     "states": {
+      "standard": {
+       "1": "endorsed",
+       "2": "endorsed",
+       "3": "endorsed",
+       "4": "endorsed",
+       "5": "endorsed"
+      }
+     }
+    }
+   ]
+  },
+  {
+   "id": "R3-08b",
+   "category": "regression_v3",
+   "title": "管理員自己重發推廣 ×3、成員照抄（選項開）",
+   "note": "同一位管理員 7 天內 3 次（第 3 次是置頂、開頭多一行）→ 收；成員照抄 2 次不算進管理員的次數，仍 endorsed。",
+   "context": {
+    "chatId": -1001000000001,
+    "type": "supergroup",
+    "username": "lumina_demo_grp",
+    "linkedChannel": {
+     "id": -1002000000002,
+     "username": "lumina_demo_ch"
+    },
+    "description": "LuminaGram 合成測試群。官網 https://lumina-demo.example.org 新人請看置頂。邀請 t.me/+DemoGroupInv",
+    "pinnedTexts": [],
+    "adminsKnown": true,
+    "memberHandles": [
+     "me_demo_user"
+    ]
+   },
+   "settings": {
+    "foldPrivilegedRepeats": true
+   },
+   "events": [
+    {
+     "op": "observe",
+     "message": {
+      "id": 1,
+      "date": 1794268800,
+      "sender": {
+       "id": 6051,
+       "role": "admin"
+      },
+      "text": "本群合作推廣：雲端會員年卡限時特價，全網最低價格，有需要的私聊管理員"
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 2,
+      "date": 1794272400,
+      "sender": {
+       "id": 6061,
+       "role": "member"
+      },
+      "text": "本群合作推廣：雲端會員年卡限時特價，全網最低價格，有需要的私聊管理員"
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 3,
+      "date": 1794355200,
+      "sender": {
+       "id": 6051,
+       "role": "admin"
+      },
+      "text": "本群合作推廣：雲端會員年卡限時特價，全網最低價格，有需要的私聊管理員"
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 4,
+      "date": 1794358800,
+      "sender": {
+       "id": 6062,
+       "role": "member"
+      },
+      "text": "本群合作推廣：雲端會員年卡限時特價，全網最低價格，有需要的私聊管理員"
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 5,
+      "date": 1794441600,
+      "sender": {
+       "id": 6051,
+       "role": "admin"
+      },
+      "text": "【置頂】\n本群合作推廣：雲端會員年卡限時特價，全網最低價格，有需要的私聊管理員",
+      "pinned": true
+     }
+    },
+    {
+     "op": "expect",
+     "fold": {
+      "loose": [],
+      "standard": [
+       1,
+       3,
+       5
+      ],
+      "aggressive": [
+       1,
+       3,
+       5
+      ]
+     },
+     "states": {
+      "standard": {
+       "2": "endorsed",
+       "4": "endorsed"
+      }
+     }
+    }
+   ]
+  },
+  {
+   "id": "R3-09",
+   "category": "regression_v3",
+   "title": "匿名管理員重發（選項開；所有匿名管理員＝同一作者＝群 id）",
+   "note": "",
+   "context": {
+    "chatId": -1001000000001,
+    "type": "supergroup",
+    "username": "lumina_demo_grp",
+    "linkedChannel": {
+     "id": -1002000000002,
+     "username": "lumina_demo_ch"
+    },
+    "description": "LuminaGram 合成測試群。官網 https://lumina-demo.example.org 新人請看置頂。邀請 t.me/+DemoGroupInv",
+    "pinnedTexts": [],
+    "adminsKnown": true,
+    "memberHandles": [
+     "me_demo_user"
+    ]
+   },
+   "settings": {
+    "foldPrivilegedRepeats": true
+   },
+   "events": [
+    {
+     "op": "observe",
+     "message": {
+      "id": 1,
+      "date": 1794268800,
+      "sender": {
+       "id": -1001000000001,
+       "role": "anon_admin"
+      },
+      "text": "本群團購：有機蔬菜箱每週配送到府，訂購請私聊管理員登記"
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 2,
+      "date": 1794355200,
+      "sender": {
+       "id": -1001000000001,
+       "role": "anon_admin"
+      },
+      "text": "本群團購：有機蔬菜箱每週配送到府，訂購請私聊管理員登記\n名額有限"
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 3,
+      "date": 1794441600,
+      "sender": {
+       "id": -1001000000001,
+       "role": "anon_admin"
+      },
+      "text": "本群團購：有機蔬菜箱每週配送到府，訂購請私聊管理員登記"
+     }
+    },
+    {
+     "op": "expect",
+     "fold": {
+      "loose": [],
+      "standard": [
+       1,
+       2,
+       3
+      ],
+      "aggressive": [
+       1,
+       2,
+       3
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "R3-10",
+   "category": "regression_v3",
+   "title": "兩位不同管理員輪流發同一則（選項開：只收同一作者）",
+   "note": "另一位特權作者發過相同內容 → 照舊背書（保守：只收同一位作者自己的重發）。",
+   "context": {
+    "chatId": -1001000000001,
+    "type": "supergroup",
+    "username": "lumina_demo_grp",
+    "linkedChannel": {
+     "id": -1002000000002,
+     "username": "lumina_demo_ch"
+    },
+    "description": "LuminaGram 合成測試群。官網 https://lumina-demo.example.org 新人請看置頂。邀請 t.me/+DemoGroupInv",
+    "pinnedTexts": [],
+    "adminsKnown": true,
+    "memberHandles": [
+     "me_demo_user"
+    ]
+   },
+   "settings": {
+    "foldPrivilegedRepeats": true
+   },
+   "events": [
+    {
+     "op": "observe",
+     "message": {
+      "id": 1,
+      "date": 1794268800,
+      "sender": {
+       "id": 6071,
+       "role": "admin"
+      },
+      "text": "本群合作推廣：雲端會員年卡限時特價，全網最低價格，有需要的私聊管理員"
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 2,
+      "date": 1794355200,
+      "sender": {
+       "id": 6072,
+       "role": "admin"
+      },
+      "text": "本群合作推廣：雲端會員年卡限時特價，全網最低價格，有需要的私聊管理員"
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 3,
+      "date": 1794441600,
+      "sender": {
+       "id": 6071,
+       "role": "admin"
+      },
+      "text": "本群合作推廣：雲端會員年卡限時特價，全網最低價格，有需要的私聊管理員"
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 4,
+      "date": 1794528000,
+      "sender": {
+       "id": 6072,
+       "role": "admin"
+      },
+      "text": "本群合作推廣：雲端會員年卡限時特價，全網最低價格，有需要的私聊管理員"
+     }
+    },
+    {
+     "op": "expect",
+     "fold": {
+      "loose": [],
+      "standard": [],
+      "aggressive": []
+     },
+     "states": {
+      "standard": {
+       "1": "endorsed",
+       "2": "endorsed",
+       "3": "endorsed",
+       "4": "endorsed"
+      }
+     }
+    }
+   ]
+  },
+  {
+   "id": "R3-11",
+   "category": "regression_v3",
+   "title": "自己重發（選項開：自己永遠不收）",
+   "note": "",
+   "context": {
+    "chatId": -1001000000001,
+    "type": "supergroup",
+    "username": "lumina_demo_grp",
+    "linkedChannel": {
+     "id": -1002000000002,
+     "username": "lumina_demo_ch"
+    },
+    "description": "LuminaGram 合成測試群。官網 https://lumina-demo.example.org 新人請看置頂。邀請 t.me/+DemoGroupInv",
+    "pinnedTexts": [],
+    "adminsKnown": true,
+    "memberHandles": [
+     "me_demo_user"
+    ]
+   },
+   "settings": {
+    "foldPrivilegedRepeats": true
+   },
+   "events": [
+    {
+     "op": "observe",
+     "message": {
+      "id": 1,
+      "date": 1794268800,
+      "sender": {
+       "id": 6081,
+       "role": "self"
+      },
+      "text": "本群合作推廣：雲端會員年卡限時特價，全網最低價格，有需要的私聊管理員"
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 2,
+      "date": 1794355200,
+      "sender": {
+       "id": 6081,
+       "role": "self"
+      },
+      "text": "本群合作推廣：雲端會員年卡限時特價，全網最低價格，有需要的私聊管理員"
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 3,
+      "date": 1794441600,
+      "sender": {
+       "id": 6081,
+       "role": "self"
+      },
+      "text": "本群合作推廣：雲端會員年卡限時特價，全網最低價格，有需要的私聊管理員"
+     }
+    },
+    {
+     "op": "expect",
+     "fold": {
+      "loose": [],
+      "standard": [],
+      "aggressive": []
+     },
+     "states": {
+      "standard": {
+       "1": "endorsed",
+       "2": "endorsed",
+       "3": "endorsed"
+      }
+     }
+    }
+   ]
+  },
+  {
+   "id": "R3-12",
+   "category": "regression_v3",
+   "title": "被置頂的成員訊息被本人重發（選項開：置頂成員訊息不受影響）",
+   "note": "選項只影響特權作者（管理員／群主／匿名管理員／連結頻道）；被置頂的成員訊息照舊背書。",
+   "context": {
+    "chatId": -1001000000001,
+    "type": "supergroup",
+    "username": "lumina_demo_grp",
+    "linkedChannel": {
+     "id": -1002000000002,
+     "username": "lumina_demo_ch"
+    },
+    "description": "LuminaGram 合成測試群。官網 https://lumina-demo.example.org 新人請看置頂。邀請 t.me/+DemoGroupInv",
+    "pinnedTexts": [],
+    "adminsKnown": true,
+    "memberHandles": [
+     "me_demo_user"
+    ]
+   },
+   "settings": {
+    "foldPrivilegedRepeats": true
+   },
+   "events": [
+    {
+     "op": "observe",
+     "message": {
+      "id": 1,
+      "date": 1794268800,
+      "sender": {
+       "id": 6091,
+       "role": "member"
+      },
+      "text": "社團二手書交換活動，週六下午在活動中心，有興趣的私聊我登記",
+      "pinned": true
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 2,
+      "date": 1794355200,
+      "sender": {
+       "id": 6091,
+       "role": "member"
+      },
+      "text": "社團二手書交換活動，週六下午在活動中心，有興趣的私聊我登記"
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 3,
+      "date": 1794441600,
+      "sender": {
+       "id": 6091,
+       "role": "member"
+      },
+      "text": "社團二手書交換活動，週六下午在活動中心，有興趣的私聊我登記"
+     }
+    },
+    {
+     "op": "expect",
+     "fold": {
+      "loose": [],
+      "standard": [],
+      "aggressive": []
+     },
+     "states": {
+      "standard": {
+       "1": "endorsed",
+       "2": "endorsed",
+       "3": "endorsed"
+      }
+     }
+    }
+   ]
+  },
+  {
+   "id": "R3-13a",
+   "category": "regression_v3",
+   "title": "三個帳號各貼一次改版（VAR／BLOCK 只連同一發送者）",
+   "note": "改版鍵不跨發送者（避免接龍、報名模板誤判）；沒有聯絡鍵等 v2 精確鍵時，各自只有 1 次。",
+   "context": {
+    "chatId": -1001000000001,
+    "type": "supergroup",
+    "username": "lumina_demo_grp",
+    "linkedChannel": {
+     "id": -1002000000002,
+     "username": "lumina_demo_ch"
+    },
+    "description": "LuminaGram 合成測試群。官網 https://lumina-demo.example.org 新人請看置頂。邀請 t.me/+DemoGroupInv",
+    "pinnedTexts": [],
+    "adminsKnown": true,
+    "memberHandles": [
+     "me_demo_user"
+    ]
+   },
+   "settings": {},
+   "events": [
+    {
+     "op": "observe",
+     "message": {
+      "id": 1,
+      "date": 1794268800,
+      "sender": {
+       "id": 6101,
+       "role": "member"
+      },
+      "text": "雲端會員限時調價：\n企業採購請私聊 全網最低價\n月卡 季卡 年卡 全部現貨\n\n🔥 雲端硬碟會員\n年卡特價：320\n季卡特價：99\n月卡特價：38\n\n⭐ 影音會員 168\n【5件起165】\n【10件起160】\n【20件起155】\n\n⭐ 翻譯點數\n100點=30\n300點=85\n1000點=260\n\n📍 下單入口\n👉 https://shop-demo-cloud.example/ （需要先註冊）\n\n有任何問題 隨時私聊 @cloud_demo_seller\n\n售後頻道： https://t.me/cloud_demo_ch\n交流群： https://t.me/cloud_demo_grp"
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 2,
+      "date": 1794272400,
+      "sender": {
+       "id": 6102,
+       "role": "member"
+      },
+      "text": "絲滑提交：\n\n雲端會員限時調價：\n企業採購請私聊 全網最低價\n月卡 季卡 年卡 全部現貨\n\n🔥 雲端硬碟會員\n年卡特價：320\n季卡特價：99\n月卡特價：38\n\n⭐ 影音會員 168\n【5件起165】\n【10件起160】\n【20件起155】\n\n⭐ 翻譯點數\n100點=30\n300點=85\n1000點=260\n\n📍 下單入口\n👉 https://shop-demo-cloud.example/ （需要先註冊）\n\n有任何問題 隨時私聊 @cloud_demo_seller\n\n售後頻道： https://t.me/cloud_demo_ch\n交流群： https://t.me/cloud_demo_grp"
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 3,
+      "date": 1794276000,
+      "sender": {
+       "id": 6103,
+       "role": "member"
+      },
+      "text": "雲端會員限時調價：\n企業採購請私聊 全網最低價\n月卡 季卡 年卡 全部現貨\n\n🔥 雲端硬碟會員\n年卡特價：320\n季卡特價：99\n月卡特價：38\n\n⭐ 影音會員 168\n【5件起165】\n【10件起160】\n【20件起155】\n\n⭐ 翻譯點數\n100點=30\n300點=85\n1000點=260\n\n📍 下單入口\n👉 https://shop-demo-cloud.example/ （需要先註冊）\n\n有任何問題 隨時私聊 @cloud_demo_seller\n\n售後頻道： https://t.me/cloud_demo_ch\n交流群： https://t.me/cloud_demo_grp\n限時優惠先到先得"
+     }
+    },
+    {
+     "op": "expect",
+     "fold": {
+      "loose": [],
+      "standard": [],
+      "aggressive": []
+     }
+    }
+   ]
+  },
+  {
+   "id": "R3-13b",
+   "category": "regression_v3",
+   "title": "同上但帶同一支電話（v2 聯絡鍵照樣跨發送者成簇）",
+   "note": "CONTACT 鍵（同一支電話）跨發送者成簇：寬鬆 ≥2 次且 ≥3 人、標準 ≥2 次且 ≥2 人；第一則是原文。",
+   "context": {
+    "chatId": -1001000000001,
+    "type": "supergroup",
+    "username": "lumina_demo_grp",
+    "linkedChannel": {
+     "id": -1002000000002,
+     "username": "lumina_demo_ch"
+    },
+    "description": "LuminaGram 合成測試群。官網 https://lumina-demo.example.org 新人請看置頂。邀請 t.me/+DemoGroupInv",
+    "pinnedTexts": [],
+    "adminsKnown": true,
+    "memberHandles": [
+     "me_demo_user"
+    ]
+   },
+   "settings": {},
+   "events": [
+    {
+     "op": "observe",
+     "message": {
+      "id": 1,
+      "date": 1794268800,
+      "sender": {
+       "id": 6111,
+       "role": "member"
+      },
+      "text": "雲端會員限時調價：\n企業採購請私聊 全網最低價\n月卡 季卡 年卡 全部現貨\n\n🔥 雲端硬碟會員\n年卡特價：320\n季卡特價：99\n月卡特價：38\n\n⭐ 影音會員 168\n【5件起165】\n【10件起160】\n【20件起155】\n\n⭐ 翻譯點數\n100點=30\n300點=85\n1000點=260\n\n📍 下單入口\n👉 https://shop-demo-cloud.example/ （需要先註冊）\n\n有任何問題 隨時私聊 @cloud_demo_seller\n\n售後頻道： https://t.me/cloud_demo_ch\n交流群： https://t.me/cloud_demo_grp\n客服電話 0912-345-678"
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 2,
+      "date": 1794272400,
+      "sender": {
+       "id": 6112,
+       "role": "member"
+      },
+      "text": "絲滑提交：\n\n雲端會員限時調價：\n企業採購請私聊 全網最低價\n月卡 季卡 年卡 全部現貨\n\n🔥 雲端硬碟會員\n年卡特價：320\n季卡特價：99\n月卡特價：38\n\n⭐ 影音會員 168\n【5件起165】\n【10件起160】\n【20件起155】\n\n⭐ 翻譯點數\n100點=30\n300點=85\n1000點=260\n\n📍 下單入口\n👉 https://shop-demo-cloud.example/ （需要先註冊）\n\n有任何問題 隨時私聊 @cloud_demo_seller\n\n售後頻道： https://t.me/cloud_demo_ch\n交流群： https://t.me/cloud_demo_grp\n客服電話 0912-345-678"
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 3,
+      "date": 1794276000,
+      "sender": {
+       "id": 6113,
+       "role": "member"
+      },
+      "text": "雲端會員限時調價：\n企業採購請私聊 全網最低價\n月卡 季卡 年卡 全部現貨\n\n🔥 雲端硬碟會員\n年卡特價：320\n季卡特價：99\n月卡特價：38\n\n⭐ 影音會員 168\n【5件起165】\n【10件起160】\n【20件起155】\n\n⭐ 翻譯點數\n100點=30\n300點=85\n1000點=260\n\n📍 下單入口\n👉 https://shop-demo-cloud.example/ （需要先註冊）\n\n有任何問題 隨時私聊 @cloud_demo_seller\n\n售後頻道： https://t.me/cloud_demo_ch\n交流群： https://t.me/cloud_demo_grp\n客服電話 0912-345-678\n限時優惠先到先得"
+     }
+    },
+    {
+     "op": "expect",
+     "fold": {
+      "loose": [
+       2,
+       3
+      ],
+      "standard": [
+       2,
+       3
+      ],
+      "aggressive": [
+       2,
+       3
+      ]
+     },
+     "states": {
+      "standard": {
+       "1": "original"
+      }
+     }
+    }
+   ]
+  },
+  {
+   "id": "R3-14",
+   "category": "regression_v3",
+   "title": "成員照抄管理員價目表、開頭加一行並改一個區塊（背書紀錄也比對 BLOCK）",
+   "note": "成員那兩則的 6 個合格區塊有 5 個在管理員的背書紀錄裡（5×5 ≥ 4×6）→ 改版重疊、連結沒有新增 → 給背書（endorsed）；否則兩位成員彼此照抄（全文相同、強特徵、2 人）在標準會收第 3 則。改版重疊只能給背書，不會判成冒充。",
+   "context": {
+    "chatId": -1001000000001,
+    "type": "supergroup",
+    "username": "lumina_demo_grp",
+    "linkedChannel": {
+     "id": -1002000000002,
+     "username": "lumina_demo_ch"
+    },
+    "description": "LuminaGram 合成測試群。官網 https://lumina-demo.example.org 新人請看置頂。邀請 t.me/+DemoGroupInv",
+    "pinnedTexts": [],
+    "adminsKnown": true,
+    "memberHandles": [
+     "me_demo_user"
+    ]
+   },
+   "settings": {},
+   "events": [
+    {
+     "op": "observe",
+     "message": {
+      "id": 1,
+      "date": 1794268800,
+      "sender": {
+       "id": 6121,
+       "role": "admin"
+      },
+      "text": "雲端會員限時調價：\n企業採購請私聊 全網最低價\n月卡 季卡 年卡 全部現貨\n\n🔥 雲端硬碟會員\n年卡特價：320\n季卡特價：99\n月卡特價：38\n\n⭐ 影音會員 168\n【5件起165】\n【10件起160】\n【20件起155】\n\n⭐ 翻譯點數\n100點=30\n300點=85\n1000點=260\n\n📍 下單入口\n👉 https://shop-demo-cloud.example/ （需要先註冊）\n\n有任何問題 隨時私聊 @cloud_demo_seller\n\n售後頻道： https://t.me/cloud_demo_ch\n交流群： https://t.me/cloud_demo_grp"
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 2,
+      "date": 1794272400,
+      "sender": {
+       "id": 6122,
+       "role": "member"
+      },
+      "text": "今日更新：\n\n雲端會員限時調價：\n企業採購請私聊 全網最低價\n月卡 季卡 年卡 全部現貨\n\n🔥 雲端硬碟會員\n年卡特價：320\n季卡特價：99\n月卡特價：38\n\n⭐ 影音會員 年度方案 168\n【5件起165】\n【10件起160】\n【20件起155】\n\n⭐ 翻譯點數\n100點=30\n300點=85\n1000點=260\n\n📍 下單入口\n👉 https://shop-demo-cloud.example/ （需要先註冊）\n\n有任何問題 隨時私聊 @cloud_demo_seller\n\n售後頻道： https://t.me/cloud_demo_ch\n交流群： https://t.me/cloud_demo_grp"
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 3,
+      "date": 1794276000,
+      "sender": {
+       "id": 6123,
+       "role": "member"
+      },
+      "text": "今日更新：\n\n雲端會員限時調價：\n企業採購請私聊 全網最低價\n月卡 季卡 年卡 全部現貨\n\n🔥 雲端硬碟會員\n年卡特價：320\n季卡特價：99\n月卡特價：38\n\n⭐ 影音會員 年度方案 168\n【5件起165】\n【10件起160】\n【20件起155】\n\n⭐ 翻譯點數\n100點=30\n300點=85\n1000點=260\n\n📍 下單入口\n👉 https://shop-demo-cloud.example/ （需要先註冊）\n\n有任何問題 隨時私聊 @cloud_demo_seller\n\n售後頻道： https://t.me/cloud_demo_ch\n交流群： https://t.me/cloud_demo_grp"
+     }
+    },
+    {
+     "op": "expect",
+     "fold": {
+      "loose": [],
+      "standard": [],
+      "aggressive": []
+     },
+     "states": {
+      "standard": {
+       "1": "endorsed",
+       "2": "endorsed",
+       "3": "endorsed"
+      }
+     }
+    }
+   ]
+  },
+  {
+   "id": "G3-01",
+   "category": "guard_v3",
+   "title": "團購接龍（每人複製上一則再加一行）",
+   "note": "每一則＝上一則加一行（正是「結尾加一行」），但每則是不同的人 → VAR 不跨發送者；只共用 1 個段落鍵。",
+   "context": {
+    "chatId": -1001000000001,
+    "type": "supergroup",
+    "username": "lumina_demo_grp",
+    "linkedChannel": {
+     "id": -1002000000002,
+     "username": "lumina_demo_ch"
+    },
+    "description": "LuminaGram 合成測試群。官網 https://lumina-demo.example.org 新人請看置頂。邀請 t.me/+DemoGroupInv",
+    "pinnedTexts": [],
+    "adminsKnown": true,
+    "memberHandles": [
+     "me_demo_user"
+    ]
+   },
+   "settings": {},
+   "events": [
+    {
+     "op": "observe",
+     "message": {
+      "id": 1,
+      "date": 1794270000,
+      "sender": {
+       "id": 6201,
+       "role": "member"
+      },
+      "text": "【團購接龍】今日鮮果蘋果香蕉葡萄，明天下午到貨，有問題私聊團長\n1. 王小明 2份"
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 2,
+      "date": 1794271200,
+      "sender": {
+       "id": 6202,
+       "role": "member"
+      },
+      "text": "【團購接龍】今日鮮果蘋果香蕉葡萄，明天下午到貨，有問題私聊團長\n1. 王小明 2份\n2. 陳大文 1份"
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 3,
+      "date": 1794272400,
+      "sender": {
+       "id": 6203,
+       "role": "member"
+      },
+      "text": "【團購接龍】今日鮮果蘋果香蕉葡萄，明天下午到貨，有問題私聊團長\n1. 王小明 2份\n2. 陳大文 1份\n3. 林小華 3份"
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 4,
+      "date": 1794273600,
+      "sender": {
+       "id": 6204,
+       "role": "member"
+      },
+      "text": "【團購接龍】今日鮮果蘋果香蕉葡萄，明天下午到貨，有問題私聊團長\n1. 王小明 2份\n2. 陳大文 1份\n3. 林小華 3份\n4. 黃小美 1份"
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 5,
+      "date": 1794274800,
+      "sender": {
+       "id": 6205,
+       "role": "member"
+      },
+      "text": "【團購接龍】今日鮮果蘋果香蕉葡萄，明天下午到貨，有問題私聊團長\n1. 王小明 2份\n2. 陳大文 1份\n3. 林小華 3份\n4. 黃小美 1份\n5. 張大同 2份"
+     }
+    },
+    {
+     "op": "expect",
+     "fold": {
+      "loose": [],
+      "standard": [],
+      "aggressive": []
+     }
+    }
+   ]
+  },
+  {
+   "id": "G3-02",
+   "category": "guard_v3",
+   "title": "報名模板回覆（固定開頭＋自己的名字，帶網址）",
+   "note": "只差最後一行，但不同人 → VAR 不連；共用的段落鍵只有 1 個。",
+   "context": {
+    "chatId": -1001000000001,
+    "type": "supergroup",
+    "username": "lumina_demo_grp",
+    "linkedChannel": {
+     "id": -1002000000002,
+     "username": "lumina_demo_ch"
+    },
+    "description": "LuminaGram 合成測試群。官網 https://lumina-demo.example.org 新人請看置頂。邀請 t.me/+DemoGroupInv",
+    "pinnedTexts": [],
+    "adminsKnown": true,
+    "memberHandles": [
+     "me_demo_user"
+    ]
+   },
+   "settings": {},
+   "events": [
+    {
+     "op": "observe",
+     "message": {
+      "id": 1,
+      "date": 1794268800,
+      "sender": {
+       "id": 6301,
+       "role": "member"
+      },
+      "text": "【報名】週六晚上公司樓下餐廳聚餐，時間七點準時開始，費用平分。報名表 https://form-demo.example.com/dinner\n姓名：王小明"
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 2,
+      "date": 1794269700,
+      "sender": {
+       "id": 6302,
+       "role": "member"
+      },
+      "text": "【報名】週六晚上公司樓下餐廳聚餐，時間七點準時開始，費用平分。報名表 https://form-demo.example.com/dinner\n姓名：陳大文"
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 3,
+      "date": 1794270600,
+      "sender": {
+       "id": 6303,
+       "role": "member"
+      },
+      "text": "【報名】週六晚上公司樓下餐廳聚餐，時間七點準時開始，費用平分。報名表 https://form-demo.example.com/dinner\n姓名：林小華"
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 4,
+      "date": 1794271500,
+      "sender": {
+       "id": 6304,
+       "role": "member"
+      },
+      "text": "【報名】週六晚上公司樓下餐廳聚餐，時間七點準時開始，費用平分。報名表 https://form-demo.example.com/dinner\n姓名：黃小美"
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 5,
+      "date": 1794272400,
+      "sender": {
+       "id": 6305,
+       "role": "member"
+      },
+      "text": "【報名】週六晚上公司樓下餐廳聚餐，時間七點準時開始，費用平分。報名表 https://form-demo.example.com/dinner\n姓名：張大同"
+     }
+    },
+    {
+     "op": "expect",
+     "fold": {
+      "loose": [],
+      "standard": [],
+      "aggressive": []
+     }
+    }
+   ]
+  },
+  {
+   "id": "G3-03",
+   "category": "guard_v3",
+   "title": "同一人三則不同的團購公告（固定開頭區塊與結尾區塊）",
+   "note": "3 個合格區塊只共用開頭、結尾 2 個：5×2 < 4×3 → BLOCK 不成簇；中間兩行都不同 → VAR 對不上。",
+   "context": {
+    "chatId": -1001000000001,
+    "type": "supergroup",
+    "username": "lumina_demo_grp",
+    "linkedChannel": {
+     "id": -1002000000002,
+     "username": "lumina_demo_ch"
+    },
+    "description": "LuminaGram 合成測試群。官網 https://lumina-demo.example.org 新人請看置頂。邀請 t.me/+DemoGroupInv",
+    "pinnedTexts": [],
+    "adminsKnown": true,
+    "memberHandles": [
+     "me_demo_user"
+    ]
+   },
+   "settings": {},
+   "events": [
+    {
+     "op": "observe",
+     "message": {
+      "id": 1,
+      "date": 1794268800,
+      "sender": {
+       "id": 6401,
+       "role": "member"
+      },
+      "text": "【本週團購】社區鄰居專屬優惠活動\n\n有機蔬菜箱：當季葉菜五種\n產地直送：每箱約三公斤\n\n下單請私聊團長，週五晚上截止\n自取地點：社區活動中心一樓"
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 2,
+      "date": 1794312000,
+      "sender": {
+       "id": 6401,
+       "role": "member"
+      },
+      "text": "【本週團購】社區鄰居專屬優惠活動\n\n手工饅頭：鮮奶與黑糖兩種口味\n每袋十個：冷凍可保存一個月\n\n下單請私聊團長，週五晚上截止\n自取地點：社區活動中心一樓"
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 3,
+      "date": 1794355200,
+      "sender": {
+       "id": 6401,
+       "role": "member"
+      },
+      "text": "【本週團購】社區鄰居專屬優惠活動\n\n台灣芭樂：每箱十斤\n果園直送：保證香甜脆口\n\n下單請私聊團長，週五晚上截止\n自取地點：社區活動中心一樓"
+     }
+    },
+    {
+     "op": "expect",
+     "fold": {
+      "loose": [],
+      "standard": [],
+      "aggressive": []
+     }
+    }
+   ]
+  },
+  {
+   "id": "G3-04",
+   "category": "guard_v3",
+   "title": "熱心成員回答不同問題（固定問候與結尾）",
+   "note": "不同的是中間那行（答案），它比剩下的一半還長 → 不產生「去掉答案」的 VAR 鍵。",
+   "context": {
+    "chatId": -1001000000001,
+    "type": "supergroup",
+    "username": "lumina_demo_grp",
+    "linkedChannel": {
+     "id": -1002000000002,
+     "username": "lumina_demo_ch"
+    },
+    "description": "LuminaGram 合成測試群。官網 https://lumina-demo.example.org 新人請看置頂。邀請 t.me/+DemoGroupInv",
+    "pinnedTexts": [],
+    "adminsKnown": true,
+    "memberHandles": [
+     "me_demo_user"
+    ]
+   },
+   "settings": {},
+   "events": [
+    {
+     "op": "observe",
+     "message": {
+      "id": 1,
+      "date": 1794268800,
+      "sender": {
+       "id": 6501,
+       "role": "member"
+      },
+      "text": "你好！\n封鎖設定在 設定 > 隱私與安全 > 已封鎖的使用者，找到對方後點解除封鎖就可以了\n有其他問題可以私聊我"
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 2,
+      "date": 1794279600,
+      "sender": {
+       "id": 6501,
+       "role": "member"
+      },
+      "text": "你好！\n通知沒有聲音的話，請到 設定 > 通知與音效 把聲音打開，再檢查手機的勿擾模式\n有其他問題可以私聊我"
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 3,
+      "date": 1794290400,
+      "sender": {
+       "id": 6501,
+       "role": "member"
+      },
+      "text": "你好！\n換手機號碼要到 設定 > 帳號 > 電話號碼，新號碼會收到驗證碼，原本的對話紀錄都會保留\n有其他問題可以私聊我"
+     }
+    },
+    {
+     "op": "expect",
+     "fold": {
+      "loose": [],
+      "standard": [],
+      "aggressive": []
+     }
+    }
+   ]
+  },
+  {
+   "id": "G3-05",
+   "category": "guard_v3",
+   "title": "同一人不同的市場分析（固定免責聲明）",
+   "note": "免責聲明與分析一樣長：去掉分析不符合比例條件（2×48 > 48）。",
+   "context": {
+    "chatId": -1001000000001,
+    "type": "supergroup",
+    "username": "lumina_demo_grp",
+    "linkedChannel": {
+     "id": -1002000000002,
+     "username": "lumina_demo_ch"
+    },
+    "description": "LuminaGram 合成測試群。官網 https://lumina-demo.example.org 新人請看置頂。邀請 t.me/+DemoGroupInv",
+    "pinnedTexts": [],
+    "adminsKnown": true,
+    "memberHandles": [
+     "me_demo_user"
+    ]
+   },
+   "settings": {},
+   "events": [
+    {
+     "op": "observe",
+     "message": {
+      "id": 1,
+      "date": 1794268800,
+      "sender": {
+       "id": 6601,
+       "role": "member"
+      },
+      "text": "今天大盤震盪整理，短線可以關注半導體類股的回檔買點\n以上內容僅供參考，不構成任何投資建議，詳細分析請私聊"
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 2,
+      "date": 1794297600,
+      "sender": {
+       "id": 6601,
+       "role": "member"
+      },
+      "text": "明天聯準會公布利率決議，建議降低持股比例保留現金部位\n以上內容僅供參考，不構成任何投資建議，詳細分析請私聊"
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 3,
+      "date": 1794326400,
+      "sender": {
+       "id": 6601,
+       "role": "member"
+      },
+      "text": "能源類股連續三天放量上漲，留意高檔獲利了結的賣壓\n以上內容僅供參考，不構成任何投資建議，詳細分析請私聊"
+     }
+    },
+    {
+     "op": "expect",
+     "fold": {
+      "loose": [],
+      "standard": [],
+      "aggressive": []
+     }
+    }
+   ]
+  },
+  {
+   "id": "G3-06",
+   "category": "guard_v3",
+   "title": "同一人轉貼不同新聞（相同頁尾帳號）",
+   "note": "",
+   "context": {
+    "chatId": -1001000000001,
+    "type": "supergroup",
+    "username": "lumina_demo_grp",
+    "linkedChannel": {
+     "id": -1002000000002,
+     "username": "lumina_demo_ch"
+    },
+    "description": "LuminaGram 合成測試群。官網 https://lumina-demo.example.org 新人請看置頂。邀請 t.me/+DemoGroupInv",
+    "pinnedTexts": [],
+    "adminsKnown": true,
+    "memberHandles": [
+     "me_demo_user"
+    ]
+   },
+   "settings": {},
+   "events": [
+    {
+     "op": "observe",
+     "message": {
+      "id": 1,
+      "date": 1794268800,
+      "sender": {
+       "id": 6701,
+       "role": "member"
+      },
+      "text": "【快訊】某市今日舉行國際科技展覽\n吸引上萬名民眾到場參觀，主辦單位表示明年將擴大規模\n訂閱 @news_demo_ch ｜ 投稿 @news_tips_demo_bot"
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 2,
+      "date": 1794283200,
+      "sender": {
+       "id": 6701,
+       "role": "member"
+      },
+      "text": "【快訊】某市地鐵新線今日正式通車\n沿線居民通勤時間大幅縮短，交通局表示將持續增加班次\n訂閱 @news_demo_ch ｜ 投稿 @news_tips_demo_bot"
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 3,
+      "date": 1794297600,
+      "sender": {
+       "id": 6701,
+       "role": "member"
+      },
+      "text": "【快訊】某縣今年稻米豐收創新高\n農會表示收購價格穩定，農民收入可望明顯增加\n訂閱 @news_demo_ch ｜ 投稿 @news_tips_demo_bot"
+     }
+    },
+    {
+     "op": "expect",
+     "fold": {
+      "loose": [],
+      "standard": [],
+      "aggressive": []
+     }
+    }
+   ]
+  },
+  {
+   "id": "G3-07",
+   "category": "guard_v3",
+   "title": "同一位客人查三筆不同訂單（同一模板、帶查詢網址）",
+   "note": "訂單號是數字段（文字形一樣），只差「問題」那行，但那行比剩下的一半長 → 不產生「去掉它」的鍵、不成簇；就算成簇也只有弱特徵（網址），弱規則要 ≥2–3 人 → 不收。",
+   "context": {
+    "chatId": -1001000000001,
+    "type": "supergroup",
+    "username": "lumina_demo_grp",
+    "linkedChannel": {
+     "id": -1002000000002,
+     "username": "lumina_demo_ch"
+    },
+    "description": "LuminaGram 合成測試群。官網 https://lumina-demo.example.org 新人請看置頂。邀請 t.me/+DemoGroupInv",
+    "pinnedTexts": [],
+    "adminsKnown": true,
+    "memberHandles": [
+     "me_demo_user"
+    ]
+   },
+   "settings": {},
+   "events": [
+    {
+     "op": "observe",
+     "message": {
+      "id": 1,
+      "date": 1794268800,
+      "sender": {
+       "id": 6801,
+       "role": "member"
+      },
+      "text": "訂單查詢\n訂單號：2026111700123\n收貨人：王小明\n問題：包裹顯示已送達但沒收到\n查詢網址 https://track-demo.example.com"
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 2,
+      "date": 1794276000,
+      "sender": {
+       "id": 6801,
+       "role": "member"
+      },
+      "text": "訂單查詢\n訂單號：2026111700456\n收貨人：王小明\n問題：商品尺寸寄錯了想換貨\n查詢網址 https://track-demo.example.com"
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 3,
+      "date": 1794283200,
+      "sender": {
+       "id": 6801,
+       "role": "member"
+      },
+      "text": "訂單查詢\n訂單號：2026111700789\n收貨人：王小明\n問題：發票抬頭打錯需要重開\n查詢網址 https://track-demo.example.com"
+     }
+    },
+    {
+     "op": "expect",
+     "fold": {
+      "loose": [],
+      "standard": [],
+      "aggressive": []
+     }
+    }
+   ]
+  },
+  {
+   "id": "G3-08",
+   "category": "guard_v3",
+   "title": "同一人好幾則多行短句",
+   "note": "沒有特徵、不是純文字 → 不建檔。",
+   "context": {
+    "chatId": -1001000000001,
+    "type": "supergroup",
+    "username": "lumina_demo_grp",
+    "linkedChannel": {
+     "id": -1002000000002,
+     "username": "lumina_demo_ch"
+    },
+    "description": "LuminaGram 合成測試群。官網 https://lumina-demo.example.org 新人請看置頂。邀請 t.me/+DemoGroupInv",
+    "pinnedTexts": [],
+    "adminsKnown": true,
+    "memberHandles": [
+     "me_demo_user"
+    ]
+   },
+   "settings": {},
+   "events": [
+    {
+     "op": "observe",
+     "message": {
+      "id": 1,
+      "date": 1794268800,
+      "sender": {
+       "id": 6901,
+       "role": "member"
+      },
+      "text": "收到\n謝謝老師\n明天見",
+      "replyTo": 100
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 2,
+      "date": 1794272400,
+      "sender": {
+       "id": 6901,
+       "role": "member"
+      },
+      "text": "好的\n收到\n謝謝",
+      "replyTo": 101
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 3,
+      "date": 1794276000,
+      "sender": {
+       "id": 6901,
+       "role": "member"
+      },
+      "text": "收到了\n謝謝大家\n辛苦了",
+      "replyTo": 102
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 4,
+      "date": 1794279600,
+      "sender": {
+       "id": 6901,
+       "role": "member"
+      },
+      "text": "好的收到\n謝謝",
+      "replyTo": 103
+     }
+    },
+    {
+     "op": "expect",
+     "fold": {
+      "loose": [],
+      "standard": [],
+      "aggressive": []
+     },
+     "states": {
+      "standard": {
+       "1": "untracked",
+       "2": "untracked"
+      }
+     }
+    }
+   ]
+  },
+  {
+   "id": "G3-09",
+   "category": "guard_v3",
+   "title": "管理員每天不同的公告（選項開）",
+   "note": "選項開也只收「同一則」的重發；三則內容不同、BLOCK 只共用 2/3（5×2 < 4×3）→ 各自只有 1 次。",
+   "context": {
+    "chatId": -1001000000001,
+    "type": "supergroup",
+    "username": "lumina_demo_grp",
+    "linkedChannel": {
+     "id": -1002000000002,
+     "username": "lumina_demo_ch"
+    },
+    "description": "LuminaGram 合成測試群。官網 https://lumina-demo.example.org 新人請看置頂。邀請 t.me/+DemoGroupInv",
+    "pinnedTexts": [],
+    "adminsKnown": true,
+    "memberHandles": [
+     "me_demo_user"
+    ]
+   },
+   "settings": {
+    "foldPrivilegedRepeats": true
+   },
+   "events": [
+    {
+     "op": "observe",
+     "message": {
+      "id": 1,
+      "date": 1794268800,
+      "sender": {
+       "id": 7001,
+       "role": "admin"
+      },
+      "text": "【社區公告】本週社區活動與重要事項\n\n週六上午九點大樓消防演練\n請各住戶配合疏散\n\n如有疑問請私聊管理員\n感謝各位鄰居配合"
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 2,
+      "date": 1794355200,
+      "sender": {
+       "id": 7001,
+       "role": "admin"
+      },
+      "text": "【社區公告】本週社區活動與重要事項\n\n週日下午兩點社區二手市集\n歡迎攜帶閒置物品擺攤\n\n如有疑問請私聊管理員\n感謝各位鄰居配合"
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 3,
+      "date": 1794441600,
+      "sender": {
+       "id": 7001,
+       "role": "admin"
+      },
+      "text": "【社區公告】本週社區活動與重要事項\n\n下週一停水時間上午九點到下午三點\n請提前儲水備用\n\n如有疑問請私聊管理員\n感謝各位鄰居配合"
+     }
+    },
+    {
+     "op": "expect",
+     "fold": {
+      "loose": [],
+      "standard": [],
+      "aggressive": []
+     },
+     "states": {
+      "standard": {
+       "1": "none",
+       "2": "none",
+       "3": "none"
+      }
+     }
+    }
+   ]
+  },
+  {
+   "id": "G3-10",
+   "category": "guard_v3",
+   "title": "成員照抄管理員推廣但改了一行（選項開：成員複本仍背書）",
+   "note": "成員那則「去掉最後一行」＝管理員那則「去掉最後一行」（兩邊都是 VARL：對紀錄的改版重疊也算寬的）→ 與背書紀錄改版重疊、沒有新連結 → 給背書（endorsed）。管理員只發 1 次 → none。",
+   "context": {
+    "chatId": -1001000000001,
+    "type": "supergroup",
+    "username": "lumina_demo_grp",
+    "linkedChannel": {
+     "id": -1002000000002,
+     "username": "lumina_demo_ch"
+    },
+    "description": "LuminaGram 合成測試群。官網 https://lumina-demo.example.org 新人請看置頂。邀請 t.me/+DemoGroupInv",
+    "pinnedTexts": [],
+    "adminsKnown": true,
+    "memberHandles": [
+     "me_demo_user"
+    ]
+   },
+   "settings": {
+    "foldPrivilegedRepeats": true
+   },
+   "events": [
+    {
+     "op": "observe",
+     "message": {
+      "id": 1,
+      "date": 1794268800,
+      "sender": {
+       "id": 7101,
+       "role": "admin"
+      },
+      "text": "本群合作推廣\n雲端會員年卡限時特價，全網最低價格\n有需要的私聊管理員"
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 2,
+      "date": 1794272400,
+      "sender": {
+       "id": 7102,
+       "role": "member"
+      },
+      "text": "本群合作推廣\n雲端會員年卡限時特價，全網最低價格\n有需要的請私聊管理員"
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 3,
+      "date": 1794276000,
+      "sender": {
+       "id": 7103,
+       "role": "member"
+      },
+      "text": "本群合作推廣\n雲端會員年卡限時特價，全網最低價格\n有需要的請私聊管理員"
+     }
+    },
+    {
+     "op": "expect",
+     "fold": {
+      "loose": [],
+      "standard": [],
+      "aggressive": []
+     },
+     "states": {
+      "standard": {
+       "1": "none",
+       "2": "endorsed",
+       "3": "endorsed"
+      }
+     }
+    }
+   ]
+  },
+  {
+   "id": "G3-11",
+   "category": "guard_v3",
+   "title": "同一賣家三份不同的價目表（相同結尾區塊）",
+   "note": "只共用「有任何問題 隨時私聊」1 個區塊 → BLOCK 不成簇；內容不同 → VAR 對不上。",
+   "context": {
+    "chatId": -1001000000001,
+    "type": "supergroup",
+    "username": "lumina_demo_grp",
+    "linkedChannel": {
+     "id": -1002000000002,
+     "username": "lumina_demo_ch"
+    },
+    "description": "LuminaGram 合成測試群。官網 https://lumina-demo.example.org 新人請看置頂。邀請 t.me/+DemoGroupInv",
+    "pinnedTexts": [],
+    "adminsKnown": true,
+    "memberHandles": [
+     "me_demo_user"
+    ]
+   },
+   "settings": {},
+   "events": [
+    {
+     "op": "observe",
+     "message": {
+      "id": 1,
+      "date": 1794268800,
+      "sender": {
+       "id": 7201,
+       "role": "member"
+      },
+      "text": "雲端會員限時調價：\n企業採購請私聊 全網最低價\n月卡 季卡 年卡 全部現貨\n\n🔥 雲端硬碟會員\n年卡特價：320\n季卡特價：99\n月卡特價：38\n\n⭐ 影音會員 168\n【5件起165】\n【10件起160】\n【20件起155】\n\n⭐ 翻譯點數\n100點=30\n300點=85\n1000點=260\n\n📍 下單入口\n👉 https://shop-demo-cloud.example/ （需要先註冊）\n\n有任何問題 隨時私聊 @cloud_demo_seller\n\n售後頻道： https://t.me/cloud_demo_ch\n交流群： https://t.me/cloud_demo_grp"
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 2,
+      "date": 1794355200,
+      "sender": {
+       "id": 7201,
+       "role": "member"
+      },
+      "text": "遊戲點卡限時調價：\n大量採購請私聊 價格可議\n\n🎮 手遊點卡\n100點：90\n300點：260\n\n🎮 主機會員\n年費方案：599\n\n有任何問題 隨時私聊 @cloud_demo_seller\n\n售後頻道： https://t.me/cloud_demo_ch"
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 3,
+      "date": 1794441600,
+      "sender": {
+       "id": 7201,
+       "role": "member"
+      },
+      "text": "影音會員限時調價：\n家庭方案請私聊 全網最低價\n\n📺 串流平台年卡\n標準方案：880\n高級方案：1280\n\n📺 音樂平台年卡\n個人方案：480\n\n有任何問題 隨時私聊 @cloud_demo_seller\n\n售後頻道： https://t.me/cloud_demo_ch"
+     }
+    },
+    {
+     "op": "expect",
+     "fold": {
+      "loose": [],
+      "standard": [],
+      "aggressive": []
+     }
+    }
+   ]
+  },
+  {
+   "id": "R3-15",
+   "category": "regression_v3",
+   "title": "成員轉貼管理員公告、各自加一行自己的網址（改版重疊不判冒充）",
+   "note": "審查探針 P1。成員那兩則去掉最後一行＝管理員公告全文（只有 VAR 家族的改版重疊，沒有 v2 精確鍵或 2 個段落鍵）：帶了新網址 → 不給背書，但改版重疊**不能**判成冒充。兩位成員的文字形相同（網址被抽走）→ TEXT 成簇，只有弱特徵（網址），弱規則要 ≥3–4 次 → 不收。與 v2 相同（修正前會當成冒充、標準收 2、3）。",
+   "context": {
+    "chatId": -1001000000001,
+    "type": "supergroup",
+    "username": "lumina_demo_grp",
+    "linkedChannel": {
+     "id": -1002000000002,
+     "username": "lumina_demo_ch"
+    },
+    "description": "LuminaGram 合成測試群。官網 https://lumina-demo.example.org 新人請看置頂。邀請 t.me/+DemoGroupInv",
+    "pinnedTexts": [],
+    "adminsKnown": true,
+    "memberHandles": [
+     "me_demo_user"
+    ]
+   },
+   "settings": {},
+   "events": [
+    {
+     "op": "observe",
+     "message": {
+      "id": 1,
+      "date": 1794268800,
+      "sender": {
+       "id": 7301,
+       "role": "admin"
+      },
+      "text": "本週六下午兩點社區讀書會\n地點在市立圖書館三樓會議室\n歡迎大家帶朋友一起參加"
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 2,
+      "date": 1794272400,
+      "sender": {
+       "id": 7302,
+       "role": "member"
+      },
+      "text": "本週六下午兩點社區讀書會\n地點在市立圖書館三樓會議室\n歡迎大家帶朋友一起參加\n我整理的書單 https://notes-alpha.example/list"
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 3,
+      "date": 1794276000,
+      "sender": {
+       "id": 7303,
+       "role": "member"
+      },
+      "text": "本週六下午兩點社區讀書會\n地點在市立圖書館三樓會議室\n歡迎大家帶朋友一起參加\n我整理的書單 https://notes-beta.example/list"
+     }
+    },
+    {
+     "op": "expect",
+     "fold": {
+      "loose": [],
+      "standard": [],
+      "aggressive": []
+     },
+     "states": {
+      "loose": {
+       "1": "endorsed",
+       "2": "none",
+       "3": "none"
+      },
+      "standard": {
+       "1": "endorsed",
+       "2": "none",
+       "3": "none"
+      },
+      "aggressive": {
+       "1": "endorsed",
+       "2": "none",
+       "3": "none"
+      }
+     }
+    }
+   ]
+  },
+  {
+   "id": "R3-16",
+   "category": "regression_v3",
+   "title": "「不是廣告」的貼文被改掉一行換成詐騙（改版重疊要連結子集才放行）",
+   "note": "審查探針 P5d。詐騙那則去掉最後一行＝被標「不是廣告」那則去掉最後一行（改版重疊），但帶了新的聯絡帳號（不在紀錄的連結裡）→ 不放行。三個帳號的全文相同、強特徵（帳號）：寬鬆 72 小時 ≥2 次且 ≥3 人、標準 ≥2 人、積極 ≥2 次 → 收第 3、4 則，第 2 則是被抄的原文。與 v2 相同（修正前三則都是 not_ad）。",
+   "context": {
+    "chatId": -1001000000001,
+    "type": "supergroup",
+    "username": "lumina_demo_grp",
+    "linkedChannel": {
+     "id": -1002000000002,
+     "username": "lumina_demo_ch"
+    },
+    "description": "LuminaGram 合成測試群。官網 https://lumina-demo.example.org 新人請看置頂。邀請 t.me/+DemoGroupInv",
+    "pinnedTexts": [],
+    "adminsKnown": true,
+    "memberHandles": [
+     "me_demo_user"
+    ]
+   },
+   "settings": {},
+   "events": [
+    {
+     "op": "observe",
+     "message": {
+      "id": 1,
+      "date": 1794268800,
+      "sender": {
+       "id": 7311,
+       "role": "member"
+      },
+      "text": "【團購接龍】本週有機蔬菜箱，週五晚上截止\n每箱約三公斤，當季葉菜五種\n自取地點：社區活動中心一樓\n有問題請私聊團長"
+     }
+    },
+    {
+     "op": "notAd",
+     "id": 1,
+     "now": 1794272400
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 2,
+      "date": 1794355200,
+      "sender": {
+       "id": 7312,
+       "role": "member"
+      },
+      "text": "【團購接龍】本週有機蔬菜箱，週五晚上截止\n每箱約三公斤，當季葉菜五種\n自取地點：社區活動中心一樓\n日賺三千加V：easy_cash88"
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 3,
+      "date": 1794441600,
+      "sender": {
+       "id": 7313,
+       "role": "member"
+      },
+      "text": "【團購接龍】本週有機蔬菜箱，週五晚上截止\n每箱約三公斤，當季葉菜五種\n自取地點：社區活動中心一樓\n日賺三千加V：easy_cash88"
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 4,
+      "date": 1794445200,
+      "sender": {
+       "id": 7314,
+       "role": "member"
+      },
+      "text": "【團購接龍】本週有機蔬菜箱，週五晚上截止\n每箱約三公斤，當季葉菜五種\n自取地點：社區活動中心一樓\n日賺三千加V：easy_cash88"
+     }
+    },
+    {
+     "op": "expect",
+     "fold": {
+      "loose": [
+       3,
+       4
+      ],
+      "standard": [
+       3,
+       4
+      ],
+      "aggressive": [
+       3,
+       4
+      ]
+     },
+     "states": {
+      "loose": {
+       "1": "not_ad",
+       "2": "original"
+      },
+      "standard": {
+       "1": "not_ad",
+       "2": "original"
+      },
+      "aggressive": {
+       "1": "not_ad",
+       "2": "original"
+      }
+     }
+    }
+   ]
+  },
+  {
+   "id": "R3-17",
+   "category": "regression_v3",
+   "title": "「不是廣告」紀錄保留 v2 的段落鍵（不被 v3 的改版鍵擠掉）",
+   "note": "審查探針 P6。主辦人 7 則不同的長活動說明（同一支報名電話 → CONTACT 成簇），第 1 則被標「不是廣告」→ 紀錄是整簇的鍵。紀錄先放 v2 會存的 64 個鍵（精確鍵在前、段落鍵在後），再接 v3 的改版鍵，所以第 1 則的段落鍵都在。之後兩位成員轉貼第 1 則的兩句長句、換一支電話 → 共用 2 個段落鍵 → not_ad（與 v2 相同；修正前段落鍵被擠掉，兩則都收）。",
+   "context": {
+    "chatId": -1001000000001,
+    "type": "supergroup",
+    "username": "lumina_demo_grp",
+    "linkedChannel": {
+     "id": -1002000000002,
+     "username": "lumina_demo_ch"
+    },
+    "description": "LuminaGram 合成測試群。官網 https://lumina-demo.example.org 新人請看置頂。邀請 t.me/+DemoGroupInv",
+    "pinnedTexts": [],
+    "adminsKnown": true,
+    "memberHandles": [
+     "me_demo_user"
+    ]
+   },
+   "settings": {},
+   "events": [
+    {
+     "op": "observe",
+     "message": {
+      "id": 1,
+      "date": 1794268800,
+      "sender": {
+       "id": 7321,
+       "role": "member"
+      },
+      "text": "【社區活動】關於週六的讀書會的詳細說明，請大家仔細閱讀以下內容\n本次活動由社區志工團隊籌備，歡迎所有住戶一起參加（週六的讀書會之0）\n活動當天請提早十分鐘到場，現場會有工作人員協助報到（週六的讀書會之0）\n如果臨時無法出席，請提前一天告知，讓候補的鄰居可以遞補（週六的讀書會之0）\n活動結束後會在群組分享照片，請不想入鏡的朋友告訴攝影志工（週六的讀書會之0）\n今年的活動經費來自社區發展基金，感謝大家一直以來的支持（週六的讀書會之0）\n我們也歡迎有專長的住戶擔任講師，分享自己的興趣與經驗（週六的讀書會之0）\n報名時請註明參加人數與聯絡方式，方便我們準備茶點與座位（週六的讀書會之0）\n活動場地位於社區活動中心二樓，請搭乘電梯上樓後右轉（週六的讀書會之0）\n現場提供免費飲用水，請自備環保杯減少一次性用品的使用（週六的讀書會之0）\n若遇颱風或豪雨等天候因素，活動將延期並另行公告通知（週六的讀書會之0）\n未成年的小朋友請由家長陪同參加，並注意自身安全（週六的讀書會之0）\n活動期間請將手機調成靜音，避免影響其他參加者的體驗（週六的讀書會之0）\n報名專線 0912-345-678"
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 2,
+      "date": 1794272400,
+      "sender": {
+       "id": 7321,
+       "role": "member"
+      },
+      "text": "【社區活動】關於週日的健行活動的詳細說明，請大家仔細閱讀以下內容\n本次活動由社區志工團隊籌備，歡迎所有住戶一起參加（週日的健行活動之1）\n活動當天請提早十分鐘到場，現場會有工作人員協助報到（週日的健行活動之1）\n如果臨時無法出席，請提前一天告知，讓候補的鄰居可以遞補（週日的健行活動之1）\n活動結束後會在群組分享照片，請不想入鏡的朋友告訴攝影志工（週日的健行活動之1）\n今年的活動經費來自社區發展基金，感謝大家一直以來的支持（週日的健行活動之1）\n我們也歡迎有專長的住戶擔任講師，分享自己的興趣與經驗（週日的健行活動之1）\n報名時請註明參加人數與聯絡方式，方便我們準備茶點與座位（週日的健行活動之1）\n活動場地位於社區活動中心二樓，請搭乘電梯上樓後右轉（週日的健行活動之1）\n現場提供免費飲用水，請自備環保杯減少一次性用品的使用（週日的健行活動之1）\n若遇颱風或豪雨等天候因素，活動將延期並另行公告通知（週日的健行活動之1）\n未成年的小朋友請由家長陪同參加，並注意自身安全（週日的健行活動之1）\n活動期間請將手機調成靜音，避免影響其他參加者的體驗（週日的健行活動之1）\n報名專線 0912-345-678"
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 3,
+      "date": 1794276000,
+      "sender": {
+       "id": 7321,
+       "role": "member"
+      },
+      "text": "【社區活動】關於下週的電影欣賞的詳細說明，請大家仔細閱讀以下內容\n本次活動由社區志工團隊籌備，歡迎所有住戶一起參加（下週的電影欣賞之2）\n活動當天請提早十分鐘到場，現場會有工作人員協助報到（下週的電影欣賞之2）\n如果臨時無法出席，請提前一天告知，讓候補的鄰居可以遞補（下週的電影欣賞之2）\n活動結束後會在群組分享照片，請不想入鏡的朋友告訴攝影志工（下週的電影欣賞之2）\n今年的活動經費來自社區發展基金，感謝大家一直以來的支持（下週的電影欣賞之2）\n我們也歡迎有專長的住戶擔任講師，分享自己的興趣與經驗（下週的電影欣賞之2）\n報名時請註明參加人數與聯絡方式，方便我們準備茶點與座位（下週的電影欣賞之2）\n活動場地位於社區活動中心二樓，請搭乘電梯上樓後右轉（下週的電影欣賞之2）\n現場提供免費飲用水，請自備環保杯減少一次性用品的使用（下週的電影欣賞之2）\n若遇颱風或豪雨等天候因素，活動將延期並另行公告通知（下週的電影欣賞之2）\n未成年的小朋友請由家長陪同參加，並注意自身安全（下週的電影欣賞之2）\n活動期間請將手機調成靜音，避免影響其他參加者的體驗（下週的電影欣賞之2）\n報名專線 0912-345-678"
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 4,
+      "date": 1794279600,
+      "sender": {
+       "id": 7321,
+       "role": "member"
+      },
+      "text": "【社區活動】關於月底的親子手作課的詳細說明，請大家仔細閱讀以下內容\n本次活動由社區志工團隊籌備，歡迎所有住戶一起參加（月底的親子手作課之3）\n活動當天請提早十分鐘到場，現場會有工作人員協助報到（月底的親子手作課之3）\n如果臨時無法出席，請提前一天告知，讓候補的鄰居可以遞補（月底的親子手作課之3）\n活動結束後會在群組分享照片，請不想入鏡的朋友告訴攝影志工（月底的親子手作課之3）\n今年的活動經費來自社區發展基金，感謝大家一直以來的支持（月底的親子手作課之3）\n我們也歡迎有專長的住戶擔任講師，分享自己的興趣與經驗（月底的親子手作課之3）\n報名時請註明參加人數與聯絡方式，方便我們準備茶點與座位（月底的親子手作課之3）\n活動場地位於社區活動中心二樓，請搭乘電梯上樓後右轉（月底的親子手作課之3）\n現場提供免費飲用水，請自備環保杯減少一次性用品的使用（月底的親子手作課之3）\n若遇颱風或豪雨等天候因素，活動將延期並另行公告通知（月底的親子手作課之3）\n未成年的小朋友請由家長陪同參加，並注意自身安全（月底的親子手作課之3）\n活動期間請將手機調成靜音，避免影響其他參加者的體驗（月底的親子手作課之3）\n報名專線 0912-345-678"
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 5,
+      "date": 1794283200,
+      "sender": {
+       "id": 7321,
+       "role": "member"
+      },
+      "text": "【社區活動】關於下個月的社區市集的詳細說明，請大家仔細閱讀以下內容\n本次活動由社區志工團隊籌備，歡迎所有住戶一起參加（下個月的社區市集之4）\n活動當天請提早十分鐘到場，現場會有工作人員協助報到（下個月的社區市集之4）\n如果臨時無法出席，請提前一天告知，讓候補的鄰居可以遞補（下個月的社區市集之4）\n活動結束後會在群組分享照片，請不想入鏡的朋友告訴攝影志工（下個月的社區市集之4）\n今年的活動經費來自社區發展基金，感謝大家一直以來的支持（下個月的社區市集之4）\n我們也歡迎有專長的住戶擔任講師，分享自己的興趣與經驗（下個月的社區市集之4）\n報名時請註明參加人數與聯絡方式，方便我們準備茶點與座位（下個月的社區市集之4）\n活動場地位於社區活動中心二樓，請搭乘電梯上樓後右轉（下個月的社區市集之4）\n現場提供免費飲用水，請自備環保杯減少一次性用品的使用（下個月的社區市集之4）\n若遇颱風或豪雨等天候因素，活動將延期並另行公告通知（下個月的社區市集之4）\n未成年的小朋友請由家長陪同參加，並注意自身安全（下個月的社區市集之4）\n活動期間請將手機調成靜音，避免影響其他參加者的體驗（下個月的社區市集之4）\n報名專線 0912-345-678"
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 6,
+      "date": 1794286800,
+      "sender": {
+       "id": 7321,
+       "role": "member"
+      },
+      "text": "【社區活動】關於年底的感恩晚會的詳細說明，請大家仔細閱讀以下內容\n本次活動由社區志工團隊籌備，歡迎所有住戶一起參加（年底的感恩晚會之5）\n活動當天請提早十分鐘到場，現場會有工作人員協助報到（年底的感恩晚會之5）\n如果臨時無法出席，請提前一天告知，讓候補的鄰居可以遞補（年底的感恩晚會之5）\n活動結束後會在群組分享照片，請不想入鏡的朋友告訴攝影志工（年底的感恩晚會之5）\n今年的活動經費來自社區發展基金，感謝大家一直以來的支持（年底的感恩晚會之5）\n我們也歡迎有專長的住戶擔任講師，分享自己的興趣與經驗（年底的感恩晚會之5）\n報名時請註明參加人數與聯絡方式，方便我們準備茶點與座位（年底的感恩晚會之5）\n活動場地位於社區活動中心二樓，請搭乘電梯上樓後右轉（年底的感恩晚會之5）\n現場提供免費飲用水，請自備環保杯減少一次性用品的使用（年底的感恩晚會之5）\n若遇颱風或豪雨等天候因素，活動將延期並另行公告通知（年底的感恩晚會之5）\n未成年的小朋友請由家長陪同參加，並注意自身安全（年底的感恩晚會之5）\n活動期間請將手機調成靜音，避免影響其他參加者的體驗（年底的感恩晚會之5）\n報名專線 0912-345-678"
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 7,
+      "date": 1794290400,
+      "sender": {
+       "id": 7321,
+       "role": "member"
+      },
+      "text": "【社區活動】關於寒假的兒童營隊的詳細說明，請大家仔細閱讀以下內容\n本次活動由社區志工團隊籌備，歡迎所有住戶一起參加（寒假的兒童營隊之6）\n活動當天請提早十分鐘到場，現場會有工作人員協助報到（寒假的兒童營隊之6）\n如果臨時無法出席，請提前一天告知，讓候補的鄰居可以遞補（寒假的兒童營隊之6）\n活動結束後會在群組分享照片，請不想入鏡的朋友告訴攝影志工（寒假的兒童營隊之6）\n今年的活動經費來自社區發展基金，感謝大家一直以來的支持（寒假的兒童營隊之6）\n我們也歡迎有專長的住戶擔任講師，分享自己的興趣與經驗（寒假的兒童營隊之6）\n報名時請註明參加人數與聯絡方式，方便我們準備茶點與座位（寒假的兒童營隊之6）\n活動場地位於社區活動中心二樓，請搭乘電梯上樓後右轉（寒假的兒童營隊之6）\n現場提供免費飲用水，請自備環保杯減少一次性用品的使用（寒假的兒童營隊之6）\n若遇颱風或豪雨等天候因素，活動將延期並另行公告通知（寒假的兒童營隊之6）\n未成年的小朋友請由家長陪同參加，並注意自身安全（寒假的兒童營隊之6）\n活動期間請將手機調成靜音，避免影響其他參加者的體驗（寒假的兒童營隊之6）\n報名專線 0912-345-678"
+     }
+    },
+    {
+     "op": "notAd",
+     "id": 1,
+     "now": 1794295800
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 10,
+      "date": 1794297600,
+      "sender": {
+       "id": 7322,
+       "role": "member"
+      },
+      "text": "本次活動由社區志工團隊籌備，歡迎所有住戶一起參加（週六的讀書會之0）\n活動當天請提早十分鐘到場，現場會有工作人員協助報到（週六的讀書會之0）\n轉貼給大家，報名打 0922-111-222"
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 11,
+      "date": 1794301200,
+      "sender": {
+       "id": 7323,
+       "role": "member"
+      },
+      "text": "本次活動由社區志工團隊籌備，歡迎所有住戶一起參加（週六的讀書會之0）\n活動當天請提早十分鐘到場，現場會有工作人員協助報到（週六的讀書會之0）\n轉貼給大家，報名打 0922-111-222"
+     }
+    },
+    {
+     "op": "expect",
+     "fold": {
+      "loose": [],
+      "standard": [],
+      "aggressive": []
+     },
+     "states": {
+      "standard": {
+       "1": "not_ad",
+       "4": "not_ad",
+       "10": "not_ad",
+       "11": "not_ad"
+      }
+     }
+    }
+   ]
+  },
+  {
+   "id": "G3-12",
+   "category": "guard_v3",
+   "title": "管理員每天不同的單行公告（選項開；只差一行、但那行不短）",
+   "note": "審查探針 P2a。三則只差中間那行（24），剩下的是 66：2×24 ≤ 66 但 4×24 > 66 → 只有 VARL（寬），「替換一行」要兩邊都是 VARS（嚴）→ 不成簇，各自只有 1 次。",
+   "context": {
+    "chatId": -1001000000001,
+    "type": "supergroup",
+    "username": "lumina_demo_grp",
+    "linkedChannel": {
+     "id": -1002000000002,
+     "username": "lumina_demo_ch"
+    },
+    "description": "LuminaGram 合成測試群。官網 https://lumina-demo.example.org 新人請看置頂。邀請 t.me/+DemoGroupInv",
+    "pinnedTexts": [],
+    "adminsKnown": true,
+    "memberHandles": [
+     "me_demo_user"
+    ]
+   },
+   "settings": {
+    "foldPrivilegedRepeats": true
+   },
+   "events": [
+    {
+     "op": "observe",
+     "message": {
+      "id": 1,
+      "date": 1794268800,
+      "sender": {
+       "id": 7401,
+       "role": "admin"
+      },
+      "text": "【社區公告】本週社區活動與重要事項\n週六上午九點大樓消防演練\n如有疑問請私聊管理員\n感謝各位鄰居配合"
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 2,
+      "date": 1794355200,
+      "sender": {
+       "id": 7401,
+       "role": "admin"
+      },
+      "text": "【社區公告】本週社區活動與重要事項\n週日下午兩點社區二手市集\n如有疑問請私聊管理員\n感謝各位鄰居配合"
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 3,
+      "date": 1794441600,
+      "sender": {
+       "id": 7401,
+       "role": "admin"
+      },
+      "text": "【社區公告】本週社區活動與重要事項\n下週一上午停水請提前儲水\n如有疑問請私聊管理員\n感謝各位鄰居配合"
+     }
+    },
+    {
+     "op": "expect",
+     "fold": {
+      "loose": [],
+      "standard": [],
+      "aggressive": []
+     },
+     "states": {
+      "standard": {
+       "1": "none",
+       "2": "none",
+       "3": "none"
+      }
+     }
+    }
+   ]
+  },
+  {
+   "id": "G3-13",
+   "category": "guard_v3",
+   "title": "同一位團長三種不同商品（只差品名那行）",
+   "note": "審查探針 P2b。品名那行（22–26）超過剩下的 1/4 → 只有 VARL，替換不成簇；與選項無關（成員）。",
+   "context": {
+    "chatId": -1001000000001,
+    "type": "supergroup",
+    "username": "lumina_demo_grp",
+    "linkedChannel": {
+     "id": -1002000000002,
+     "username": "lumina_demo_ch"
+    },
+    "description": "LuminaGram 合成測試群。官網 https://lumina-demo.example.org 新人請看置頂。邀請 t.me/+DemoGroupInv",
+    "pinnedTexts": [],
+    "adminsKnown": true,
+    "memberHandles": [
+     "me_demo_user"
+    ]
+   },
+   "settings": {},
+   "events": [
+    {
+     "op": "observe",
+     "message": {
+      "id": 1,
+      "date": 1794268800,
+      "sender": {
+       "id": 7411,
+       "role": "member"
+      },
+      "text": "【本週團購】社區鄰居專屬優惠活動\n有機蔬菜箱 當季葉菜五種\n下單請私聊團長，週五晚上截止\n自取地點：社區活動中心一樓"
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 2,
+      "date": 1794355200,
+      "sender": {
+       "id": 7411,
+       "role": "member"
+      },
+      "text": "【本週團購】社區鄰居專屬優惠活動\n手工饅頭 鮮奶黑糖兩種口味\n下單請私聊團長，週五晚上截止\n自取地點：社區活動中心一樓"
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 3,
+      "date": 1794441600,
+      "sender": {
+       "id": 7411,
+       "role": "member"
+      },
+      "text": "【本週團購】社區鄰居專屬優惠活動\n台灣芭樂 果園直送香甜脆口\n下單請私聊團長，週五晚上截止\n自取地點：社區活動中心一樓"
+     }
+    },
+    {
+     "op": "expect",
+     "fold": {
+      "loose": [],
+      "standard": [],
+      "aggressive": []
+     }
+    }
+   ]
+  },
+  {
+   "id": "G3-14",
+   "category": "guard_v3",
+   "title": "熱心成員三個不同的短答案（固定問候與結尾）",
+   "note": "審查探針 P2c。答案那行很短（18–22），但剩下的只有 70：4×18 > 70 → 只有 VARL，替換不成簇。",
+   "context": {
+    "chatId": -1001000000001,
+    "type": "supergroup",
+    "username": "lumina_demo_grp",
+    "linkedChannel": {
+     "id": -1002000000002,
+     "username": "lumina_demo_ch"
+    },
+    "description": "LuminaGram 合成測試群。官網 https://lumina-demo.example.org 新人請看置頂。邀請 t.me/+DemoGroupInv",
+    "pinnedTexts": [],
+    "adminsKnown": true,
+    "memberHandles": [
+     "me_demo_user"
+    ]
+   },
+   "settings": {},
+   "events": [
+    {
+     "op": "observe",
+     "message": {
+      "id": 1,
+      "date": 1794268800,
+      "sender": {
+       "id": 7421,
+       "role": "member"
+      },
+      "text": "你好！感謝你的提問，以下是我的回覆：\n請重新啟動應用程式\n有其他問題可以私聊我，或先看置頂的常見問題"
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 2,
+      "date": 1794279600,
+      "sender": {
+       "id": 7421,
+       "role": "member"
+      },
+      "text": "你好！感謝你的提問，以下是我的回覆：\n到設定裡打開通知就可以\n有其他問題可以私聊我，或先看置頂的常見問題"
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 3,
+      "date": 1794290400,
+      "sender": {
+       "id": 7421,
+       "role": "member"
+      },
+      "text": "你好！感謝你的提問，以下是我的回覆：\n請更新到最新版本再試試\n有其他問題可以私聊我，或先看置頂的常見問題"
+     }
+    },
+    {
+     "op": "expect",
+     "fold": {
+      "loose": [],
+      "standard": [],
+      "aggressive": []
+     }
+    }
+   ]
+  },
+  {
+   "id": "G3-15",
+   "category": "guard_v3",
+   "title": "管理員每天不同的公告（4 個區塊、3 個固定；選項開）",
+   "note": "審查探針 P5c。4 個合格區塊共用 3 個（開頭＋兩段結尾）：5×3 < 4×4 → BLOCK 不成簇（4 個區塊時要全部共用）；中間兩行都不同 → VAR 對不上。",
+   "context": {
+    "chatId": -1001000000001,
+    "type": "supergroup",
+    "username": "lumina_demo_grp",
+    "linkedChannel": {
+     "id": -1002000000002,
+     "username": "lumina_demo_ch"
+    },
+    "description": "LuminaGram 合成測試群。官網 https://lumina-demo.example.org 新人請看置頂。邀請 t.me/+DemoGroupInv",
+    "pinnedTexts": [],
+    "adminsKnown": true,
+    "memberHandles": [
+     "me_demo_user"
+    ]
+   },
+   "settings": {
+    "foldPrivilegedRepeats": true
+   },
+   "events": [
+    {
+     "op": "observe",
+     "message": {
+      "id": 1,
+      "date": 1794268800,
+      "sender": {
+       "id": 7431,
+       "role": "admin"
+      },
+      "text": "【社區公告】本週社區活動與重要事項\n\n週六上午九點大樓消防演練\n請各住戶配合疏散\n\n如有疑問請私聊管理員，我們會盡快回覆\n\n感謝各位鄰居配合，祝大家生活愉快"
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 2,
+      "date": 1794355200,
+      "sender": {
+       "id": 7431,
+       "role": "admin"
+      },
+      "text": "【社區公告】本週社區活動與重要事項\n\n週日下午兩點社區二手市集\n歡迎攜帶閒置物品擺攤\n\n如有疑問請私聊管理員，我們會盡快回覆\n\n感謝各位鄰居配合，祝大家生活愉快"
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 3,
+      "date": 1794441600,
+      "sender": {
+       "id": 7431,
+       "role": "admin"
+      },
+      "text": "【社區公告】本週社區活動與重要事項\n\n下週一停水時間上午九點到下午三點\n請提前儲水備用\n\n如有疑問請私聊管理員，我們會盡快回覆\n\n感謝各位鄰居配合，祝大家生活愉快"
+     }
+    },
+    {
+     "op": "expect",
+     "fold": {
+      "loose": [],
+      "standard": [],
+      "aggressive": []
+     },
+     "states": {
+      "standard": {
+       "1": "none",
+       "2": "none",
+       "3": "none"
+      }
+     }
+    }
+   ]
+  },
+  {
+   "id": "G3-16",
+   "category": "guard_v3",
+   "title": "同一位團長三則不同的團購（4 個區塊、3 個固定）",
+   "note": "同 G3-15 但是一般成員（與選項無關）：4 個合格區塊只共用 3 個 → 不成簇。",
+   "context": {
+    "chatId": -1001000000001,
+    "type": "supergroup",
+    "username": "lumina_demo_grp",
+    "linkedChannel": {
+     "id": -1002000000002,
+     "username": "lumina_demo_ch"
+    },
+    "description": "LuminaGram 合成測試群。官網 https://lumina-demo.example.org 新人請看置頂。邀請 t.me/+DemoGroupInv",
+    "pinnedTexts": [],
+    "adminsKnown": true,
+    "memberHandles": [
+     "me_demo_user"
+    ]
+   },
+   "settings": {},
+   "events": [
+    {
+     "op": "observe",
+     "message": {
+      "id": 1,
+      "date": 1794268800,
+      "sender": {
+       "id": 7441,
+       "role": "member"
+      },
+      "text": "【本週團購】社區鄰居專屬優惠活動\n\n有機蔬菜箱：當季葉菜五種\n產地直送：每箱約三公斤\n\n下單請私聊團長，週五晚上截止\n\n自取地點：社區活動中心一樓，營業時間每天下午"
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 2,
+      "date": 1794312000,
+      "sender": {
+       "id": 7441,
+       "role": "member"
+      },
+      "text": "【本週團購】社區鄰居專屬優惠活動\n\n手工饅頭：鮮奶與黑糖兩種口味\n每袋十個：冷凍可保存一個月\n\n下單請私聊團長，週五晚上截止\n\n自取地點：社區活動中心一樓，營業時間每天下午"
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 3,
+      "date": 1794355200,
+      "sender": {
+       "id": 7441,
+       "role": "member"
+      },
+      "text": "【本週團購】社區鄰居專屬優惠活動\n\n台灣芭樂：每箱十斤\n果園直送：保證香甜脆口\n\n下單請私聊團長，週五晚上截止\n\n自取地點：社區活動中心一樓，營業時間每天下午"
+     }
+    },
+    {
+     "op": "expect",
+     "fold": {
+      "loose": [],
+      "standard": [],
+      "aggressive": []
+     }
+    }
+   ]
+  },
+  {
+   "id": "R3-18",
+   "category": "regression_v3",
+   "title": "我自己以連結頻道／匿名管理員身分重發（選項開：self 優先，自己永遠不收）",
+   "note": "審查探針 P5a。平台判定角色時「我自己發的（outgoing）」優先於以頻道身分、匿名管理員身分（SPEC §9.1）：role=self → 背書、不是特權作者 → 選項開也一律 endorsed。",
+   "context": {
+    "chatId": -1001000000001,
+    "type": "supergroup",
+    "username": "cloud_demo_grp",
+    "linkedChannel": {
+     "id": -1002000000777,
+     "username": "cloud_demo_ch"
+    },
+    "description": "LuminaGram 合成測試群。官網 https://lumina-demo.example.org 新人請看置頂。邀請 t.me/+DemoGroupInv",
+    "pinnedTexts": [],
+    "adminsKnown": true,
+    "memberHandles": [
+     "me_demo_user"
+    ]
+   },
+   "settings": {
+    "foldPrivilegedRepeats": true
+   },
+   "events": [
+    {
+     "op": "observe",
+     "message": {
+      "id": 1,
+      "date": 1794268800,
+      "sender": {
+       "id": -1002000000777,
+       "role": "self"
+      },
+      "text": "本群合作推廣：雲端會員年卡限時特價，全網最低價格，有需要的私聊客服\n名額有限，先到先得"
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 2,
+      "date": 1794355200,
+      "sender": {
+       "id": -1002000000777,
+       "role": "self"
+      },
+      "text": "本群合作推廣：雲端會員年卡限時特價，全網最低價格，有需要的私聊客服\n名額有限，先到先得"
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 3,
+      "date": 1794441600,
+      "sender": {
+       "id": -1002000000777,
+       "role": "self"
+      },
+      "text": "本群合作推廣：雲端會員年卡限時特價，全網最低價格，有需要的私聊客服\n名額有限，先到先得"
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 4,
+      "date": 1794272400,
+      "sender": {
+       "id": -1001000000001,
+       "role": "self"
+      },
+      "text": "本群團購：有機蔬菜箱每週配送到府，訂購請私聊管理員登記"
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 5,
+      "date": 1794358800,
+      "sender": {
+       "id": -1001000000001,
+       "role": "self"
+      },
+      "text": "本群團購：有機蔬菜箱每週配送到府，訂購請私聊管理員登記"
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 6,
+      "date": 1794445200,
+      "sender": {
+       "id": -1001000000001,
+       "role": "self"
+      },
+      "text": "本群團購：有機蔬菜箱每週配送到府，訂購請私聊管理員登記"
+     }
+    },
+    {
+     "op": "expect",
+     "fold": {
+      "loose": [],
+      "standard": [],
+      "aggressive": []
+     },
+     "states": {
+      "standard": {
+       "1": "endorsed",
+       "2": "endorsed",
+       "3": "endorsed",
+       "4": "endorsed",
+       "5": "endorsed",
+       "6": "endorsed"
+      }
+     }
+    }
+   ]
+  },
+  {
+   "id": "R3-19",
+   "category": "regression_v3",
+   "title": "兼任管理員的機器人定時提醒（角色 bot 優先：豁免）",
+   "note": "審查探針 P5b。角色順序 self > bot > 管理員類 > 聯絡人 > 成員：兼任管理員的 bot 傳 role=bot → 不是特權作者，照一般規則計數（邀請連結是強特徵，標準 7 天 3 次成立），最後被「機器人豁免」→ exempt，選項開關都一樣。",
+   "context": {
+    "chatId": -1001000000001,
+    "type": "supergroup",
+    "username": "lumina_demo_grp",
+    "linkedChannel": {
+     "id": -1002000000002,
+     "username": "lumina_demo_ch"
+    },
+    "description": "LuminaGram 合成測試群。官網 https://lumina-demo.example.org 新人請看置頂。邀請 t.me/+DemoGroupInv",
+    "pinnedTexts": [],
+    "adminsKnown": true,
+    "memberHandles": [
+     "me_demo_user"
+    ]
+   },
+   "settings": {
+    "foldPrivilegedRepeats": true
+   },
+   "events": [
+    {
+     "op": "observe",
+     "message": {
+      "id": 1,
+      "date": 1794268800,
+      "sender": {
+       "id": 7451,
+       "role": "bot"
+      },
+      "text": "提醒：本群禁止廣告，違規者直接移除\n新朋友請先閱讀置頂群規，再加入我們的閒聊群 t.me/+OffTopicDemo"
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 2,
+      "date": 1794297600,
+      "sender": {
+       "id": 7451,
+       "role": "bot"
+      },
+      "text": "提醒：本群禁止廣告，違規者直接移除\n新朋友請先閱讀置頂群規，再加入我們的閒聊群 t.me/+OffTopicDemo"
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 3,
+      "date": 1794326400,
+      "sender": {
+       "id": 7451,
+       "role": "bot"
+      },
+      "text": "提醒：本群禁止廣告，違規者直接移除\n新朋友請先閱讀置頂群規，再加入我們的閒聊群 t.me/+OffTopicDemo"
+     }
+    },
+    {
+     "op": "expect",
+     "fold": {
+      "loose": [],
+      "standard": [],
+      "aggressive": []
+     },
+     "states": {
+      "loose": {
+       "1": "none",
+       "2": "none",
+       "3": "none"
+      },
+      "standard": {
+       "1": "exempt",
+       "2": "exempt",
+       "3": "exempt"
+      },
+      "aggressive": {
+       "1": "exempt",
+       "2": "exempt",
+       "3": "exempt"
+      }
+     }
+    }
+   ]
+  },
+  {
+   "id": "R3-20",
+   "category": "regression_v3",
+   "title": "群組綁定頻道重發被置頂的價目表（沒有「私聊」；選項開）",
+   "note": "審查探針 P3。廣告本身被置頂 → 裡面的帳號 @cloud_demo_seller 與網址都變成可信 token（不算特徵）；選項開時，特權作者「只因置頂而可信」的待定 handle 照算強特徵（F_PRIV_STRONG）→ 頻道 7 天 3 次 → 標準、積極收（連第一則）；寬鬆 72 小時要 ≥4 次。修正前三則都是 plain，不收。",
+   "context": {
+    "chatId": -1001000000001,
+    "type": "supergroup",
+    "username": "cloud_demo_grp",
+    "linkedChannel": {
+     "id": -1002000000777,
+     "username": "cloud_demo_ch"
+    },
+    "description": "LuminaGram 合成測試群。官網 https://lumina-demo.example.org 新人請看置頂。邀請 t.me/+DemoGroupInv",
+    "pinnedTexts": [
+     "雲端會員限時調價：\n企業採購 全網最低價\n月卡 季卡 年卡 全部現貨\n\n🔥 雲端硬碟會員\n年卡特價：320\n季卡特價：99\n月卡特價：38\n\n⭐ 影音會員 168\n【5件起165】\n【10件起160】\n【20件起155】\n\n⭐ 翻譯點數\n100點=30\n300點=85\n1000點=260\n\n📍 下單入口\n👉 https://shop-demo-cloud.example/ （需要先註冊）\n\n有任何問題 隨時聯繫 @cloud_demo_seller\n\n售後頻道： https://t.me/cloud_demo_ch\n交流群： https://t.me/cloud_demo_grp"
+    ],
+    "adminsKnown": true,
+    "memberHandles": [
+     "me_demo_user"
+    ]
+   },
+   "settings": {
+    "foldPrivilegedRepeats": true
+   },
+   "events": [
+    {
+     "op": "observe",
+     "message": {
+      "id": 1,
+      "date": 1794268800,
+      "sender": {
+       "id": -1002000000777,
+       "role": "channel"
+      },
+      "text": "雲端會員限時調價：\n企業採購 全網最低價\n月卡 季卡 年卡 全部現貨\n\n🔥 雲端硬碟會員\n年卡特價：320\n季卡特價：99\n月卡特價：38\n\n⭐ 影音會員 168\n【5件起165】\n【10件起160】\n【20件起155】\n\n⭐ 翻譯點數\n100點=30\n300點=85\n1000點=260\n\n📍 下單入口\n👉 https://shop-demo-cloud.example/ （需要先註冊）\n\n有任何問題 隨時聯繫 @cloud_demo_seller\n\n售後頻道： https://t.me/cloud_demo_ch\n交流群： https://t.me/cloud_demo_grp",
+      "pinned": true
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 2,
+      "date": 1794355200,
+      "sender": {
+       "id": -1002000000777,
+       "role": "channel"
+      },
+      "text": "雲端會員限時調價：\n企業採購 全網最低價\n月卡 季卡 年卡 全部現貨\n\n🔥 雲端硬碟會員\n年卡特價：320\n季卡特價：99\n月卡特價：38\n\n⭐ 影音會員 168\n【5件起165】\n【10件起160】\n【20件起155】\n\n⭐ 翻譯點數\n100點=30\n300點=85\n1000點=260\n\n📍 下單入口\n👉 https://shop-demo-cloud.example/ （需要先註冊）\n\n有任何問題 隨時聯繫 @cloud_demo_seller\n\n售後頻道： https://t.me/cloud_demo_ch\n交流群： https://t.me/cloud_demo_grp"
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 3,
+      "date": 1794441600,
+      "sender": {
+       "id": -1002000000777,
+       "role": "channel"
+      },
+      "text": "雲端會員限時調價：\n企業採購 全網最低價\n月卡 季卡 年卡 全部現貨\n\n🔥 雲端硬碟會員\n年卡特價：320\n季卡特價：99\n月卡特價：38\n\n⭐ 影音會員 168\n【5件起165】\n【10件起160】\n【20件起155】\n\n⭐ 翻譯點數\n100點=30\n300點=85\n1000點=260\n\n📍 下單入口\n👉 https://shop-demo-cloud.example/ （需要先註冊）\n\n有任何問題 隨時聯繫 @cloud_demo_seller\n\n售後頻道： https://t.me/cloud_demo_ch\n交流群： https://t.me/cloud_demo_grp",
+      "pinned": true
+     }
+    },
+    {
+     "op": "expect",
+     "fold": {
+      "loose": [],
+      "standard": [
+       1,
+       2,
+       3
+      ],
+      "aggressive": [
+       1,
+       2,
+       3
+      ]
+     },
+     "states": {
+      "loose": {
+       "1": "none"
+      }
+     }
+    }
+   ]
+  },
+  {
+   "id": "R3-21",
+   "category": "regression_v3",
+   "title": "管理員再轉發一次頻道貼文（選項開：仍算頻道自己的重發）",
+   "note": "審查探針「管理員再轉發」。特權作者轉發本群連結頻道的貼文 → 作者（senderKey）＝連結頻道，所以不是「其他特權作者」的背書、不會保護頻道的重發；4 則都是頻道的單位：寬鬆 72 小時 ≥4 次也成立。修正前管理員那則會背書頻道的每一則（全部 endorsed）。",
+   "context": {
+    "chatId": -1001000000001,
+    "type": "supergroup",
+    "username": "cloud_demo_grp",
+    "linkedChannel": {
+     "id": -1002000000777,
+     "username": "cloud_demo_ch"
+    },
+    "description": "LuminaGram 合成測試群。官網 https://lumina-demo.example.org 新人請看置頂。邀請 t.me/+DemoGroupInv",
+    "pinnedTexts": [],
+    "adminsKnown": true,
+    "memberHandles": [
+     "me_demo_user"
+    ]
+   },
+   "settings": {
+    "foldPrivilegedRepeats": true
+   },
+   "events": [
+    {
+     "op": "observe",
+     "message": {
+      "id": 1,
+      "date": 1794268800,
+      "sender": {
+       "id": -1002000000777,
+       "role": "channel"
+      },
+      "text": "雲端會員年卡特價\n企業採購量大可議\n有需要的私聊客服\n下單入口 https://shop-demo-cloud.example/ 售後 @cloud_demo_ch",
+      "autoForward": true,
+      "forward": {
+       "fromKind": "channel",
+       "fromId": -1002000000777,
+       "postId": 101,
+       "username": "cloud_demo_ch",
+       "date": 1794268800
+      }
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 2,
+      "date": 1794355200,
+      "sender": {
+       "id": -1002000000777,
+       "role": "channel"
+      },
+      "text": "雲端會員年卡特價\n企業採購量大可議\n有需要的私聊客服\n下單入口 https://shop-demo-cloud.example/ 售後 @cloud_demo_ch",
+      "autoForward": true,
+      "forward": {
+       "fromKind": "channel",
+       "fromId": -1002000000777,
+       "postId": 102,
+       "username": "cloud_demo_ch",
+       "date": 1794268800
+      }
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 3,
+      "date": 1794441600,
+      "sender": {
+       "id": -1002000000777,
+       "role": "channel"
+      },
+      "text": "雲端會員年卡特價\n企業採購量大可議\n有需要的私聊客服\n下單入口 https://shop-demo-cloud.example/ 售後 @cloud_demo_ch",
+      "autoForward": true,
+      "forward": {
+       "fromKind": "channel",
+       "fromId": -1002000000777,
+       "postId": 103,
+       "username": "cloud_demo_ch",
+       "date": 1794268800
+      }
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 4,
+      "date": 1794445200,
+      "sender": {
+       "id": 7461,
+       "role": "admin"
+      },
+      "text": "雲端會員年卡特價\n企業採購量大可議\n有需要的私聊客服\n下單入口 https://shop-demo-cloud.example/ 售後 @cloud_demo_ch",
+      "forward": {
+       "fromKind": "channel",
+       "fromId": -1002000000777,
+       "postId": 103,
+       "username": "cloud_demo_ch",
+       "date": 1794268800
+      }
+     }
+    },
+    {
+     "op": "expect",
+     "fold": {
+      "loose": [
+       1,
+       2,
+       3,
+       4
+      ],
+      "standard": [
+       1,
+       2,
+       3,
+       4
+      ],
+      "aggressive": [
+       1,
+       2,
+       3,
+       4
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "R3-22",
+   "category": "regression_v3",
+   "title": "CR LF 換行的改版重發（fold 前先把 CR LF 換成 LF）",
+   "note": "審查探針 P4（CRLF）。第 3 則用 CR LF 換行、開頭加一行又改了影音區塊：CR LF 先變成 LF，區塊與 LF 版本相同 → 6 個合格區塊共用 5 個 → 成簇；同一人 7 天 3 次。修正前 CR LF 會變成空行，每行各自成一個區塊，認不出。",
+   "context": {
+    "chatId": -1001000000001,
+    "type": "supergroup",
+    "username": "lumina_demo_grp",
+    "linkedChannel": {
+     "id": -1002000000002,
+     "username": "lumina_demo_ch"
+    },
+    "description": "LuminaGram 合成測試群。官網 https://lumina-demo.example.org 新人請看置頂。邀請 t.me/+DemoGroupInv",
+    "pinnedTexts": [],
+    "adminsKnown": true,
+    "memberHandles": [
+     "me_demo_user"
+    ]
+   },
+   "settings": {},
+   "events": [
+    {
+     "op": "observe",
+     "message": {
+      "id": 1,
+      "date": 1794268800,
+      "sender": {
+       "id": 7471,
+       "role": "member"
+      },
+      "text": "雲端會員限時調價：\n企業採購請私聊 全網最低價\n月卡 季卡 年卡 全部現貨\n\n🔥 雲端硬碟會員\n年卡特價：320\n季卡特價：99\n月卡特價：38\n\n⭐ 影音會員 168\n【5件起165】\n【10件起160】\n【20件起155】\n\n⭐ 翻譯點數\n100點=30\n300點=85\n1000點=260\n\n📍 下單入口\n👉 https://shop-demo-cloud.example/ （需要先註冊）\n\n有任何問題 隨時私聊 @cloud_demo_seller\n\n售後頻道： https://t.me/cloud_demo_ch\n交流群： https://t.me/cloud_demo_grp"
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 2,
+      "date": 1794355200,
+      "sender": {
+       "id": 7471,
+       "role": "member"
+      },
+      "text": "雲端會員限時調價：\n企業採購請私聊 全網最低價\n月卡 季卡 年卡 全部現貨\n\n🔥 雲端硬碟會員\n年卡特價：320\n季卡特價：99\n月卡特價：38\n\n⭐ 影音會員 168\n【5件起165】\n【10件起160】\n【20件起155】\n\n⭐ 翻譯點數\n100點=30\n300點=85\n1000點=260\n\n📍 下單入口\n👉 https://shop-demo-cloud.example/ （需要先註冊）\n\n有任何問題 隨時私聊 @cloud_demo_seller\n\n售後頻道： https://t.me/cloud_demo_ch\n交流群： https://t.me/cloud_demo_grp"
+     }
+    },
+    {
+     "op": "observe",
+     "message": {
+      "id": 3,
+      "date": 1794441600,
+      "sender": {
+       "id": 7471,
+       "role": "member"
+      },
+      "text": "絲滑提交：\r\n\r\n雲端會員限時調價：\r\n企業採購請私聊 全網最低價\r\n月卡 季卡 年卡 全部現貨\r\n\r\n🔥 雲端硬碟會員\r\n年卡特價：320\r\n季卡特價：99\r\n月卡特價：38\r\n\r\n⭐ 影音會員 年度方案 168\r\n【5件起165】\r\n【10件起160】\r\n【20件起155】\r\n\r\n⭐ 翻譯點數\r\n100點=30\r\n300點=85\r\n1000點=260\r\n\r\n📍 下單入口\r\n👉 https://shop-demo-cloud.example/ （需要先註冊）\r\n\r\n有任何問題 隨時私聊 @cloud_demo_seller\r\n\r\n售後頻道： https://t.me/cloud_demo_ch\r\n交流群： https://t.me/cloud_demo_grp"
+     }
+    },
+    {
+     "op": "expect",
+     "fold": {
+      "loose": [],
+      "standard": [
+       1,
+       2,
+       3
+      ],
+      "aggressive": [
+       1,
+       2,
+       3
+      ]
+     }
+    }
+   ]
   }
  ]
 }

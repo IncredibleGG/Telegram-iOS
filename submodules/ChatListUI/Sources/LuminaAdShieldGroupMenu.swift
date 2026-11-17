@@ -12,7 +12,9 @@ import PresentationDataUtils
 import AppBundle
 
 // LuminaGram「隱藏重複廣告」(hide repeated ads): the per-group mode row (product spec B), 「隱藏重複廣告」 with
-// 跟隨預設（目前：開/關）/ 在此群開啟 / 在此群關閉 and 「最近 7 天已收合 N 則」 when N > 0.
+// 跟隨預設（目前：開/關）/ 在此群開啟 / 在此群關閉, the group's own switch 「連管理員和頻道的也收」 (default off; repeats the
+// same owner / admin / the group's channel posts fold too, members' re-posts of announcements still do not; it takes
+// effect while the group is effectively on) with its help line, and 「最近 7 天已收合 N 則」 when N > 0.
 //
 // It lives here, in ChatListUI, because two menus show it and this is the lowest module both can reach:
 //  - the chat header Lumina menu (TelegramUI, LuminaChatLanguageMenu): basic groups, supergroups, gigagroups and a
@@ -22,8 +24,8 @@ import AppBundle
 //    (`luminaAdShieldForumMenuItem`, the count is loaded when the row is tapped).
 // The fold row's 「在此群關閉」 (TelegramUI, LuminaAdShieldFold) uses `luminaAdShieldSetChatMode`.
 //
-// The mode is stored in LuminaSettings.adShieldDialogs (keyed by PeerId.toInt64()). The first time the feature is
-// turned on anywhere, the explainer comes first.
+// The mode is stored in LuminaSettings.adShieldDialogs, the switch in LuminaSettings.adShieldFoldPrivilegedDialogs (both
+// keyed by PeerId.toInt64()). The first time the feature is turned on anywhere, the explainer comes first.
 
 public struct LuminaAdShieldMenuInfo {
     public let eligible: Bool
@@ -82,7 +84,7 @@ public func luminaAdShieldMenuInfo(context: AccountContext, peerId: EnginePeer.I
         guard let peer, luminaAdShieldMenuIsEligible(peer) else {
             return .single(.none)
         }
-        return LuminaAdShieldService.shared.foldedCountLast7Days(basePath: basePath, chatId: chatId)
+        return LuminaAdShieldService.shared.foldedCountLast7Days(basePath: basePath, chatId: chatId, peerId: peerId.toInt64())
         |> timeout(0.5, queue: Queue.mainQueue(), alternate: .single(0))
         |> map { count -> LuminaAdShieldMenuInfo in
             return LuminaAdShieldMenuInfo(eligible: true, foldedCount: count)
@@ -121,7 +123,16 @@ private func luminaAdShieldApplyChatMode(context: AccountContext, peerId: Engine
     }
 }
 
-/// The submenu: Back, the three modes (checkmark on the current one) and 「最近 7 天已收合 N 則」 when N > 0.
+/// 「連管理員和頻道的也收」 of the group `peerId` (its own switch, default off). Changing it re-decides the open chat.
+public func luminaAdShieldSetFoldPrivileged(context: AccountContext, peerId: EnginePeer.Id, on: Bool) {
+    let peerIdValue = peerId.toInt64()
+    let _ = updateLuminaSettingsInteractively(accountManager: context.sharedContext.accountManager, { current in
+        return current.withLuminaAdShieldFoldPrivileged(on, peerId: peerIdValue)
+    }).startStandalone()
+}
+
+/// The submenu: Back, the three modes (checkmark on the current one), 「連管理員和頻道的也收」 (checkmark when on) with
+/// its help line, and 「最近 7 天已收合 N 則」 when N > 0.
 private func luminaAdShieldModeItems(context: AccountContext, peerId: EnginePeer.Id, settings: LuminaSettings, foldedCount: Int, presentationData: PresentationData, present: @escaping (ViewController) -> Void) -> [ContextMenuItem] {
     let currentMode = settings.luminaAdShieldMode(peerId: peerId.toInt64())
     let globalOn = settings.adShieldEnabled
@@ -148,6 +159,14 @@ private func luminaAdShieldModeItems(context: AccountContext, peerId: EnginePeer
             })
         }, accessibilityIsSelected: selected)))
     }
+    let foldPrivileged = settings.luminaAdShieldFoldPrivileged(peerId: peerId.toInt64())
+    items.append(.separator)
+    items.append(.action(ContextMenuActionItem(text: LuminaL10n.tr("Also fold admins and the group's channel"), icon: foldPrivileged ? checkIcon : noIcon, action: { c, _ in
+        c?.dismiss(completion: {
+            luminaAdShieldSetFoldPrivileged(context: context, peerId: peerId, on: !foldPrivileged)
+        })
+    }, accessibilityIsSelected: foldPrivileged)))
+    items.append(.action(ContextMenuActionItem(text: LuminaL10n.tr("Repeats posted by the owner, admins or the group's channel itself also fold; announcements re-posted by members still don't."), textLayout: .multiline, textFont: .small, icon: noIcon, action: nil as ((ContextControllerProtocol?, @escaping (ContextMenuActionResult) -> Void) -> Void)?)))
     if foldedCount > 0 {
         items.append(.separator)
         items.append(.action(ContextMenuActionItem(text: LuminaAdShieldTexts.foldedLast7Days(foldedCount), textLayout: .multiline, textFont: .small, icon: noIcon, action: nil as ((ContextControllerProtocol?, @escaping (ContextMenuActionResult) -> Void) -> Void)?)))

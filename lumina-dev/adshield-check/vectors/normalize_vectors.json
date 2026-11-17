@@ -1,6 +1,6 @@
 {
- "tablesVersion": "f40fc4cc",
- "algoVersion": 2,
+ "tablesVersion": "25528dcc",
+ "algoVersion": 3,
  "note": "fold/text/cjk 逐 scalar 比對；三端必須逐位元組一致。全部是合成字串。",
  "cases": [
   {

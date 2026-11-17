@@ -1,11 +1,11 @@
-// 自動產生，請勿手改。產生器：adshield/gen/gen_tables.py  tablesVersion=f40fc4cc  algoVersion=2  unicode=13.0.0
+// 自動產生，請勿手改。產生器：adshield/gen/gen_tables.py  tablesVersion=25528dcc  algoVersion=3  unicode=13.0.0
 // 授權：見 adshield/data/tables.json 的 "licenses"（UCD=Unicode License v3；其餘 GPL-3.0-or-later）
 import Foundation
 
 public enum AdShieldTables {
-    public static let tablesVersion = "f40fc4cc"
-    public static let tablesVersionU32: UInt32 = 0xf40fc4cc
-    public static let algoVersion = 2
+    public static let tablesVersion = "25528dcc"
+    public static let tablesVersionU32: UInt32 = 0x25528dcc
+    public static let algoVersion = 3
 
     // 原始資料用十六進位 ASCII 字串（避免超大陣列字面值拖慢 Swift 型別檢查），第一次使用時解析。
     private static let dropData: String = [

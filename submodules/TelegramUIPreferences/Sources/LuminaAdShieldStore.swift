@@ -50,6 +50,9 @@ extension LuminaAdShield {
         var msgKey: UInt64
         var keys: [Key]
         var links: [UInt64]
+        /// v3: an endorsement by a privileged author → that author's senderKey; otherwise (self, a pinned member
+        /// message, a member forwarding the linked channel, every not-ad record) 0.
+        var author: UInt64 = 0
     }
 
     struct HandleInfo {
@@ -108,15 +111,21 @@ extension LuminaAdShield {
         }
     }
 
-    /// Exact overlap (any shared exact key) or ≥ 2 shared paragraph keys.
-    static func overlap(_ a: Set<Key>, _ b: [Key]) -> Bool {
+    /// Block containment: ≥ 2 shared block keys and 5 × shared ≥ 4 × min(nA, nB).
+    @inline(__always) static func blockContained(_ shared: Int, _ nA: Int, _ nB: Int) -> Bool {
+        return shared >= blockMinShared && blockContainDen * shared >= blockContainNum * min(nA, nB)
+    }
+
+    /// "Exact overlap" of message keys `a` with record keys `b` (= the v2 overlap): any shared v2 exact key
+    /// (FWD MEDIA TEXT CJK TMPL CONTACT), or ≥ 2 shared paragraph keys. The v3 kinds are ignored here.
+    static func overlapExact(_ a: Set<Key>, _ b: [Key]) -> Bool {
         var paras = 0
         var seenPara = Set<Key>()
         for k in b where a.contains(k) {
             if k.isExact {
                 return true
             }
-            if seenPara.insert(k).inserted {
+            if k.kind == KeyKind.para.rawValue && seenPara.insert(k).inserted {
                 paras += 1
                 if paras >= 2 {
                     return true
@@ -126,19 +135,55 @@ extension LuminaAdShield {
         return false
     }
 
-    /// Record keys: deduped, exact keys first then paragraph keys (each keeping its order), at most 64.
+    /// v3 "edit overlap" of message keys `a` with record keys `b`: any VAR-family hash in common (VAR VARL VARS are
+    /// matched across kinds by hash), or a has ≥ 2 block keys and 5 × (those found in b) ≥ 4 × (a's block keys) (a
+    /// record is the union of a whole cluster, so only a's side of the containment counts). It only ever protects
+    /// (endorsed / not-ad), never makes an impersonation (SPEC §6.3, §6.4).
+    static func overlapTolerant(_ a: Set<Key>, _ b: [Key]) -> Bool {
+        var aVar = Set<UInt64>()
+        var aBlocks = 0
+        for k in a {
+            if k.isVarFamily {
+                aVar.insert(k.hash)
+            } else if k.kind == KeyKind.block.rawValue {
+                aBlocks += 1
+            }
+        }
+        if !aVar.isEmpty {
+            for k in b where k.isVarFamily && aVar.contains(k.hash) {
+                return true
+            }
+        }
+        if aBlocks == 0 {
+            return false
+        }
+        var shared = Set<Key>()
+        for k in b where k.kind == KeyKind.block.rawValue && a.contains(k) {
+            shared.insert(k)
+        }
+        return blockContained(shared.count, aBlocks, aBlocks)
+    }
+
+    /// Record keys (endorsement and not-ad): deduped (first occurrence kept), then
+    ///  1. the v2 record: v2 exact keys first, then paragraph keys (each keeping its order), the first 64;
+    ///  2. then the v3 kinds (VAR VARL VARS BLOCK), keeping their order;
+    /// at most 128 in all. So a v3 record always starts with the record v2 would store (paragraph keys are never
+    /// pushed out by the many VAR keys, SPEC §6.4).
     static func orderedRecordKeys(_ seq: [Key]) -> [Key] {
         var seen = Set<Key>()
         var exact: [Key] = []
         var para: [Key] = []
+        var v3: [Key] = []
         for k in seq where seen.insert(k).inserted {
             if k.isExact {
                 exact.append(k)
-            } else {
+            } else if k.isV2 {
                 para.append(k)
+            } else {
+                v3.append(k)
             }
         }
-        return Array((exact + para).prefix(maxRecordKeys))
+        return Array((Array((exact + para).prefix(recordV2Keys)) + v3).prefix(maxRecordKeys))
     }
 
     @inline(__always) static func inDateRange(_ v: Int64) -> Bool {
@@ -254,7 +299,7 @@ extension LuminaAdShield {
                 for h in fp.pending where !fixed.contains(h) {
                     links.append(h)
                 }
-                self.upsertEndorse(stamp: now, msgKey: khash(self.key, "msg", dec(Int64(mid))), keys: keys, links: links)
+                self.upsertEndorse(stamp: now, msgKey: khash(self.key, "msg", dec(Int64(mid))), keys: keys, links: links, author: fp.privileged ? fp.senderKey : 0)
             }
             if fp.store {
                 let rid = self.nextRid
@@ -326,16 +371,17 @@ extension LuminaAdShield {
             }
         }
 
-        private func upsertEndorse(stamp: Int64, msgKey: UInt64, keys: [Key], links: [UInt64]) {
+        private func upsertEndorse(stamp: Int64, msgKey: UInt64, keys: [Key], links: [UInt64], author: UInt64) {
             let k = orderedRecordKeys(keys)
             let l = Array(links.prefix(maxRecordLinks))
             for i in 0 ..< self.records.count where self.records[i].kind == recordEndorse && self.records[i].msgKey == msgKey {
                 self.records[i].keys = k
                 self.records[i].links = l
+                self.records[i].author = author
                 self.records[i].stamp = max(self.records[i].stamp, stamp)
                 return
             }
-            self.records.append(Record(kind: recordEndorse, stamp: stamp, msgKey: msgKey, keys: k, links: l))
+            self.records.append(Record(kind: recordEndorse, stamp: stamp, msgKey: msgKey, keys: k, links: l, author: author))
             self.evictRecords(kind: recordEndorse)
         }
 
@@ -346,7 +392,7 @@ extension LuminaAdShield {
                 self.records[i].stamp = max(self.records[i].stamp, stamp)
                 return
             }
-            self.records.append(Record(kind: recordNotAd, stamp: stamp, msgKey: 0, keys: k, links: l))
+            self.records.append(Record(kind: recordNotAd, stamp: stamp, msgKey: 0, keys: k, links: l, author: 0))
             self.evictRecords(kind: recordNotAd)
         }
 
@@ -424,6 +470,8 @@ extension LuminaAdShield {
             var order: [UnitOrder] = []
             var keys: [Set<Key>] = []
             var links: [Set<UInt64>] = []
+            /// Number of BLOCK keys of each unit (block containment, SPEC §2.7).
+            var nBlocks: [Int] = []
             /// Smallest rowId of the unit: total-order tie-breaker. Only ever needed between anonymous units with equal
             /// order keys (live units differ by msgId); the reference leaves that order to Python set iteration.
             var minRid: [Int] = []
@@ -515,13 +563,18 @@ extension LuminaAdShield {
                 }
                 var minKey: UInt64 = 0
                 var first = true
+                var blocks = 0
                 for k in c.keys[ui] {
                     if first || k.hash < minKey {
                         minKey = k.hash
                         first = false
                     }
+                    if k.kind == KeyKind.block.rawValue {
+                        blocks += 1
+                    }
                     c.index[k, default: []].append(ui)
                 }
+                c.nBlocks.append(blocks)
                 c.order.append(UnitOrder(date: c.date[ui], live: c.live[ui] ? 1 : 0, minMsgId: liveMinMsg[ui], minKeyHash: minKey))
             }
             c.byOrder = Array(0 ..< n)
@@ -548,37 +601,102 @@ extension LuminaAdShield {
             return c.byUid[uid]
         }
 
-        /// G(m): units sharing an exact key with m or ≥ 2 paragraph keys (m included), in (order, minRid) sequence,
-        /// hence also by date. Only the units indexed under m's keys are visited (O(cluster)).
+        /// G(m) (m included), in (order, minRid) sequence, hence also by date.
         func group(_ c: UnitsCache, _ mi: Int) -> [Int] {
-            var mark = [UInt8](repeating: 0, count: c.count) // bit 0: in G(m); bits 1-2: shared paragraph keys (≤ 2)
+            return self.groupSplit(c, mi).members
+        }
+
+        static let inGroup: UInt8 = 1
+        static let onePara: UInt8 = 2
+        static let inGroupV2: UInt8 = 4
+
+        /// G(m) (m included) in (order, minRid) sequence, and per unit index a mark whose bit `inGroupV2` says the unit
+        /// clusters by the v2 rules (G₂(m), SPEC §1). G(m) is any of:
+        ///  - v2: a shared exact key (FWD MEDIA TEXT CJK TMPL CONTACT), or ≥ 2 shared paragraph keys;
+        ///  - v3, only live units of m's own sender: one line added / removed (m's VAR = the other's VARL / VARS, or the
+        ///    other way round), one line replaced (a shared VARS), or block containment (≥ 2 shared BLOCK keys and
+        ///    5 × shared ≥ 4 × min of both block key counts).
+        /// Only the units indexed under m's keys are visited (O(cluster)).
+        func groupSplit(_ c: UnitsCache, _ mi: Int) -> (members: [Int], mark: [UInt8]) {
+            var mark = [UInt8](repeating: 0, count: c.count)
             var members: [Int] = [mi]
-            mark[mi] = 1
+            mark[mi] = ChatStore.inGroup | ChatStore.inGroupV2
+            let mLive = c.live[mi]
+            let mSender = c.sender[mi]
+            @inline(__always) func add(_ u: Int) {
+                if mark[u] & ChatStore.inGroup == 0 {
+                    mark[u] |= ChatStore.inGroup
+                    members.append(u)
+                }
+            }
+            @inline(__always) func sameSender(_ u: Int) -> Bool {
+                return mLive && c.live[u] && c.sender[u] != 0 && c.sender[u] == mSender
+            }
+            func varHit(_ kind: KeyKind, _ hash: UInt64) {
+                guard let us = c.index[Key(kind: kind.rawValue, hash: hash)] else {
+                    return
+                }
+                for u in us where sameSender(u) {
+                    add(u)
+                }
+            }
+            var blockShared: [Int: Int] = [:]
             for k in c.keys[mi] {
-                guard let us = c.index[k] else {
+                guard let kind = KeyKind(rawValue: k.kind) else {
                     continue
                 }
-                if k.isExact {
-                    for u in us where mark[u] & 1 == 0 {
-                        mark[u] |= 1
-                        members.append(u)
+                switch kind {
+                case .fwd, .media, .text, .cjk, .tmpl, .contact:
+                    guard let us = c.index[k] else {
+                        continue
                     }
-                } else {
-                    for u in us where mark[u] & 1 == 0 {
-                        if mark[u] & 2 != 0 {
-                            mark[u] |= 1
-                            members.append(u)
+                    for u in us {
+                        add(u)
+                        mark[u] |= ChatStore.inGroupV2
+                    }
+                case .para:
+                    guard let us = c.index[k] else {
+                        continue
+                    }
+                    for u in us where mark[u] & ChatStore.inGroupV2 == 0 {
+                        if mark[u] & ChatStore.onePara != 0 {
+                            add(u)
+                            mark[u] |= ChatStore.inGroupV2
                         } else {
-                            mark[u] |= 2
+                            mark[u] |= ChatStore.onePara
                         }
                     }
+                case .block:
+                    guard let us = c.index[k] else {
+                        continue
+                    }
+                    for u in us {
+                        blockShared[u, default: 0] += 1
+                    }
+                case .variant:
+                    // m's full text = the other's text with one line dropped (m lacks a line)
+                    varHit(.variantLoose, k.hash)
+                    varHit(.variantStrict, k.hash)
+                case .variantLoose:
+                    // m with one line dropped = the other's full text (m has one line more)
+                    varHit(.variant, k.hash)
+                case .variantStrict:
+                    varHit(.variant, k.hash)
+                    // both with one line dropped are equal (one line replaced): both sides must be strict
+                    varHit(.variantStrict, k.hash)
+                }
+            }
+            if !blockShared.isEmpty {
+                let nm = c.nBlocks[mi]
+                for (u, shared) in blockShared where sameSender(u) && blockContained(shared, nm, c.nBlocks[u]) {
+                    add(u)
                 }
             }
             if members.count > 32 && members.count * 8 > c.count {
-                return c.byOrder.filter { mark[$0] & 1 != 0 }
+                return (c.byOrder.filter { mark[$0] & ChatStore.inGroup != 0 }, mark)
             }
             let rank = c.rank
-            return members.sorted { rank[$0] < rank[$1] }
+            return (members.sorted { rank[$0] < rank[$1] }, mark)
         }
 
         public func decide(_ msgId: Int32, context ctx: ChatContext, settings: Settings, now: Int64) -> Decision {
@@ -603,38 +721,83 @@ extension LuminaAdShield {
             let mSender = c.sender[mi]
             let mOrder = c.order[mi]
             res.replyToMe = mFlags & Flag.replyMe != 0
-            if mFlags & Flag.endorsing != 0 {
+            // v3: with the per-group option 「連管理員和頻道的也收」 on, a privileged author's message (PRIV, never self)
+            // is no longer endorsed by itself; only that author's own repeats are counted (SPEC §6.12). With the option
+            // off this is exactly v2: every endorsing message is `endorsed`.
+            let privMode = settings.foldPrivilegedRepeats && mFlags & Flag.priv != 0 && mFlags & Flag.selfSender == 0
+            if mFlags & Flag.endorsing != 0 && !privMode {
                 res.state = .endorsed
                 return res
             }
-            let group = self.group(c, mi)
+            let (group, mark) = self.groupSplit(c, mi)
 
-            // Endorsement: overlapping endorsement records ∪ endorsing units still in the pool.
-            var endorseLinks = Set<UInt64>()
-            var endorsedHit = false
-            for r in self.records where r.kind == recordEndorse && now <= r.stamp + recordTTL && overlap(mKeys, r.keys) {
-                endorsedHit = true
-                endorseLinks.formUnion(r.links)
-            }
-            for u in group where u != mi && c.flags[u] & Flag.endorsing != 0 {
-                endorsedHit = true
-                endorseLinks.formUnion(c.links[u])
-            }
             var impersonating = false
-            if endorsedHit {
-                if mLinks.isSubset(of: endorseLinks) {
+            var endorseLinks = Set<UInt64>()
+            if privMode {
+                // Only ANOTHER privileged author's endorsement protects m (another admin posted the same: still not
+                // folded, no impersonation check). The author's own endorsements and those with author 0 (self, pinned
+                // member messages, members forwarding the linked channel) do not.
+                for r in self.records where r.kind == recordEndorse && now <= r.stamp + recordTTL && r.author != 0 && r.author != mSender {
+                    if overlapExact(mKeys, r.keys) || overlapTolerant(mKeys, r.keys) {
+                        res.state = .endorsed
+                        return res
+                    }
+                }
+                for u in group where u != mi && c.live[u] && c.flags[u] & Flag.priv != 0 && c.sender[u] != mSender {
                     res.state = .endorsed
                     return res
                 }
-                impersonating = true
+            } else {
+                // Endorsement (records ∪ endorsing units still in the pool). E₁ = exact overlap (v2): endorsed or
+                // impersonation as in v2. E₂ = edit overlap only (VAR family / BLOCK): it may only endorse (links ⊆ E₂'s
+                // links), never make an impersonation.
+                var exactHit = false
+                var tolerantHit = false
+                var exactLinks = Set<UInt64>()
+                var tolerantLinks = Set<UInt64>()
+                for r in self.records where r.kind == recordEndorse && now <= r.stamp + recordTTL {
+                    if overlapExact(mKeys, r.keys) {
+                        exactHit = true
+                        exactLinks.formUnion(r.links)
+                    } else if overlapTolerant(mKeys, r.keys) {
+                        tolerantHit = true
+                        tolerantLinks.formUnion(r.links)
+                    }
+                }
+                for u in group where u != mi && c.flags[u] & Flag.endorsing != 0 {
+                    if mark[u] & ChatStore.inGroupV2 != 0 {
+                        exactHit = true
+                        exactLinks.formUnion(c.links[u])
+                    } else {
+                        tolerantHit = true
+                        tolerantLinks.formUnion(c.links[u])
+                    }
+                }
+                if exactHit {
+                    if mLinks.isSubset(of: exactLinks) {
+                        res.state = .endorsed
+                        return res
+                    }
+                    impersonating = true
+                    endorseLinks = exactLinks
+                } else if tolerantHit && mLinks.isSubset(of: tolerantLinks) {
+                    res.state = .endorsed
+                    return res
+                }
             }
 
-            // Not an ad (90 days).
-            for r in self.records where r.kind == recordNotAd && now <= r.stamp + recordTTL && overlap(mKeys, r.keys) {
-                res.state = .notAd
-                return res
+            // Not an ad (90 days): exact overlap (v2), or edit overlap with m's links ⊆ that record's links (a "not an
+            // ad" post edited by one line into a scam link is not let through).
+            for r in self.records where r.kind == recordNotAd && now <= r.stamp + recordTTL {
+                if overlapExact(mKeys, r.keys) || (overlapTolerant(mKeys, r.keys) && mLinks.isSubset(of: r.links)) {
+                    res.state = .notAd
+                    return res
+                }
             }
 
+            // Privileged mode: the author's own strong features only trusted because pinned, or only weak because the
+            // message forwards the linked channel, count as strong (Flag.privStrong, SPEC §6.12).
+            let hasStrong = mFlags & Flag.strongMask != 0 || (privMode && mFlags & Flag.privStrong != 0)
             let gc: [Int]
             let cls: Decision.Class
             if impersonating {
@@ -642,14 +805,15 @@ extension LuminaAdShield {
                 gc = group.filter { c.flags[$0] & Flag.endorsing == 0 && !c.links[$0].isSubset(of: endorseLinks) }
                 cls = .strong
             } else {
-                gc = group
-                if mFlags & Flag.strongMask != 0 {
+                // Privileged mode counts only the author's own live units (members' copies and anonymous units do not).
+                gc = privMode ? group.filter { c.live[$0] && c.sender[$0] == mSender } : group
+                if hasStrong {
                     cls = .strong
                 } else {
                     var sharesMediaFwd = false
                     let mediaFwd = mKeys.filter { $0.kind == KeyKind.media.rawValue || $0.kind == KeyKind.fwd.rawValue }
                     if !mediaFwd.isEmpty {
-                        for u in group where u != mi && !c.keys[u].isDisjoint(with: mediaFwd) {
+                        for u in gc where u != mi && !c.keys[u].isDisjoint(with: mediaFwd) {
                             sharesMediaFwd = true
                             break
                         }
@@ -734,7 +898,7 @@ extension LuminaAdShield {
                 res.state = .exempt
                 return res
             }
-            if f & (Flag.replyMe | Flag.mentionMe) != 0 && settings.exemptReplies && f & Flag.strongMask == 0 && !impersonating && f & Flag.weakMassMention == 0 {
+            if f & (Flag.replyMe | Flag.mentionMe) != 0 && settings.exemptReplies && !hasStrong && !impersonating && f & Flag.weakMassMention == 0 {
                 res.state = .exempt
                 return res
             }
@@ -850,6 +1014,7 @@ extension LuminaAdShield {
                 w.u8(rec.kind)
                 w.i64(rec.stamp)
                 w.u64(rec.msgKey)
+                w.u64(rec.author)
                 w.u8(UInt8(truncatingIfNeeded: rec.keys.count))
                 for k in rec.keys {
                     w.u8(k.kind)
@@ -935,12 +1100,15 @@ extension LuminaAdShield {
                 if (msgId == 0) != (flags & Flag.anon != 0) || (msgId == 0 && sender != 0) {
                     return nil
                 }
+                if (flags & Flag.priv != 0 && flags & Flag.endorsing == 0) || (flags & Flag.privStrong != 0 && flags & Flag.priv == 0) {
+                    return nil
+                }
                 guard let nk = r.u8(), Int(nk) <= maxRowKeys else {
                     return nil
                 }
                 var keys: [Key] = []
                 for _ in 0 ..< Int(nk) {
-                    guard let kind = r.u8(), let hash = r.u64(), kind >= 1 && kind <= 7 else {
+                    guard let kind = r.u8(), let hash = r.u64(), kind >= 1 && kind <= KeyKind.block.rawValue else {
                         return nil
                     }
                     keys.append(Key(kind: kind, hash: hash))
@@ -965,10 +1133,10 @@ extension LuminaAdShield {
             var endorse = 0
             var notAd = 0
             for _ in 0 ..< Int(nRec) {
-                guard let kind = r.u8(), let stamp = r.i64(), let msgKey = r.u64() else {
+                guard let kind = r.u8(), let stamp = r.i64(), let msgKey = r.u64(), let author = r.u64() else {
                     return nil
                 }
-                if (kind != recordEndorse && kind != recordNotAd) || !inDateRange(stamp) {
+                if (kind != recordEndorse && kind != recordNotAd) || !inDateRange(stamp) || (kind == recordNotAd && (author != 0 || msgKey != 0)) {
                     return nil
                 }
                 if kind == recordEndorse {
@@ -981,7 +1149,7 @@ extension LuminaAdShield {
                 }
                 var keys: [Key] = []
                 for _ in 0 ..< Int(nk) {
-                    guard let k = r.u8(), let hash = r.u64(), k >= 1 && k <= 7 else {
+                    guard let k = r.u8(), let hash = r.u64(), k >= 1 && k <= KeyKind.block.rawValue else {
                         return nil
                     }
                     keys.append(Key(kind: k, hash: hash))
@@ -989,7 +1157,7 @@ extension LuminaAdShield {
                 guard let nl = r.u8(), Int(nl) <= maxRecordLinks, let links = r.u64s(Int(nl)) else {
                     return nil
                 }
-                cs.records.append(Record(kind: kind, stamp: stamp, msgKey: msgKey, keys: keys, links: links))
+                cs.records.append(Record(kind: kind, stamp: stamp, msgKey: msgKey, keys: keys, links: links, author: author))
             }
             if endorse > maxEndorseRecords || notAd > maxNotAdRecords {
                 return nil

@@ -18,7 +18,7 @@ import AccountContext
 //  2. 靈敏度 寬鬆 / 標準（預設）/ 積極, each explained in one line of the footer.
 //  3. 豁免 contacts / bots / replies and mentions of me (all on by default); own and admins' messages never fold.
 //  4. 試運行: only label would-be folds.
-//  5. 清除本機資料 (confirm): ForgetAll for every account, per-group modes and image tables.
+//  5. 清除本機資料 (confirm): ForgetAll for every account, per-group modes and 「連管理員和頻道的也收」, image tables.
 //  6. Footer: everything is computed locally; turning the feature off clears its local data.
 
 private final class LuminaAdShieldControllerArguments {
@@ -296,9 +296,7 @@ public func luminaAdShieldSettingsController(context: AccountContext) -> ViewCon
                 TextAlertAction(type: .destructiveAction, title: LuminaL10n.tr("Clear"), action: {
                     LuminaAdShieldService.shared.clearAllLocalData()
                     updateSettings { settings in
-                        var settings = settings
-                        settings.adShieldDialogs = []
-                        return settings
+                        return settings.withoutLuminaAdShieldGroupSettings()
                     }
                 })
             ]))

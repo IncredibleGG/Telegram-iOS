@@ -1,7 +1,7 @@
 import Foundation
 
 // LuminaGram AdShield ("隱藏重複廣告" / hide repeated ads): the pure-logic core, ported function by function
-// from the shared reference engine `adshield/ref/adshield.py` (algoVersion 2, formatVersion 2). The rules are
+// from the shared reference engine `adshield/ref/adshield.py` (algoVersion 3, formatVersion 3). The rules are
 // normative in `adshield/SPEC.md`; this file and `LuminaAdShieldStore.swift` must reproduce the shared vectors
 // and scenarios byte for byte (checker: `lumina-dev/adshield-check/`, not part of any BUILD target).
 //
@@ -22,8 +22,8 @@ import Foundation
 // Pure logic: no UI, no logging, no Postbox / TelegramCore types. Not thread-safe by design: see
 // `LuminaAdShieldStore.swift` for the single-queue confinement rule.
 public enum LuminaAdShield {
-    public static let algoVersion: UInt16 = 2
-    public static let formatVersion: UInt16 = 2
+    public static let algoVersion: UInt16 = 3
+    public static let formatVersion: UInt16 = 3
 
     // ---- Length thresholds (SPEC §3) ----
     static let minTextWlen = 12
@@ -31,6 +31,24 @@ public enum LuminaAdShield {
     static let minCjkCount = 8
     static let paraMinWlen = 32
     static let maxPara = 16
+    // v3 edit-tolerant keys (SPEC §2.7, §3)
+    /// VAR family: the kept text form must weigh ≥ 24 (12 CJK characters or 24 letters).
+    static let varMinWlen = 24
+    /// Dropped weight D vs kept weight K: 2·D ≤ K for a "one line dropped" key (VARL or VARS) …
+    static let varDropRatio = 2
+    /// … and 4·D ≤ K makes it VARS (strict: may also match "one line replaced"); otherwise VARL.
+    static let varStrictRatio = 4
+    /// Leave-one-out only for the first 16 and the last 16 content lines.
+    static let varEdge = 16
+    /// Full text + leave-one-out + both ends dropped = at most 34 (VAR ≤ 1, VARL + VARS ≤ 33).
+    static let maxVar = 1 + 2 * varEdge + 1
+    /// BLOCK keys: blocks weighing ≥ 16, deduped, at most 16, none at all unless ≥ 2 qualify.
+    static let blockMinWlen = 16
+    static let maxBlock = 16
+    /// Block containment: ≥ 2 shared block keys and 5 × shared ≥ 4 × min(block key counts of both sides).
+    static let blockMinShared = 2
+    static let blockContainNum = 4
+    static let blockContainDen = 5
     static let pureTextMinCjk = 12
     static let pureTextMinLetters = 24
     static let ackRemainderMax = 2
@@ -55,8 +73,12 @@ public enum LuminaAdShield {
     static let maxHandles = 2000
     static let maxLinksPerRow = 16
     static let maxPendingPerRow = 16
-    static let maxRowKeys = 22
-    static let maxRecordKeys = 64
+    /// FWD MEDIA TEXT CJK TMPL CONTACT + 16 PARA + 34 VAR family + 16 BLOCK = 72.
+    static let maxRowKeys = 1 + 1 + 1 + 1 + 1 + 1 + maxPara + maxVar + maxBlock
+    /// A record holds first the keys a v2 record would hold (v2 exact keys, then paragraph keys, at most 64), then the
+    /// v3 keys (VAR family, BLOCK): at most 128 in all.
+    static let maxRecordKeys = 128
+    static let recordV2Keys = 64
     static let maxRecordLinks = 64
     public static let totalCapBytes: Int64 = 10 * 1024 * 1024
     public static let maxLoadedChats = 8
@@ -72,6 +94,14 @@ public enum LuminaAdShield {
         case tmpl = 5
         case para = 6
         case contact = 7
+        /// v3: the full text as content lines (SPEC §2.7).
+        case variant = 8
+        /// v3: one content line dropped, loose (2·D ≤ K < 4·D): only matches "one line added / removed".
+        case variantLoose = 9
+        /// v3: one content line dropped, strict (4·D ≤ K): also matches "one line replaced".
+        case variantStrict = 10
+        /// v3: a block of consecutive content lines.
+        case block = 11
 
         public var tag: String {
             switch self {
@@ -82,6 +112,8 @@ public enum LuminaAdShield {
             case .tmpl: return "tmpl"
             case .para: return "para"
             case .contact: return "contact"
+            case .variant, .variantLoose, .variantStrict: return "var"
+            case .block: return "block"
             }
         }
 
@@ -94,12 +126,17 @@ public enum LuminaAdShield {
             case .tmpl: return "TMPL"
             case .para: return "PARA"
             case .contact: return "CONTACT"
+            case .variant: return "VAR"
+            case .variantLoose: return "VARL"
+            case .variantStrict: return "VARS"
+            case .block: return "BLOCK"
             }
         }
 
-        /// Every kind except PARA is an exact key (one shared exact key is enough to cluster).
+        /// The v2 exact keys FWD MEDIA TEXT CJK TMPL CONTACT: one shared exact key clusters any two senders. PARA needs
+        /// two shared keys; the v3 kinds (VAR family, BLOCK) only link units of the same sender (SPEC §1, §3).
         public var isExact: Bool {
-            return self != .para
+            return Key.isExactKind(self.rawValue)
         }
     }
 
@@ -120,8 +157,23 @@ public enum LuminaAdShield {
             return lhs.hash < rhs.hash
         }
 
+        /// v2 exact kinds: FWD MEDIA TEXT CJK TMPL CONTACT (1–5, 7).
+        @inline(__always) static func isExactKind(_ kind: UInt8) -> Bool {
+            return kind >= 1 && kind <= 7 && kind != KeyKind.para.rawValue
+        }
+
         var isExact: Bool {
-            return self.kind != KeyKind.para.rawValue
+            return Key.isExactKind(self.kind)
+        }
+
+        /// The v2 kinds 1–7 (exact keys and PARA).
+        var isV2: Bool {
+            return self.kind >= 1 && self.kind <= 7
+        }
+
+        /// VAR, VARL or VARS (all hashed with the tag "var": matched across the three kinds by hash).
+        var isVarFamily: Bool {
+            return self.kind >= KeyKind.variant.rawValue && self.kind <= KeyKind.variantStrict.rawValue
         }
     }
 
@@ -136,11 +188,17 @@ public enum LuminaAdShield {
         public static let strongPhone: UInt32 = 1 << 6
         public static let strongAccount: UInt32 = 1 << 7
         public static let strongPointer: UInt32 = 1 << 8
+        /// v3: a privileged author's own strong feature that is only trusted because it is pinned, or only weak because
+        /// the message forwards the group's linked channel (SPEC §6.12). Always together with `priv`.
+        public static let privStrong: UInt32 = 1 << 9
         public static let weakUrl: UInt32 = 1 << 10
         public static let weakMemberMention: UInt32 = 1 << 11
         public static let weakLongNumber: UInt32 = 1 << 12
         public static let weakMassMention: UInt32 = 1 << 13
         public static let weakEmail: UInt32 = 1 << 14
+        /// v3: privileged author (admin / creator / anonymous admin not forwarding someone else's message, the linked
+        /// channel itself, an automatic forward; never self). Always together with `endorsing`.
+        public static let priv: UInt32 = 1 << 15
         public static let hasText: UInt32 = 1 << 16
         /// Never stored; computed by `resolve` at decision time.
         public static let mediaOnly: UInt32 = 1 << 17
@@ -161,9 +219,9 @@ public enum LuminaAdShield {
         public static let strongMask: UInt32 = 0x1FF
         public static let weakMask: UInt32 = 0x7C00
         static let anonKeep: UInt32 = ack | hasMediaKey | hasFwdKey | hasText | tmplCond
-        /// Every bit a stored row may carry (bits 9, 15, 17 and 31 are reserved and rejected on load).
+        /// Every bit a stored row may carry (bit 17 is never stored and bit 31 is reserved: rejected on load).
         static let storedMask: UInt32 = strongMask | weakMask | hasText | pureText | ack | replyMe | mentionMe
-            | isReply | endorsing | bot | contact | selfSender | hasMediaKey | hasFwdKey | anon | tmplCond
+            | isReply | endorsing | bot | contact | selfSender | hasMediaKey | hasFwdKey | anon | tmplCond | priv | privStrong
 
         /// Names in SPEC order (bit, name) for tests and debugging.
         public static let strongNames: [(UInt32, String)] = [
@@ -353,7 +411,9 @@ public enum LuminaAdShield {
 
     /// Per-chat context. Usernames are folded once here; the trusted tokens / domains of the chat (its own
     /// username, the linked channel, every link in the description and in pinned messages) are extracted eagerly
-    /// so the value is immutable and cheap to pass to every call.
+    /// so the value is immutable and cheap to pass to every call. `pinnedOnlyTokens` (v3, SPEC §6.12) are the trusted
+    /// tokens that are trusted only because of a pinned message (not the group's / linked channel's username, not in
+    /// the description).
     public struct ChatContext: Sendable {
         public let chatId: Int64
         public let type: ChatType
@@ -371,6 +431,9 @@ public enum LuminaAdShield {
         public let selfUsername: [UInt32]
         let trustedTokens: Set<[UInt32]>
         let trustedDomains: Set<[UInt32]>
+        let pinnedOnlyTokens: Set<[UInt32]>
+        /// `trustedTokens` minus `pinnedOnlyTokens`: what a privileged author's own links are judged against (§6.12).
+        let authorViewTokens: Set<[UInt32]>
 
         public init(
             chatId: Int64,
@@ -397,14 +460,22 @@ public enum LuminaAdShield {
 
             var tokens = Set<[UInt32]>()
             var domains = Set<[UInt32]>()
+            var own = Set<[UInt32]>()
+            var pinned = Set<[UInt32]>()
             for h in [self.username, self.linkedChannelUsername] where !h.isEmpty {
                 tokens.insert([0x40] + h)
+                own.insert([0x40] + h)
             }
-            for text in [description] + pinnedTexts {
+            for (i, text) in ([description] + pinnedTexts).enumerated() {
                 let ex = LuminaAdShield.extractLinks(AdShieldTables.fold(text))
                 for var link in ex.links {
                     LuminaAdShield.normalizePhoneToken(&link)
                     tokens.insert(link.token)
+                    if i == 0 {
+                        own.insert(link.token)
+                    } else {
+                        pinned.insert(link.token)
+                    }
                     if (link.kind == .url || link.kind == .mail) && !link.shortener && !link.domain.isEmpty {
                         domains.insert(link.domain)
                     }
@@ -412,6 +483,8 @@ public enum LuminaAdShield {
             }
             self.trustedTokens = tokens
             self.trustedDomains = domains
+            self.pinnedOnlyTokens = pinned.subtracting(own)
+            self.authorViewTokens = tokens.subtracting(self.pinnedOnlyTokens)
         }
     }
 
@@ -428,13 +501,18 @@ public enum LuminaAdShield {
         public var exemptReplies: Bool
         /// Changes only the UI ("suspected repeated ad" mark instead of folding); never the Decision.
         public var dryRun: Bool
+        /// v3, per group, default off: 「連管理員和頻道的也收」 – a privileged author's own repeats (admin, creator,
+        /// anonymous admin, the linked channel) are counted and folded like anyone else's (SPEC §6.12). Only changes
+        /// decisions of privileged messages.
+        public var foldPrivilegedRepeats: Bool
 
-        public init(sensitivity: Sensitivity = .standard, exemptContacts: Bool = true, exemptBots: Bool = true, exemptReplies: Bool = true, dryRun: Bool = false) {
+        public init(sensitivity: Sensitivity = .standard, exemptContacts: Bool = true, exemptBots: Bool = true, exemptReplies: Bool = true, dryRun: Bool = false, foldPrivilegedRepeats: Bool = false) {
             self.sensitivity = sensitivity
             self.exemptContacts = exemptContacts
             self.exemptBots = exemptBots
             self.exemptReplies = exemptReplies
             self.dryRun = dryRun
+            self.foldPrivilegedRepeats = foldPrivilegedRepeats
         }
     }
 
@@ -562,12 +640,15 @@ public enum LuminaAdShield {
         public var cjkCount: Int
         public var letterCount: Int
         public var paragraphs: [[UInt32]]
+        /// v3: text forms of the content lines and every block (unfiltered); intermediate values for the vectors.
+        public var contentLines: [[UInt32]]
+        public var blocks: [[UInt32]]
         public var links: [Link]
         public var linkFeatures: [LinkFeature]
         /// Fixed strong / weak features as bits (pending handles not included).
         public var strongFlags: UInt32
         public var weakFlags: UInt32
-        /// FWD → MEDIA → TEXT → CJK → TMPL → CONTACT → PARA….
+        /// FWD → MEDIA → TEXT → CJK → TMPL → CONTACT → PARA… → VAR family… (candidate order) → BLOCK….
         public var keys: [FingerprintKey]
         /// Subset links H("link", token) for the endorsement subset check (fixed part).
         public var linkHashes: [UInt64]
@@ -578,6 +659,8 @@ public enum LuminaAdShield {
         public var senderKey: UInt64
         public var store: Bool
         public var endorsing: Bool
+        /// v3: privileged author (`Flag.priv`).
+        public var privileged: Bool
         public var mentionCount: Int
         /// Resolved with `knownHandles` ∪ context.memberHandles (vectors only).
         public var resolvedFlags: UInt32
@@ -936,6 +1019,123 @@ extension LuminaAdShield {
             i += 1
         }
         return out
+    }
+
+    /// SPEC §2.1 (v3): before `fold`, drop every U+000D that immediately precedes a U+000A (one pass over the
+    /// scalars: "\r\r\n" → "\r\n"; a lone "\r" stays and becomes "\n" in fold). Works on `unicodeScalars`: in Swift
+    /// "\r\n" is one Character, so `replacingOccurrences` / Character iteration must not be used.
+    public static func collapseCrlf(_ s: String) -> String {
+        let scalars = s.unicodeScalars
+        if !scalars.contains(where: { $0.value == 0x0D }) {
+            return s
+        }
+        var out = String.UnicodeScalarView()
+        var pendingCr = false
+        for u in scalars {
+            if pendingCr && u.value != 0x0A {
+                out.append(Unicode.Scalar(UInt8(0x0D)))
+            }
+            pendingCr = u.value == 0x0D
+            if !pendingCr {
+                out.append(u)
+            }
+        }
+        if pendingCr {
+            out.append(Unicode.Scalar(UInt8(0x0D)))
+        }
+        return String(out)
+    }
+
+    /// SPEC §2.7 (v3): F′ split at "\n" keeping empty pieces (a piece per line, scalar by scalar), each line's text form.
+    static func lineForms(_ fNoLinks: [UInt32]) -> [[UInt32]] {
+        return fNoLinks.split(separator: 0x0A, omittingEmptySubsequences: false).map { AdShieldTables.textForm(Array($0)) }
+    }
+
+    /// SPEC §2.7 (v3): the content lines – text forms of the lines of F′ that are not empty, in order, not deduped.
+    /// Joined in order they are T.
+    public static func contentLines(_ fNoLinks: [UInt32]) -> [[UInt32]] {
+        return lineForms(fNoLinks).filter { !$0.isEmpty }
+    }
+
+    /// SPEC §2.7 (v3) VAR family. Candidates in order: the full text, each "leave one out" (drop line i, only for the
+    /// first 16 and the last 16 lines), "both ends" (drop the first and the last line). For each candidate, D = weight
+    /// dropped, K = weight kept; only K ≥ 24 is emitted: D = 0 → VAR; 4·D ≤ K → VARS; 2·D ≤ K → VARL; else nothing.
+    /// Deduped by payload in that order (a payload always has the same K, hence the same kind). At most 34.
+    public static func varKeys(_ lines: [[UInt32]]) -> [(kind: KeyKind, payload: [UInt32])] {
+        let n = lines.count
+        let w = lines.map { AdShieldTables.wlen($0) }
+        let total = w.reduce(0, +)
+        var out: [(kind: KeyKind, payload: [UInt32])] = []
+        var seen = Set<[UInt32]>()
+        func emit(_ drop: [Int]) {
+            var d = 0
+            for i in drop {
+                d += w[i]
+            }
+            let kept = total - d
+            if kept < varMinWlen {
+                return
+            }
+            let kind: KeyKind
+            if d == 0 {
+                kind = .variant
+            } else if varStrictRatio * d <= kept {
+                kind = .variantStrict
+            } else if varDropRatio * d <= kept {
+                kind = .variantLoose
+            } else {
+                return
+            }
+            var p: [UInt32] = []
+            for i in 0 ..< n where !drop.contains(i) {
+                p.append(contentsOf: lines[i])
+            }
+            if seen.insert(p).inserted {
+                out.append((kind: kind, payload: p))
+            }
+        }
+        emit([])
+        if n >= 2 {
+            for i in 0 ..< n where i < varEdge || i >= n - varEdge {
+                emit([i])
+            }
+        }
+        if n >= 3 {
+            emit([0, n - 1])
+        }
+        return out
+    }
+
+    /// SPEC §2.7 (v3): blocks = runs of consecutive content lines separated by lines whose text form is empty (blank,
+    /// only emoji / symbols / extracted links); a block's value is its lines' text forms joined. All, unfiltered.
+    public static func blocks(_ fNoLinks: [UInt32]) -> [[UInt32]] {
+        var out: [[UInt32]] = []
+        var cur: [UInt32] = []
+        for t in lineForms(fNoLinks) {
+            if !t.isEmpty {
+                cur.append(contentsOf: t)
+            } else if !cur.isEmpty {
+                out.append(cur)
+                cur = []
+            }
+        }
+        if !cur.isEmpty {
+            out.append(cur)
+        }
+        return out
+    }
+
+    /// BLOCK keys: blocks weighing ≥ 16, deduped in order, at most 16; none at all when fewer than 2 qualify.
+    public static func blockPayloads(_ bs: [[UInt32]]) -> [[UInt32]] {
+        var out: [[UInt32]] = []
+        var seen = Set<[UInt32]>()
+        for b in bs where AdShieldTables.wlen(b) >= blockMinWlen && seen.insert(b).inserted {
+            out.append(b)
+            if out.count == maxBlock {
+                break
+            }
+        }
+        return out.count >= 2 ? out : []
     }
 }
 
@@ -2189,6 +2389,46 @@ extension LuminaAdShield {
         return (f, outKeys, outLinks)
     }
 
+    /// SPEC §5.1 link feature table (checked in order): strong / weak / member / pending / none.
+    static func linkFeature(_ l: Link, trustedTokens: Set<[UInt32]>, trustedDomains: Set<[UInt32]>, chanFwd: Bool, fwdUsername: [UInt32], selfUsername: [UInt32], senderUsername: [UInt32], addressed: Set<[UInt32]>) -> LinkFeature {
+        if trustedTokens.contains(l.token) {
+            return .notCounted
+        }
+        switch l.kind {
+        case .invite:
+            return chanFwd ? .weak : .strong
+        case .handle:
+            let h: [UInt32] = l.token.first == 0x40 ? Array(l.token.dropFirst()) : []
+            if !h.isEmpty && h == fwdUsername {
+                return .notCounted // the forward source's own account
+            } else if !h.isEmpty && h == selfUsername {
+                return .notCounted // @me
+            } else if chanFwd {
+                return .weak // an account in a channel post is the channel's content
+            } else if !h.isEmpty && h == senderUsername {
+                return .strong // self-promotion
+            } else if h.isEmpty {
+                return .strong // uid: / tgc:
+            } else if addressed.contains(h) {
+                return .member // addressing someone at the start
+            } else {
+                return .pending // known member or not: decided at decision time
+            }
+        case .url:
+            if l.shortener {
+                return chanFwd ? .weak : .strong
+            } else if trustedDomains.contains(l.domain) {
+                return .notCounted
+            } else {
+                return .weak
+            }
+        case .phone, .acct:
+            return .strong
+        case .mail:
+            return trustedDomains.contains(l.domain) ? .notCounted : .weak
+        }
+    }
+
     /// One message → normalized text, links, features and fingerprint keys (SPEC §3–§5).
     /// The stored part (keys / flags / linkHashes / pending) depends only on (msg, context, key);
     /// `knownHandles` (folded usernames, no "@") only affects `resolvedFlags`.
@@ -2199,7 +2439,7 @@ extension LuminaAdShield {
         let chanFwd = fwd?.fromKind == .channel
         let media = msg.media
 
-        let f = AdShieldTables.fold(msg.text)
+        let f = AdShieldTables.fold(collapseCrlf(msg.text)) // v3: CR LF → LF first (SPEC §2.1)
         let ex = extractLinks(f)
         var links = ex.links
         for ent in msg.entities {
@@ -2234,6 +2474,8 @@ extension LuminaAdShield {
         let wl = AdShieldTables.wlen(t)
         let (cjkCount, letterCount) = letterCounts(t)
         let paras = paragraphs(ex.fNoLinks)
+        let clines = contentLines(ex.fNoLinks)
+        let blks = blocks(ex.fNoLinks)
 
         // ---- features ----
         let fwdUsername = uname(fwd?.username)
@@ -2243,44 +2485,7 @@ extension LuminaAdShield {
         var features: [LinkFeature] = []
         features.reserveCapacity(links.count)
         for l in links {
-            var feat = LinkFeature.notCounted
-            if ctx.trustedTokens.contains(l.token) {
-                feat = .notCounted
-            } else {
-                switch l.kind {
-                case .invite:
-                    feat = chanFwd ? .weak : .strong
-                case .handle:
-                    let h: [UInt32] = l.token.first == 0x40 ? Array(l.token.dropFirst()) : []
-                    if !h.isEmpty && h == fwdUsername {
-                        feat = .notCounted
-                    } else if !h.isEmpty && h == ctx.selfUsername {
-                        feat = .notCounted
-                    } else if chanFwd {
-                        feat = .weak
-                    } else if !h.isEmpty && h == senderUsername {
-                        feat = .strong
-                    } else if h.isEmpty {
-                        feat = .strong
-                    } else if addressed.contains(h) {
-                        feat = .member
-                    } else {
-                        feat = .pending
-                    }
-                case .url:
-                    if l.shortener {
-                        feat = chanFwd ? .weak : .strong
-                    } else if ctx.trustedDomains.contains(l.domain) {
-                        feat = .notCounted
-                    } else {
-                        feat = .weak
-                    }
-                case .phone, .acct:
-                    feat = .strong
-                case .mail:
-                    feat = ctx.trustedDomains.contains(l.domain) ? .notCounted : .weak
-                }
-            }
+            let feat = linkFeature(l, trustedTokens: ctx.trustedTokens, trustedDomains: ctx.trustedDomains, chanFwd: chanFwd, fwdUsername: fwdUsername, selfUsername: ctx.selfUsername, senderUsername: senderUsername, addressed: addressed)
             features.append(feat)
             switch feat {
             case .strong:
@@ -2339,7 +2544,7 @@ extension LuminaAdShield {
             pendingTokens.append(l.token)
         }
 
-        // ---- keys: FWD MEDIA TEXT CJK TMPL CONTACT PARA… ----
+        // ---- keys: FWD MEDIA TEXT CJK TMPL CONTACT PARA… VAR family… BLOCK… ----
         var keys: [(KeyKind, [UInt32])] = []
         var mediaPayload: [UInt32] = []
         if let media {
@@ -2409,6 +2614,13 @@ extension LuminaAdShield {
         for p in paras {
             keys.append((.para, p))
         }
+        // v3: the edit-tolerant keys come last; the v2 keys and their order are unchanged.
+        for v in varKeys(clines) {
+            keys.append((v.kind, v.payload))
+        }
+        for p in blockPayloads(blks) {
+            keys.append((.block, p))
+        }
         let hashed: [FingerprintKey] = keys.map { FingerprintKey(kind: $0.0, payload: $0.1, hash: khash(key, $0.0.tag, $0.1)) }
 
         var subsetTokens: [[UInt32]] = []
@@ -2425,14 +2637,42 @@ extension LuminaAdShield {
         let pending = dedupe(pendingTokens.map { khash(key, "link", $0) }, cap: maxPendingPerRow)
 
         // ---- flags ----
+        // Forwarding a user's or a hidden source's message (not a channel post).
         let fwdIsOthers = fwd != nil && !chanFwd
+        let sentAsLinked = role == .channel && ctx.linkedChannelId != 0 && msg.sender.id == ctx.linkedChannelId
         var endorsing = (role == .admin || role == .creator || role == .anonAdmin || role == .selfUser) && !fwdIsOthers
         endorsing = endorsing || msg.pinned || msg.autoForward
         if let fwd, ctx.linkedChannelId != 0 && fwd.fromId == ctx.linkedChannelId {
             endorsing = true
         }
-        if role == .channel && ctx.linkedChannelId != 0 && msg.sender.id == ctx.linkedChannelId {
+        if sentAsLinked {
             endorsing = true
+        }
+        // v3 privileged author (SPEC §6.12): admin / creator / anonymous admin (not forwarding someone else's message),
+        // sent as the linked channel, an automatic forward. Never self; a pinned member message and a member forwarding
+        // the linked channel stay endorsements the option does not touch.
+        let privileged = role != .selfUser && (((role == .admin || role == .creator || role == .anonAdmin) && !fwdIsOthers) || msg.autoForward || sentAsLinked)
+        // Forwarding a post of the group's linked channel (automatic forwards included): the content's author is the channel.
+        var ownFwd = false
+        if let fwd, chanFwd && ctx.linkedChannelId != 0 && fwd.fromId == ctx.linkedChannelId {
+            ownFwd = true
+        }
+        // The privileged author's own strong features: links only trusted because they are pinned, or only weak
+        // because the message forwards the linked channel, judged again from the author's view. With the option on they
+        // count as strong (otherwise a pinned ad, or channel posts forwarded into the discussion group, never fold).
+        var privStrong = false
+        if privileged {
+            let ownViewTokens = ctx.authorViewTokens
+            let ownChanFwd = chanFwd && !ownFwd
+            for (l, feat) in zip(links, features) where feat != .strong && feat != .pending {
+                let f2 = linkFeature(l, trustedTokens: ownViewTokens, trustedDomains: ctx.trustedDomains, chanFwd: ownChanFwd, fwdUsername: fwdUsername, selfUsername: ctx.selfUsername, senderUsername: senderUsername, addressed: addressed)
+                if f2 == .strong || f2 == .pending {
+                    privStrong = true
+                }
+            }
+            if ownFwd && (!buttons.isEmpty || msg.viaBot) {
+                privStrong = true
+            }
         }
         var flags: UInt32 = strong | weak
         if wl >= minTextWlen {
@@ -2465,6 +2705,12 @@ extension LuminaAdShield {
         if endorsing {
             flags |= Flag.endorsing
         }
+        if privileged {
+            flags |= Flag.priv
+        }
+        if privStrong {
+            flags |= Flag.privStrong
+        }
         if role == .bot {
             flags |= Flag.bot
         }
@@ -2476,7 +2722,10 @@ extension LuminaAdShield {
         }
 
         let store = !hashed.isEmpty && (strong != 0 || weak != 0 || !pending.isEmpty || flags & (Flag.hasMediaKey | Flag.hasFwdKey | Flag.pureText) != 0 || endorsing)
-        let senderKey = khash(key, "sender", dec(msg.sender.id))
+        // The sender (= the author): a privileged author forwarding a post of the linked channel is the channel itself
+        // (an admin re-forwarding a channel post is the channel's own repeat, SPEC §6.12).
+        let authorId = privileged && ownFwd ? ctx.linkedChannelId : msg.sender.id
+        let senderKey = khash(key, "sender", dec(authorId))
 
         var known = Set<UInt64>()
         for n in knownHandles {
@@ -2489,9 +2738,9 @@ extension LuminaAdShield {
 
         return Fingerprint(
             f: f, fNoLinks: ex.fNoLinks, t: t, tCjk: tc, wlen: wl, cjkCount: cjkCount, letterCount: letterCount,
-            paragraphs: paras, links: links, linkFeatures: features, strongFlags: strong, weakFlags: weak,
-            keys: hashed, linkHashes: linkHashes, pending: pending, flags: flags, senderKey: senderKey, store: store,
-            endorsing: endorsing, mentionCount: mentionCount, resolvedFlags: resolved.flags
+            paragraphs: paras, contentLines: clines, blocks: blks, links: links, linkFeatures: features, strongFlags: strong,
+            weakFlags: weak, keys: hashed, linkHashes: linkHashes, pending: pending, flags: flags, senderKey: senderKey,
+            store: store, endorsing: endorsing, privileged: privileged, mentionCount: mentionCount, resolvedFlags: resolved.flags
         )
     }
 }

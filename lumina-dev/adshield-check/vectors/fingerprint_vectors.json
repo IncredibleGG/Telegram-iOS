@@ -1,8 +1,8 @@
 {
- "tablesVersion": "f40fc4cc",
- "algoVersion": 2,
+ "tablesVersion": "25528dcc",
+ "algoVersion": 3,
  "key": "000102030405060708090a0b0c0d0e0f",
- "note": "固定測試金鑰 000102…0f。links 依抽取順序：文字（網址→t.me→*.t.me→email→網域→@→「@ 帳號」→電話→聯絡帳號）→ 隱藏連結（entities 順序）→ 按鈕 → 名片。feature ∈ strong/weak/member/pending/none。strong/weak/flags/keys/subsetLinks/pending 是「儲存用」結果（不含待定 handle 的貢獻）；resolved* 是以 knownHandles=∅ ∪ context.memberHandles 解開待定 handle 後的結果。",
+ "note": "固定測試金鑰 000102…0f。keys 順序：FWD MEDIA TEXT CJK TMPL CONTACT PARA… 然後 v3 的 VAR 家族（VAR／VARL／VARS，依候選順序：全文、留一、去頭尾；雜湊標籤都是 var）… BLOCK…。訊息文字在 fold 前先把 CR LF 換成 LF。contentLines／blocks 是 VAR／BLOCK 的中間值（除錯用）。links 依抽取順序：文字（網址→t.me→*.t.me→email→網域→@→「@ 帳號」→電話→聯絡帳號）→ 隱藏連結（entities 順序）→ 按鈕 → 名片。feature ∈ strong/weak/member/pending/none。strong/weak/flags/keys/subsetLinks/pending 是「儲存用」結果（不含待定 handle 的貢獻）；resolved* 是以 knownHandles=∅ ∪ context.memberHandles 解開待定 handle 後的結果。",
  "context": {
   "chatId": -1001234567890,
   "type": "supergroup",
@@ -44,6 +44,12 @@
     "cjkCount": 5,
     "otherLetterCount": 0,
     "paragraphs": [],
+    "contentLines": [
+     "加入或或或"
+    ],
+    "blocks": [
+     "加入或或或"
+    ],
     "links": [
      {
       "token": "@bigsale",
@@ -108,7 +114,8 @@
     ],
     "senderKey": "f835c8c7783b17ad",
     "store": true,
-    "endorsing": false
+    "endorsing": false,
+    "privileged": false
    }
   },
   {
@@ -132,6 +139,8 @@
     "cjkCount": 0,
     "otherLetterCount": 0,
     "paragraphs": [],
+    "contentLines": [],
+    "blocks": [],
     "links": [
      {
       "token": "invite:abcdef123",
@@ -198,7 +207,8 @@
     ],
     "senderKey": "ef48f823de1b855a",
     "store": true,
-    "endorsing": false
+    "endorsing": false,
+    "privileged": false
    }
   },
   {
@@ -222,6 +232,12 @@
     "cjkCount": 1,
     "otherLetterCount": 0,
     "paragraphs": [],
+    "contentLines": [
+     "看"
+    ],
+    "blocks": [
+     "看"
+    ],
     "links": [
      {
       "token": "url:shop-example.com/item/42?color=red",
@@ -256,7 +272,8 @@
     ],
     "senderKey": "8d6b6aeb5cf0900c",
     "store": false,
-    "endorsing": false
+    "endorsing": false,
+    "privileged": false
    }
   },
   {
@@ -284,6 +301,12 @@
     "cjkCount": 5,
     "otherLetterCount": 0,
     "paragraphs": [],
+    "contentLines": [
+     "推荐这首歌"
+    ],
+    "blocks": [
+     "推荐这首歌"
+    ],
     "links": [
      {
       "token": "url:youtube.com/watch?v=dqw4w9wgxcq",
@@ -326,7 +349,8 @@
     ],
     "senderKey": "67fc0ab43b622226",
     "store": false,
-    "endorsing": false
+    "endorsing": false,
+    "privileged": false
    }
   },
   {
@@ -350,6 +374,12 @@
     "cjkCount": 6,
     "otherLetterCount": 0,
     "paragraphs": [],
+    "contentLines": [
+     "限时优惠快来"
+    ],
+    "blocks": [
+     "限时优惠快来"
+    ],
     "links": [
      {
       "token": "url:bit.ly/3abcxyz",
@@ -399,7 +429,8 @@
     ],
     "senderKey": "0c16d2e4b6058138",
     "store": true,
-    "endorsing": false
+    "endorsing": false,
+    "privileged": false
    }
   },
   {
@@ -423,6 +454,12 @@
     "cjkCount": 1,
     "otherLetterCount": 8,
     "paragraphs": [],
+    "contentLines": [
+     "whatsapp或"
+    ],
+    "blocks": [
+     "whatsapp或"
+    ],
     "links": [
      {
       "token": "tel:8613812345678",
@@ -478,7 +515,8 @@
     ],
     "senderKey": "2ab6fe89c26a2050",
     "store": true,
-    "endorsing": false
+    "endorsing": false,
+    "privileged": false
    }
   },
   {
@@ -502,6 +540,12 @@
     "cjkCount": 7,
     "otherLetterCount": 0,
     "paragraphs": [],
+    "contentLines": [
+     "代办信用卡电话"
+    ],
+    "blocks": [
+     "代办信用卡电话"
+    ],
     "links": [
      {
       "token": "tel:8613812345678",
@@ -557,7 +601,8 @@
     ],
     "senderKey": "e7fcdc2f5fbb2c72",
     "store": true,
-    "endorsing": false
+    "endorsing": false,
+    "privileged": false
    }
   },
   {
@@ -581,6 +626,12 @@
     "cjkCount": 13,
     "otherLetterCount": 0,
     "paragraphs": [],
+    "contentLines": [
+     "代办大额信用卡快速下卡电话"
+    ],
+    "blocks": [
+     "代办大额信用卡快速下卡电话"
+    ],
     "links": [
      {
       "token": "tel:8613812345678",
@@ -620,6 +671,12 @@
       "tag": "contact",
       "payload": "tel:8613812345678",
       "hash": "1874bb178b5bf7b3"
+     },
+     {
+      "kind": "VAR",
+      "tag": "var",
+      "payload": "代办大额信用卡快速下卡电话",
+      "hash": "770534eacbadd8e9"
      }
     ],
     "flags": 327744,
@@ -644,7 +701,8 @@
     ],
     "senderKey": "8bf6f2186a107fba",
     "store": true,
-    "endorsing": false
+    "endorsing": false,
+    "privileged": false
    }
   },
   {
@@ -668,6 +726,12 @@
     "cjkCount": 5,
     "otherLetterCount": 7,
     "paragraphs": [],
+    "contentLines": [
+     "加v微信号是qqline"
+    ],
+    "blocks": [
+     "加v微信号是qqline"
+    ],
     "links": [
      {
       "token": "acct:wx:abc_888",
@@ -750,7 +814,8 @@
     ],
     "senderKey": "ef8e54627e4cda65",
     "store": true,
-    "endorsing": false
+    "endorsing": false,
+    "privileged": false
    }
   },
   {
@@ -776,6 +841,12 @@
     "paragraphs": [
      "telegramdesktop很好用whatsappgroup也不错"
     ],
+    "contentLines": [
+     "telegramdesktop很好用whatsappgroup也不错"
+    ],
+    "blocks": [
+     "telegramdesktop很好用whatsappgroup也不错"
+    ],
     "links": [],
     "strong": [],
     "weak": [],
@@ -792,6 +863,12 @@
       "tag": "para",
       "payload": "telegramdesktop很好用whatsappgroup也不错",
       "hash": "327e4e7ddfe1432e"
+     },
+     {
+      "kind": "VAR",
+      "tag": "var",
+      "payload": "telegramdesktop很好用whatsappgroup也不错",
+      "hash": "89df8faa02855338"
      }
     ],
     "flags": 327680,
@@ -810,7 +887,8 @@
     ],
     "senderKey": "a3cc5d09cfb2d789",
     "store": true,
-    "endorsing": false
+    "endorsing": false,
+    "privileged": false
    }
   },
   {
@@ -834,6 +912,12 @@
     "cjkCount": 11,
     "otherLetterCount": 0,
     "paragraphs": [],
+    "contentLines": [
+     "有需要的私我详情看简介"
+    ],
+    "blocks": [
+     "有需要的私我详情看简介"
+    ],
     "links": [],
     "strong": [
      "pointer"
@@ -880,7 +964,8 @@
     ],
     "senderKey": "b3c25a1bde16d809",
     "store": true,
-    "endorsing": false
+    "endorsing": false,
+    "privileged": false
    }
   },
   {
@@ -904,6 +989,12 @@
     "cjkCount": 9,
     "otherLetterCount": 0,
     "paragraphs": [],
+    "contentLines": [
+     "你太自私我不想说了"
+    ],
+    "blocks": [
+     "你太自私我不想说了"
+    ],
     "links": [],
     "strong": [],
     "weak": [],
@@ -936,7 +1027,8 @@
     ],
     "senderKey": "d3efaf7e6428c504",
     "store": false,
-    "endorsing": false
+    "endorsing": false,
+    "privileged": false
    }
   },
   {
@@ -960,6 +1052,12 @@
     "cjkCount": 0,
     "otherLetterCount": 32,
     "paragraphs": [],
+    "contentLines": [
+     "bestsignalsdmmeforpricelinkinbio"
+    ],
+    "blocks": [
+     "bestsignalsdmmeforpricelinkinbio"
+    ],
     "links": [],
     "strong": [
      "pointer"
@@ -978,6 +1076,12 @@
       "tag": "tmpl",
       "payload": "bestsignalsdmmeforpricelinkinbio\u001e",
       "hash": "30d5b4f1e0fdf93d"
+     },
+     {
+      "kind": "VAR",
+      "tag": "var",
+      "payload": "bestsignalsdmmeforpricelinkinbio",
+      "hash": "26dc8d86eafdda09"
      }
     ],
     "flags": 327936,
@@ -1002,7 +1106,8 @@
     ],
     "senderKey": "223c4f6e47cb2649",
     "store": true,
-    "endorsing": false
+    "endorsing": false,
+    "privileged": false
    }
   },
   {
@@ -1026,6 +1131,12 @@
     "cjkCount": 5,
     "otherLetterCount": 1,
     "paragraphs": [],
+    "contentLines": [
+     "#到货#đ订单号##"
+    ],
+    "blocks": [
+     "#到货#đ订单号##"
+    ],
     "links": [],
     "strong": [],
     "weak": [],
@@ -1052,7 +1163,8 @@
     ],
     "senderKey": "01182aac87974665",
     "store": false,
-    "endorsing": false
+    "endorsing": false,
+    "privileged": false
    }
   },
   {
@@ -1076,6 +1188,12 @@
     "cjkCount": 6,
     "otherLetterCount": 0,
     "paragraphs": [],
+    "contentLines": [
+     "验证#收到请回"
+    ],
+    "blocks": [
+     "验证#收到请回"
+    ],
     "links": [],
     "strong": [],
     "weak": [
@@ -1108,7 +1226,8 @@
     ],
     "senderKey": "5a58db1203a2b076",
     "store": true,
-    "endorsing": false
+    "endorsing": false,
+    "privileged": false
    }
   },
   {
@@ -1138,6 +1257,12 @@
     "cjkCount": 3,
     "otherLetterCount": 0,
     "paragraphs": [],
+    "contentLines": [
+     "快来看"
+    ],
+    "blocks": [
+     "快来看"
+    ],
     "links": [
      {
       "token": "@alice_member",
@@ -1190,7 +1315,8 @@
     ],
     "senderKey": "54439bf378e29e51",
     "store": false,
-    "endorsing": false
+    "endorsing": false,
+    "privileged": false
    }
   },
   {
@@ -1214,6 +1340,12 @@
     "cjkCount": 4,
     "otherLetterCount": 0,
     "paragraphs": [],
+    "contentLines": [
+     "问或或或"
+    ],
+    "blocks": [
+     "问或或或"
+    ],
     "links": [
      {
       "token": "@alice_member",
@@ -1287,7 +1419,8 @@
     ],
     "senderKey": "af28eeb4345b638b",
     "store": true,
-    "endorsing": false
+    "endorsing": false,
+    "privileged": false
    }
   },
   {
@@ -1311,6 +1444,12 @@
     "cjkCount": 4,
     "otherLetterCount": 0,
     "paragraphs": [],
+    "contentLines": [
+     "官网邀请"
+    ],
+    "blocks": [
+     "官网邀请"
+    ],
     "links": [
      {
       "token": "url:docs.lumina-test.example.org/faq",
@@ -1343,7 +1482,8 @@
     "resolvedFlagNames": [],
     "senderKey": "78a54099b4deee68",
     "store": false,
-    "endorsing": false
+    "endorsing": false,
+    "privileged": false
    }
   },
   {
@@ -1368,6 +1508,12 @@
     "cjkCount": 4,
     "otherLetterCount": 0,
     "paragraphs": [],
+    "contentLines": [
+     "找我下单"
+    ],
+    "blocks": [
+     "找我下单"
+    ],
     "links": [
      {
       "token": "@spam_seller",
@@ -1409,7 +1555,8 @@
     ],
     "senderKey": "23e88f49217e103f",
     "store": true,
-    "endorsing": false
+    "endorsing": false,
+    "privileged": false
    }
   },
   {
@@ -1440,6 +1587,12 @@
     "cjkCount": 8,
     "otherLetterCount": 0,
     "paragraphs": [],
+    "contentLines": [
+     "今日新闻摘要订阅"
+    ],
+    "blocks": [
+     "今日新闻摘要订阅"
+    ],
     "links": [
      {
       "token": "url:news.example.com/a/123",
@@ -1505,7 +1658,8 @@
     ],
     "senderKey": "cabbfa79eea5ad23",
     "store": true,
-    "endorsing": false
+    "endorsing": false,
+    "privileged": false
    }
   },
   {
@@ -1536,6 +1690,12 @@
     "paragraphs": [
      "明天上午九点在礼堂集合记得带学生证"
     ],
+    "contentLines": [
+     "明天上午九点在礼堂集合记得带学生证"
+    ],
+    "blocks": [
+     "明天上午九点在礼堂集合记得带学生证"
+    ],
     "links": [],
     "strong": [],
     "weak": [],
@@ -1564,6 +1724,12 @@
       "tag": "para",
       "payload": "明天上午九点在礼堂集合记得带学生证",
       "hash": "2d5e57e930a8a98b"
+     },
+     {
+      "kind": "VAR",
+      "tag": "var",
+      "payload": "明天上午九点在礼堂集合记得带学生证",
+      "hash": "26ae6290a3586738"
      }
     ],
     "flags": 268763136,
@@ -1584,7 +1750,8 @@
     ],
     "senderKey": "17ab98926df20b5d",
     "store": true,
-    "endorsing": false
+    "endorsing": false,
+    "privileged": false
    }
   },
   {
@@ -1615,6 +1782,12 @@
     "paragraphs": [
      "明天上午九点在礼堂集合记得带学生证"
     ],
+    "contentLines": [
+     "明天上午九点在礼堂集合记得带学生证"
+    ],
+    "blocks": [
+     "明天上午九点在礼堂集合记得带学生证"
+    ],
     "links": [],
     "strong": [],
     "weak": [],
@@ -1643,6 +1816,12 @@
       "tag": "para",
       "payload": "明天上午九点在礼堂集合记得带学生证",
       "hash": "2d5e57e930a8a98b"
+     },
+     {
+      "kind": "VAR",
+      "tag": "var",
+      "payload": "明天上午九点在礼堂集合记得带学生证",
+      "hash": "26ae6290a3586738"
      }
     ],
     "flags": 268763136,
@@ -1663,7 +1842,8 @@
     ],
     "senderKey": "2ae33edf384f1d6f",
     "store": true,
-    "endorsing": false
+    "endorsing": false,
+    "privileged": false
    }
   },
   {
@@ -1692,6 +1872,12 @@
     "cjkCount": 6,
     "otherLetterCount": 0,
     "paragraphs": [],
+    "contentLines": [
+     "新品到货私聊"
+    ],
+    "blocks": [
+     "新品到货私聊"
+    ],
     "links": [],
     "strong": [
      "pointer"
@@ -1740,7 +1926,8 @@
     ],
     "senderKey": "f0a08d897641081e",
     "store": true,
-    "endorsing": false
+    "endorsing": false,
+    "privileged": false
    }
   },
   {
@@ -1768,6 +1955,8 @@
     "cjkCount": 0,
     "otherLetterCount": 0,
     "paragraphs": [],
+    "contentLines": [],
+    "blocks": [],
     "links": [],
     "strong": [],
     "weak": [],
@@ -1783,7 +1972,8 @@
     "resolvedFlagNames": [],
     "senderKey": "102c9654798d2076",
     "store": false,
-    "endorsing": false
+    "endorsing": false,
+    "privileged": false
    }
   },
   {
@@ -1812,6 +2002,8 @@
     "cjkCount": 0,
     "otherLetterCount": 0,
     "paragraphs": [],
+    "contentLines": [],
+    "blocks": [],
     "links": [
      {
       "token": "tel:8613900001111",
@@ -1865,7 +2057,8 @@
     ],
     "senderKey": "d332514b9d3d804c",
     "store": true,
-    "endorsing": false
+    "endorsing": false,
+    "privileged": false
    }
   },
   {
@@ -1893,6 +2086,12 @@
     "cjkCount": 7,
     "otherLetterCount": 0,
     "paragraphs": [],
+    "contentLines": [
+     "点下面按钮领取"
+    ],
+    "blocks": [
+     "点下面按钮领取"
+    ],
     "links": [
      {
       "token": "url:bit.ly/zz9",
@@ -1951,7 +2150,8 @@
     ],
     "senderKey": "c24d253f2656278b",
     "store": true,
-    "endorsing": false
+    "endorsing": false,
+    "privileged": false
    }
   },
   {
@@ -1981,6 +2181,12 @@
     "cjkCount": 6,
     "otherLetterCount": 0,
     "paragraphs": [],
+    "contentLines": [
+     "点这里看详情"
+    ],
+    "blocks": [
+     "点这里看详情"
+    ],
     "links": [
      {
       "token": "@hidden_deals",
@@ -2029,7 +2235,8 @@
     ],
     "senderKey": "5a7896dd0a14a5a0",
     "store": true,
-    "endorsing": false
+    "endorsing": false,
+    "privileged": false
    }
   },
   {
@@ -2055,6 +2262,12 @@
     "paragraphs": [
      "本群提供最新的海外投资机会与每日行情分析服务",
      "加入会员即可获得专属导师一对一的指导与带单"
+    ],
+    "contentLines": [
+     "本群提供最新的海外投资机会与每日行情分析服务加入会员即可获得专属导师一对一的指导与带单名额有限请速联络"
+    ],
+    "blocks": [
+     "本群提供最新的海外投资机会与每日行情分析服务加入会员即可获得专属导师一对一的指导与带单名额有限请速联络"
     ],
     "links": [
      {
@@ -2107,6 +2320,12 @@
       "tag": "para",
       "payload": "加入会员即可获得专属导师一对一的指导与带单",
       "hash": "47ab2f0c56b4a2ac"
+     },
+     {
+      "kind": "VAR",
+      "tag": "var",
+      "payload": "本群提供最新的海外投资机会与每日行情分析服务加入会员即可获得专属导师一对一的指导与带单名额有限请速联络",
+      "hash": "8d3cbef064ca882a"
      }
     ],
     "flags": 327681,
@@ -2131,7 +2350,8 @@
     ],
     "senderKey": "e26e03d958030fab",
     "store": true,
-    "endorsing": false
+    "endorsing": false,
+    "privileged": false
    }
   },
   {
@@ -2156,6 +2376,12 @@
     "cjkCount": 6,
     "otherLetterCount": 0,
     "paragraphs": [],
+    "contentLines": [
+     "收到谢谢老师"
+    ],
+    "blocks": [
+     "收到谢谢老师"
+    ],
     "links": [],
     "strong": [],
     "weak": [],
@@ -2186,7 +2412,8 @@
     ],
     "senderKey": "64de4f6535dbe9b3",
     "store": false,
-    "endorsing": false
+    "endorsing": false,
+    "privileged": false
    }
   },
   {
@@ -2210,6 +2437,12 @@
     "cjkCount": 8,
     "otherLetterCount": 0,
     "paragraphs": [],
+    "contentLines": [
+     "有问题寄信到谢谢"
+    ],
+    "blocks": [
+     "有问题寄信到谢谢"
+    ],
     "links": [
      {
       "token": "mail:support@example-mail.com",
@@ -2259,7 +2492,8 @@
     ],
     "senderKey": "82592dbd25f870bf",
     "store": true,
-    "endorsing": false
+    "endorsing": false,
+    "privileged": false
    }
   },
   {
@@ -2283,6 +2517,12 @@
     "cjkCount": 6,
     "otherLetterCount": 0,
     "paragraphs": [],
+    "contentLines": [
+     "本周活动报名"
+    ],
+    "blocks": [
+     "本周活动报名"
+    ],
     "links": [
      {
       "token": "url:lumina-test.example.org/event",
@@ -2304,8 +2544,9 @@
       "hash": "05edd368c35b5967"
      }
     ],
-    "flags": 8454144,
+    "flags": 8486912,
     "flagNames": [
+     "F_PRIV",
      "F_HAS_TEXT",
      "F_ENDORSING"
     ],
@@ -2313,14 +2554,16 @@
     "pending": [],
     "resolvedStrong": [],
     "resolvedWeak": [],
-    "resolvedFlags": 8454144,
+    "resolvedFlags": 8486912,
     "resolvedFlagNames": [
+     "F_PRIV",
      "F_HAS_TEXT",
      "F_ENDORSING"
     ],
     "senderKey": "f15fd4037164e3d7",
     "store": true,
-    "endorsing": true
+    "endorsing": true,
+    "privileged": true
    }
   },
   {
@@ -2344,6 +2587,12 @@
     "cjkCount": 1,
     "otherLetterCount": 1,
     "paragraphs": [],
+    "contentLines": [
+     "加v"
+    ],
+    "blocks": [
+     "加v"
+    ],
     "links": [
      {
       "token": "acct:wx:abc_888",
@@ -2385,7 +2634,8 @@
     ],
     "senderKey": "9778752028c03095",
     "store": true,
-    "endorsing": false
+    "endorsing": false,
+    "privileged": false
    }
   },
   {
@@ -2409,6 +2659,12 @@
     "cjkCount": 2,
     "otherLetterCount": 0,
     "paragraphs": [],
+    "contentLines": [
+     "订单#"
+    ],
+    "blocks": [
+     "订单#"
+    ],
     "links": [],
     "strong": [],
     "weak": [],
@@ -2424,7 +2680,8 @@
     "resolvedFlagNames": [],
     "senderKey": "7a0bf877fa4d4952",
     "store": false,
-    "endorsing": false
+    "endorsing": false,
+    "privileged": false
    }
   },
   {
@@ -2448,6 +2705,12 @@
     "cjkCount": 0,
     "otherLetterCount": 6,
     "paragraphs": [],
+    "contentLines": [
+     "xorder#"
+    ],
+    "blocks": [
+     "xorder#"
+    ],
     "links": [],
     "strong": [],
     "weak": [],
@@ -2463,7 +2726,8 @@
     "resolvedFlagNames": [],
     "senderKey": "91a21f54ffed029a",
     "store": false,
-    "endorsing": false
+    "endorsing": false,
+    "privileged": false
    }
   },
   {
@@ -2487,6 +2751,12 @@
     "cjkCount": 0,
     "otherLetterCount": 6,
     "paragraphs": [],
+    "contentLines": [
+     "xorder#"
+    ],
+    "blocks": [
+     "xorder#"
+    ],
     "links": [],
     "strong": [],
     "weak": [
@@ -2510,7 +2780,8 @@
     ],
     "senderKey": "d0885db5ed33af81",
     "store": false,
-    "endorsing": false
+    "endorsing": false,
+    "privileged": false
    }
   },
   {
@@ -2538,6 +2809,12 @@
     "cjkCount": 5,
     "otherLetterCount": 0,
     "paragraphs": [],
+    "contentLines": [
+     "看下面按钮"
+    ],
+    "blocks": [
+     "看下面按钮"
+    ],
     "links": [
      {
       "token": "tel:1234567",
@@ -2602,7 +2879,8 @@
     ],
     "senderKey": "8acc0433a5a339ae",
     "store": true,
-    "endorsing": false
+    "endorsing": false,
+    "privileged": false
    }
   },
   {
@@ -2626,6 +2904,12 @@
     "cjkCount": 3,
     "otherLetterCount": 0,
     "paragraphs": [],
+    "contentLines": [
+     "找下单"
+    ],
+    "blocks": [
+     "找下单"
+    ],
     "links": [
      {
       "token": "@bbbb2",
@@ -2666,7 +2950,8 @@
     ],
     "senderKey": "81e0cb378a32acfd",
     "store": true,
-    "endorsing": false
+    "endorsing": false,
+    "privileged": false
    }
   },
   {
@@ -2696,6 +2981,12 @@
     "cjkCount": 12,
     "otherLetterCount": 0,
     "paragraphs": [],
+    "contentLines": [
+     "今日快讯摘要内容很长很长"
+    ],
+    "blocks": [
+     "今日快讯摘要内容很长很长"
+    ],
     "links": [],
     "strong": [],
     "weak": [],
@@ -2718,6 +3009,12 @@
       "tag": "cjk",
       "payload": "今日快讯摘要内容很长很长",
       "hash": "5cfebd16dafcab0e"
+     },
+     {
+      "kind": "VAR",
+      "tag": "var",
+      "payload": "今日快讯摘要内容很长很长",
+      "hash": "b7fb1a8819a82723"
      }
     ],
     "flags": 268763136,
@@ -2738,7 +3035,8 @@
     ],
     "senderKey": "c0636113bb431c10",
     "store": true,
-    "endorsing": false
+    "endorsing": false,
+    "privileged": false
    }
   },
   {
@@ -2762,6 +3060,8 @@
     "cjkCount": 0,
     "otherLetterCount": 0,
     "paragraphs": [],
+    "contentLines": [],
+    "blocks": [],
     "links": [
      {
       "token": "url:a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.com",
@@ -2796,7 +3096,8 @@
     ],
     "senderKey": "bd20261382fb0e35",
     "store": false,
-    "endorsing": false
+    "endorsing": false,
+    "privileged": false
    }
   },
   {
@@ -2820,6 +3121,12 @@
     "cjkCount": 0,
     "otherLetterCount": 2051,
     "paragraphs": [],
+    "contentLines": [
+     "xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbzz#"
+    ],
+    "blocks": [
+     "xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbzz#"
+    ],
     "links": [],
     "strong": [],
     "weak": [],
@@ -2830,6 +3137,12 @@
       "tag": "text",
       "payload": "xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbzz#",
       "hash": "f43f0ac6ba9e2f9d"
+     },
+     {
+      "kind": "VAR",
+      "tag": "var",
+      "payload": "xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbzz#",
+      "hash": "2190ba8091c52675"
      }
     ],
     "flags": 65536,
@@ -2846,7 +3159,8 @@
     ],
     "senderKey": "87add3b51ed6cf6a",
     "store": false,
-    "endorsing": false
+    "endorsing": false,
+    "privileged": false
    }
   },
   {
@@ -2870,6 +3184,12 @@
     "cjkCount": 12,
     "otherLetterCount": 0,
     "paragraphs": [],
+    "contentLines": [
+     "你好请先看置顶群规再发问"
+    ],
+    "blocks": [
+     "你好请先看置顶群规再发问"
+    ],
     "links": [
      {
       "token": "@alice_member",
@@ -2905,6 +3225,12 @@
       "tag": "cjk",
       "payload": "你好请先看置顶群规再发问",
       "hash": "552c78681967f194"
+     },
+     {
+      "kind": "VAR",
+      "tag": "var",
+      "payload": "你好请先看置顶群规再发问",
+      "hash": "4003a7bc0bdedd86"
      }
     ],
     "flags": 329728,
@@ -2927,7 +3253,8 @@
     ],
     "senderKey": "b013eaddddbed7d9",
     "store": true,
-    "endorsing": false
+    "endorsing": false,
+    "privileged": false
    }
   },
   {
@@ -2951,6 +3278,12 @@
     "cjkCount": 8,
     "otherLetterCount": 0,
     "paragraphs": [],
+    "contentLines": [
+     "谢谢帮忙整理资料"
+    ],
+    "blocks": [
+     "谢谢帮忙整理资料"
+    ],
     "links": [
      {
       "token": "@lumina_me",
@@ -2992,7 +3325,8 @@
     ],
     "senderKey": "2aa65c020ce6b1bb",
     "store": false,
-    "endorsing": false
+    "endorsing": false,
+    "privileged": false
    }
   },
   {
@@ -3016,6 +3350,12 @@
     "cjkCount": 9,
     "otherLetterCount": 0,
     "paragraphs": [],
+    "contentLines": [
+     "急用钱免保人陈先生"
+    ],
+    "blocks": [
+     "急用钱免保人陈先生"
+    ],
     "links": [
      {
       "token": "tel:886912345678",
@@ -3077,7 +3417,8 @@
     ],
     "senderKey": "c5cd77ae5af55450",
     "store": true,
-    "endorsing": false
+    "endorsing": false,
+    "privileged": false
    }
   },
   {
@@ -3101,6 +3442,12 @@
     "cjkCount": 8,
     "otherLetterCount": 1,
     "paragraphs": [],
+    "contentLines": [
+     "订单号#已出货金价###đ"
+    ],
+    "blocks": [
+     "订单号#已出货金价###đ"
+    ],
     "links": [],
     "strong": [],
     "weak": [],
@@ -3133,7 +3480,8 @@
     ],
     "senderKey": "36b6d1ec03a4c09f",
     "store": false,
-    "endorsing": false
+    "endorsing": false,
+    "privileged": false
    }
   },
   {
@@ -3167,6 +3515,12 @@
     "cjkCount": 14,
     "otherLetterCount": 0,
     "paragraphs": [],
+    "contentLines": [
+     "快讯科技展览今日开幕投稿讨论"
+    ],
+    "blocks": [
+     "快讯科技展览今日开幕投稿讨论"
+    ],
     "links": [
      {
       "token": "invite:newschat9",
@@ -3216,6 +3570,12 @@
       "tag": "cjk",
       "payload": "快讯科技展览今日开幕投稿讨论",
       "hash": "1a6ef935e40473ea"
+     },
+     {
+      "kind": "VAR",
+      "tag": "var",
+      "payload": "快讯科技展览今日开幕投稿讨论",
+      "hash": "905c099a42eb0d53"
      }
     ],
     "flags": 268764160,
@@ -3244,7 +3604,8 @@
     ],
     "senderKey": "3829c3014478c4e6",
     "store": true,
-    "endorsing": false
+    "endorsing": false,
+    "privileged": false
    }
   },
   {
@@ -3278,6 +3639,12 @@
     "cjkCount": 6,
     "otherLetterCount": 0,
     "paragraphs": [],
+    "contentLines": [
+     "点这里联系我"
+    ],
+    "blocks": [
+     "点这里联系我"
+    ],
     "links": [
      {
       "token": "uid:123456",
@@ -3336,7 +3703,8 @@
     ],
     "senderKey": "a8c9c939f85aad03",
     "store": true,
-    "endorsing": false
+    "endorsing": false,
+    "privileged": false
    }
   },
   {
@@ -3362,6 +3730,12 @@
     "paragraphs": [
      "管理员不会主动私聊任何人我已经私讯你了"
     ],
+    "contentLines": [
+     "管理员不会主动私聊任何人我已经私讯你了"
+    ],
+    "blocks": [
+     "管理员不会主动私聊任何人我已经私讯你了"
+    ],
     "links": [],
     "strong": [],
     "weak": [],
@@ -3384,6 +3758,12 @@
       "tag": "para",
       "payload": "管理员不会主动私聊任何人我已经私讯你了",
       "hash": "3f04cfd7e6c5d89f"
+     },
+     {
+      "kind": "VAR",
+      "tag": "var",
+      "payload": "管理员不会主动私聊任何人我已经私讯你了",
+      "hash": "9eeeefd5e5e7aeba"
      }
     ],
     "flags": 327680,
@@ -3402,7 +3782,8 @@
     ],
     "senderKey": "4e4273c88b6647d8",
     "store": true,
-    "endorsing": false
+    "endorsing": false,
+    "privileged": false
    }
   },
   {
@@ -3426,6 +3807,12 @@
     "cjkCount": 12,
     "otherLetterCount": 0,
     "paragraphs": [],
+    "contentLines": [
+     "机会难得不要错过私聊了解"
+    ],
+    "blocks": [
+     "机会难得不要错过私聊了解"
+    ],
     "links": [],
     "strong": [
      "pointer"
@@ -3450,6 +3837,12 @@
       "tag": "tmpl",
       "payload": "机会难得不要错过私聊了解\u001e",
       "hash": "7be6142a63dcb23e"
+     },
+     {
+      "kind": "VAR",
+      "tag": "var",
+      "payload": "机会难得不要错过私聊了解",
+      "hash": "c1e0354706e418ef"
      }
     ],
     "flags": 327936,
@@ -3474,7 +3867,8 @@
     ],
     "senderKey": "da3241f6df6ec495",
     "store": true,
-    "endorsing": false
+    "endorsing": false,
+    "privileged": false
    }
   },
   {
@@ -3498,6 +3892,12 @@
     "cjkCount": 14,
     "otherLetterCount": 7,
     "paragraphs": [
+     "飞机加我v加赖坐飞机a#去东京依赖numpy#"
+    ],
+    "contentLines": [
+     "飞机加我v加赖坐飞机a#去东京依赖numpy#"
+    ],
+    "blocks": [
      "飞机加我v加赖坐飞机a#去东京依赖numpy#"
     ],
     "links": [
@@ -3561,6 +3961,12 @@
       "tag": "para",
       "payload": "飞机加我v加赖坐飞机a#去东京依赖numpy#",
       "hash": "45db197e921c4072"
+     },
+     {
+      "kind": "VAR",
+      "tag": "var",
+      "payload": "飞机加我v加赖坐飞机a#去东京依赖numpy#",
+      "hash": "21d3d7188d6f2f33"
      }
     ],
     "flags": 65664,
@@ -3585,7 +3991,8 @@
     ],
     "senderKey": "84737f2e87a28825",
     "store": true,
-    "endorsing": false
+    "endorsing": false,
+    "privileged": false
    }
   },
   {
@@ -3609,6 +4016,12 @@
     "cjkCount": 6,
     "otherLetterCount": 4,
     "paragraphs": [],
+    "contentLines": [
+     "私聊周末home休息"
+    ],
+    "blocks": [
+     "私聊周末home休息"
+    ],
     "links": [
      {
       "token": "@deal_aa1",
@@ -3662,7 +4075,8 @@
     ],
     "senderKey": "08eb375226082c0b",
     "store": true,
-    "endorsing": false
+    "endorsing": false,
+    "privileged": false
    }
   },
   {
@@ -3686,6 +4100,8 @@
     "cjkCount": 0,
     "otherLetterCount": 0,
     "paragraphs": [],
+    "contentLines": [],
+    "blocks": [],
     "links": [
      {
       "token": "@deal_aa1",
@@ -3716,7 +4132,8 @@
     ],
     "senderKey": "271ac7e5d23a292f",
     "store": false,
-    "endorsing": false
+    "endorsing": false,
+    "privileged": false
    }
   },
   {
@@ -3740,6 +4157,12 @@
     "cjkCount": 10,
     "otherLetterCount": 8,
     "paragraphs": [],
+    "contentLines": [
+     "我的版本telegram###开影片会闪退"
+    ],
+    "blocks": [
+     "我的版本telegram###开影片会闪退"
+    ],
     "links": [],
     "strong": [],
     "weak": [],
@@ -3756,6 +4179,12 @@
       "tag": "cjk",
       "payload": "我的版本开影片会闪退",
       "hash": "db44a3f1a0b785fd"
+     },
+     {
+      "kind": "VAR",
+      "tag": "var",
+      "payload": "我的版本telegram###开影片会闪退",
+      "hash": "a468d248f5eef720"
      }
     ],
     "flags": 65536,
@@ -3772,7 +4201,8 @@
     ],
     "senderKey": "20ff157cbb8c9110",
     "store": false,
-    "endorsing": false
+    "endorsing": false,
+    "privileged": false
    }
   },
   {
@@ -3796,6 +4226,8 @@
     "cjkCount": 0,
     "otherLetterCount": 0,
     "paragraphs": [],
+    "contentLines": [],
+    "blocks": [],
     "links": [
      {
       "token": "invite:viproom9",
@@ -3837,7 +4269,8 @@
     ],
     "senderKey": "bcbb79b4a6853ede",
     "store": true,
-    "endorsing": false
+    "endorsing": false,
+    "privileged": false
    }
   },
   {
@@ -3861,6 +4294,12 @@
     "cjkCount": 3,
     "otherLetterCount": 0,
     "paragraphs": [],
+    "contentLines": [
+     "私聊我"
+    ],
+    "blocks": [
+     "私聊我"
+    ],
     "links": [
      {
       "token": "url:aa11.xyz",
@@ -3909,7 +4348,8 @@
     ],
     "senderKey": "1c24006d6e432f66",
     "store": true,
-    "endorsing": false
+    "endorsing": false,
+    "privileged": false
    }
   },
   {
@@ -3933,6 +4373,12 @@
     "cjkCount": 8,
     "otherLetterCount": 6,
     "paragraphs": [],
+    "contentLines": [
+     "官网教学文件程式foobar"
+    ],
+    "blocks": [
+     "官网教学文件程式foobar"
+    ],
     "links": [
      {
       "token": "url:free-claim.github.io/x",
@@ -3999,7 +4445,8 @@
     ],
     "senderKey": "e1566e9b360c8684",
     "store": true,
-    "endorsing": false
+    "endorsing": false,
+    "privileged": false
    }
   },
   {
@@ -4027,6 +4474,12 @@
     "cjkCount": 11,
     "otherLetterCount": 0,
     "paragraphs": [],
+    "contentLines": [
+     "今天天气真好大家早安喔"
+    ],
+    "blocks": [
+     "今天天气真好大家早安喔"
+    ],
     "links": [],
     "strong": [],
     "weak": [],
@@ -4068,7 +4521,8 @@
     ],
     "senderKey": "5feace0490e387df",
     "store": true,
-    "endorsing": false
+    "endorsing": false,
+    "privileged": false
    }
   },
   {
@@ -4092,6 +4546,12 @@
     "cjkCount": 6,
     "otherLetterCount": 0,
     "paragraphs": [],
+    "contentLines": [
+     "有问题可以问"
+    ],
+    "blocks": [
+     "有问题可以问"
+    ],
     "links": [
      {
       "token": "@bob_member",
@@ -4140,7 +4600,2385 @@
     ],
     "senderKey": "db53099df39ea572",
     "store": true,
-    "endorsing": false
+    "endorsing": false,
+    "privileged": false
+   }
+  },
+  {
+   "id": "var-prefix",
+   "description": "VAR 家族：全文是 VAR；開頭多一行短字（留一 i=0：D=8、4×8 ≤ K → VARS，其值＝原文全文）；空行與只有 emoji 的行不是內容行",
+   "message": {
+    "id": 58,
+    "date": 1795000058,
+    "sender": {
+     "id": 7058,
+     "role": "member"
+    },
+    "text": "絲滑提交：\n\n限時特價雲端會員年卡，全網最低價格\n🔥🔥🔥\n有需要的請私聊我下單，先到先得"
+   },
+   "expect": {
+    "fold": "丝滑提交:\n\n限时特价云端会员年卡,全网最低价格\n🔥🔥🔥\n有需要的请私聊我下单,先到先得",
+    "foldNoLinks": "丝滑提交:\n\n限时特价云端会员年卡,全网最低价格\n🔥🔥🔥\n有需要的请私聊我下单,先到先得",
+    "text": "丝滑提交限时特价云端会员年卡全网最低价格有需要的请私聊我下单先到先得",
+    "cjk": "丝滑提交限时特价云端会员年卡全网最低价格有需要的请私聊我下单先到先得",
+    "wlen": 68,
+    "cjkCount": 34,
+    "otherLetterCount": 0,
+    "paragraphs": [
+     "限时特价云端会员年卡全网最低价格"
+    ],
+    "contentLines": [
+     "丝滑提交",
+     "限时特价云端会员年卡全网最低价格",
+     "有需要的请私聊我下单先到先得"
+    ],
+    "blocks": [
+     "丝滑提交",
+     "限时特价云端会员年卡全网最低价格",
+     "有需要的请私聊我下单先到先得"
+    ],
+    "links": [],
+    "strong": [
+     "pointer"
+    ],
+    "weak": [],
+    "mentionCount": 0,
+    "keys": [
+     {
+      "kind": "TEXT",
+      "tag": "text",
+      "payload": "丝滑提交限时特价云端会员年卡全网最低价格有需要的请私聊我下单先到先得",
+      "hash": "c924673b7917d026"
+     },
+     {
+      "kind": "CJK",
+      "tag": "cjk",
+      "payload": "丝滑提交限时特价云端会员年卡全网最低价格有需要的请私聊我下单先到先得",
+      "hash": "a4f8dd2d520b23a2"
+     },
+     {
+      "kind": "TMPL",
+      "tag": "tmpl",
+      "payload": "丝滑提交限时特价云端会员年卡全网最低价格有需要的请私聊我下单先到先得\u001e",
+      "hash": "30703a41f73d86d5"
+     },
+     {
+      "kind": "PARA",
+      "tag": "para",
+      "payload": "限时特价云端会员年卡全网最低价格",
+      "hash": "b1722697b4e2a26c"
+     },
+     {
+      "kind": "VAR",
+      "tag": "var",
+      "payload": "丝滑提交限时特价云端会员年卡全网最低价格有需要的请私聊我下单先到先得",
+      "hash": "1fc3bdb79b83d233"
+     },
+     {
+      "kind": "VARS",
+      "tag": "var",
+      "payload": "限时特价云端会员年卡全网最低价格有需要的请私聊我下单先到先得",
+      "hash": "b667e894adb2d965"
+     },
+     {
+      "kind": "BLOCK",
+      "tag": "block",
+      "payload": "限时特价云端会员年卡全网最低价格",
+      "hash": "3753282e80bf4850"
+     },
+     {
+      "kind": "BLOCK",
+      "tag": "block",
+      "payload": "有需要的请私聊我下单先到先得",
+      "hash": "72b6d8371230d438"
+     }
+    ],
+    "flags": 327936,
+    "flagNames": [
+     "S_pointer",
+     "F_HAS_TEXT",
+     "F_PURE_TEXT"
+    ],
+    "subsetLinks": [
+     "5bc9075af64dbfa6"
+    ],
+    "pending": [],
+    "resolvedStrong": [
+     "pointer"
+    ],
+    "resolvedWeak": [],
+    "resolvedFlags": 327936,
+    "resolvedFlagNames": [
+     "S_pointer",
+     "F_HAS_TEXT",
+     "F_PURE_TEXT"
+    ],
+    "senderKey": "18a58c8e408d8b6c",
+    "store": true,
+    "endorsing": false,
+    "privileged": false
+   }
+  },
+  {
+   "id": "var-ratio-guard",
+   "description": "VAR 家族：去掉的行太長（2×D > K）就不產生；剩下 <24 也不產生；去掉短行（4×D ≤ K）是 VARS",
+   "message": {
+    "id": 59,
+    "date": 1795000059,
+    "sender": {
+     "id": 7059,
+     "role": "member"
+    },
+    "text": "這是一段很長很長的第一行內容，用來測試比例條件是否正確執行\n短的第二行\n私聊"
+   },
+   "expect": {
+    "fold": "这是一段很长很长的第一行内容,用来测试比例条件是否正确执行\n短的第二行\n私聊",
+    "foldNoLinks": "这是一段很长很长的第一行内容,用来测试比例条件是否正确执行\n短的第二行\n私聊",
+    "text": "这是一段很长很长的第一行内容用来测试比例条件是否正确执行短的第二行私聊",
+    "cjk": "这是一段很长很长的第一行内容用来测试比例条件是否正确执行短的第二行私聊",
+    "wlen": 70,
+    "cjkCount": 35,
+    "otherLetterCount": 0,
+    "paragraphs": [
+     "这是一段很长很长的第一行内容用来测试比例条件是否正确执行"
+    ],
+    "contentLines": [
+     "这是一段很长很长的第一行内容用来测试比例条件是否正确执行",
+     "短的第二行",
+     "私聊"
+    ],
+    "blocks": [
+     "这是一段很长很长的第一行内容用来测试比例条件是否正确执行短的第二行私聊"
+    ],
+    "links": [],
+    "strong": [
+     "pointer"
+    ],
+    "weak": [],
+    "mentionCount": 0,
+    "keys": [
+     {
+      "kind": "TEXT",
+      "tag": "text",
+      "payload": "这是一段很长很长的第一行内容用来测试比例条件是否正确执行短的第二行私聊",
+      "hash": "65697d0c90121737"
+     },
+     {
+      "kind": "CJK",
+      "tag": "cjk",
+      "payload": "这是一段很长很长的第一行内容用来测试比例条件是否正确执行短的第二行私聊",
+      "hash": "e8a201d4191dc9ee"
+     },
+     {
+      "kind": "TMPL",
+      "tag": "tmpl",
+      "payload": "这是一段很长很长的第一行内容用来测试比例条件是否正确执行短的第二行私聊\u001e",
+      "hash": "b200c0aa0fd3f4ac"
+     },
+     {
+      "kind": "PARA",
+      "tag": "para",
+      "payload": "这是一段很长很长的第一行内容用来测试比例条件是否正确执行",
+      "hash": "a97b0ceecee8dd17"
+     },
+     {
+      "kind": "VAR",
+      "tag": "var",
+      "payload": "这是一段很长很长的第一行内容用来测试比例条件是否正确执行短的第二行私聊",
+      "hash": "939ed6a12e32e36c"
+     },
+     {
+      "kind": "VARS",
+      "tag": "var",
+      "payload": "这是一段很长很长的第一行内容用来测试比例条件是否正确执行私聊",
+      "hash": "2f27acd779da288e"
+     },
+     {
+      "kind": "VARS",
+      "tag": "var",
+      "payload": "这是一段很长很长的第一行内容用来测试比例条件是否正确执行短的第二行",
+      "hash": "cd3a2ffb27115c3c"
+     }
+    ],
+    "flags": 327936,
+    "flagNames": [
+     "S_pointer",
+     "F_HAS_TEXT",
+     "F_PURE_TEXT"
+    ],
+    "subsetLinks": [
+     "5bc9075af64dbfa6"
+    ],
+    "pending": [],
+    "resolvedStrong": [
+     "pointer"
+    ],
+    "resolvedWeak": [],
+    "resolvedFlags": 327936,
+    "resolvedFlagNames": [
+     "S_pointer",
+     "F_HAS_TEXT",
+     "F_PURE_TEXT"
+    ],
+    "senderKey": "411f3ed195c38956",
+    "store": true,
+    "endorsing": false,
+    "privileged": false
+   }
+  },
+  {
+   "id": "var-dup-lines",
+   "description": "VAR 家族：相鄰重複行去掉任何一個結果相同 → 以 payload 去重；數字行的文字形是 #",
+   "message": {
+    "id": 60,
+    "date": 1795000060,
+    "sender": {
+     "id": 7060,
+     "role": "member"
+    },
+    "text": "價目表如下請參考\n【5件起】\n【5件起】\n【10件起】\n100\n詳情請私聊客服人員"
+   },
+   "expect": {
+    "fold": "价目表如下请参考\n【5件起】\n【5件起】\n【10件起】\n100\n详情请私聊客服人员",
+    "foldNoLinks": "价目表如下请参考\n【5件起】\n【5件起】\n【10件起】\n100\n详情请私聊客服人员",
+    "text": "价目表如下请参考#件起#件起#件起#详情请私聊客服人员",
+    "cjk": "价目表如下请参考件起件起件起详情请私聊客服人员",
+    "wlen": 50,
+    "cjkCount": 23,
+    "otherLetterCount": 0,
+    "paragraphs": [],
+    "contentLines": [
+     "价目表如下请参考",
+     "#件起",
+     "#件起",
+     "#件起",
+     "#",
+     "详情请私聊客服人员"
+    ],
+    "blocks": [
+     "价目表如下请参考#件起#件起#件起#详情请私聊客服人员"
+    ],
+    "links": [],
+    "strong": [
+     "pointer"
+    ],
+    "weak": [],
+    "mentionCount": 0,
+    "keys": [
+     {
+      "kind": "TEXT",
+      "tag": "text",
+      "payload": "价目表如下请参考#件起#件起#件起#详情请私聊客服人员",
+      "hash": "ade8967d9decad71"
+     },
+     {
+      "kind": "CJK",
+      "tag": "cjk",
+      "payload": "价目表如下请参考件起件起件起详情请私聊客服人员",
+      "hash": "a3a894ad96fcd1ac"
+     },
+     {
+      "kind": "TMPL",
+      "tag": "tmpl",
+      "payload": "价目表如下请参考#件起#件起#件起#详情请私聊客服人员\u001e",
+      "hash": "5758305918759dd4"
+     },
+     {
+      "kind": "VAR",
+      "tag": "var",
+      "payload": "价目表如下请参考#件起#件起#件起#详情请私聊客服人员",
+      "hash": "c062ce6a4fdfa427"
+     },
+     {
+      "kind": "VARL",
+      "tag": "var",
+      "payload": "#件起#件起#件起#详情请私聊客服人员",
+      "hash": "52d74762116f8013"
+     },
+     {
+      "kind": "VARS",
+      "tag": "var",
+      "payload": "价目表如下请参考#件起#件起#详情请私聊客服人员",
+      "hash": "af8df1b570762a2e"
+     },
+     {
+      "kind": "VARS",
+      "tag": "var",
+      "payload": "价目表如下请参考#件起#件起#件起详情请私聊客服人员",
+      "hash": "78e7ff46e2c4dfdc"
+     }
+    ],
+    "flags": 65792,
+    "flagNames": [
+     "S_pointer",
+     "F_HAS_TEXT"
+    ],
+    "subsetLinks": [
+     "5bc9075af64dbfa6"
+    ],
+    "pending": [],
+    "resolvedStrong": [
+     "pointer"
+    ],
+    "resolvedWeak": [],
+    "resolvedFlags": 65792,
+    "resolvedFlagNames": [
+     "S_pointer",
+     "F_HAS_TEXT"
+    ],
+    "senderKey": "3ffaf24425ea1fac",
+    "store": true,
+    "endorsing": false,
+    "privileged": false
+   }
+  },
+  {
+   "id": "var-edge-cap",
+   "description": "VAR 家族：41 個內容行時只對前 16 行與後 16 行做留一（中間 9 行不做），共 1＋32＋1＝34 個（上限）",
+   "message": {
+    "id": 61,
+    "date": 1795000061,
+    "sender": {
+     "id": 7061,
+     "role": "member"
+    },
+    "text": "第零行商品名稱甲\n第一行商品名稱甲\n第二行商品名稱甲\n第三行商品名稱甲\n第四行商品名稱甲\n第五行商品名稱甲\n第六行商品名稱甲\n第七行商品名稱甲\n第八行商品名稱甲\n第九行商品名稱甲\n第零行商品名稱乙\n第一行商品名稱乙\n第二行商品名稱乙\n第三行商品名稱乙\n第四行商品名稱乙\n第五行商品名稱乙\n第六行商品名稱乙\n第七行商品名稱乙\n第八行商品名稱乙\n第九行商品名稱乙\n第零行商品名稱丙\n第一行商品名稱丙\n第二行商品名稱丙\n第三行商品名稱丙\n第四行商品名稱丙\n第五行商品名稱丙\n第六行商品名稱丙\n第七行商品名稱丙\n第八行商品名稱丙\n第九行商品名稱丙\n第零行商品名稱丁\n第一行商品名稱丁\n第二行商品名稱丁\n第三行商品名稱丁\n第四行商品名稱丁\n第五行商品名稱丁\n第六行商品名稱丁\n第七行商品名稱丁\n第八行商品名稱丁\n第九行商品名稱丁\n私聊下單"
+   },
+   "expect": {
+    "fold": "第零行商品名称甲\n第一行商品名称甲\n第二行商品名称甲\n第三行商品名称甲\n第四行商品名称甲\n第五行商品名称甲\n第六行商品名称甲\n第七行商品名称甲\n第八行商品名称甲\n第九行商品名称甲\n第零行商品名称乙\n第一行商品名称乙\n第二行商品名称乙\n第三行商品名称乙\n第四行商品名称乙\n第五行商品名称乙\n第六行商品名称乙\n第七行商品名称乙\n第八行商品名称乙\n第九行商品名称乙\n第零行商品名称丙\n第一行商品名称丙\n第二行商品名称丙\n第三行商品名称丙\n第四行商品名称丙\n第五行商品名称丙\n第六行商品名称丙\n第七行商品名称丙\n第八行商品名称丙\n第九行商品名称丙\n第零行商品名称丁\n第一行商品名称丁\n第二行商品名称丁\n第三行商品名称丁\n第四行商品名称丁\n第五行商品名称丁\n第六行商品名称丁\n第七行商品名称丁\n第八行商品名称丁\n第九行商品名称丁\n私聊下单",
+    "foldNoLinks": "第零行商品名称甲\n第一行商品名称甲\n第二行商品名称甲\n第三行商品名称甲\n第四行商品名称甲\n第五行商品名称甲\n第六行商品名称甲\n第七行商品名称甲\n第八行商品名称甲\n第九行商品名称甲\n第零行商品名称乙\n第一行商品名称乙\n第二行商品名称乙\n第三行商品名称乙\n第四行商品名称乙\n第五行商品名称乙\n第六行商品名称乙\n第七行商品名称乙\n第八行商品名称乙\n第九行商品名称乙\n第零行商品名称丙\n第一行商品名称丙\n第二行商品名称丙\n第三行商品名称丙\n第四行商品名称丙\n第五行商品名称丙\n第六行商品名称丙\n第七行商品名称丙\n第八行商品名称丙\n第九行商品名称丙\n第零行商品名称丁\n第一行商品名称丁\n第二行商品名称丁\n第三行商品名称丁\n第四行商品名称丁\n第五行商品名称丁\n第六行商品名称丁\n第七行商品名称丁\n第八行商品名称丁\n第九行商品名称丁\n私聊下单",
+    "text": "第零行商品名称甲第一行商品名称甲第二行商品名称甲第三行商品名称甲第四行商品名称甲第五行商品名称甲第六行商品名称甲第七行商品名称甲第八行商品名称甲第九行商品名称甲第零行商品名称乙第一行商品名称乙第二行商品名称乙第三行商品名称乙第四行商品名称乙第五行商品名称乙第六行商品名称乙第七行商品名称乙第八行商品名称乙第九行商品名称乙第零行商品名称丙第一行商品名称丙第二行商品名称丙第三行商品名称丙第四行商品名称丙第五行商品名称丙第六行商品名称丙第七行商品名称丙第八行商品名称丙第九行商品名称丙第零行商品名称丁第一行商品名称丁第二行商品名称丁第三行商品名称丁第四行商品名称丁第五行商品名称丁第六行商品名称丁第七行商品名称丁第八行商品名称丁第九行商品名称丁私聊下单",
+    "cjk": "第零行商品名称甲第一行商品名称甲第二行商品名称甲第三行商品名称甲第四行商品名称甲第五行商品名称甲第六行商品名称甲第七行商品名称甲第八行商品名称甲第九行商品名称甲第零行商品名称乙第一行商品名称乙第二行商品名称乙第三行商品名称乙第四行商品名称乙第五行商品名称乙第六行商品名称乙第七行商品名称乙第八行商品名称乙第九行商品名称乙第零行商品名称丙第一行商品名称丙第二行商品名称丙第三行商品名称丙第四行商品名称丙第五行商品名称丙第六行商品名称丙第七行商品名称丙第八行商品名称丙第九行商品名称丙第零行商品名称丁第一行商品名称丁第二行商品名称丁第三行商品名称丁第四行商品名称丁第五行商品名称丁第六行商品名称丁第七行商品名称丁第八行商品名称丁第九行商品名称丁私聊下单",
+    "wlen": 648,
+    "cjkCount": 324,
+    "otherLetterCount": 0,
+    "paragraphs": [],
+    "contentLines": [
+     "第零行商品名称甲",
+     "第一行商品名称甲",
+     "第二行商品名称甲",
+     "第三行商品名称甲",
+     "第四行商品名称甲",
+     "第五行商品名称甲",
+     "第六行商品名称甲",
+     "第七行商品名称甲",
+     "第八行商品名称甲",
+     "第九行商品名称甲",
+     "第零行商品名称乙",
+     "第一行商品名称乙",
+     "第二行商品名称乙",
+     "第三行商品名称乙",
+     "第四行商品名称乙",
+     "第五行商品名称乙",
+     "第六行商品名称乙",
+     "第七行商品名称乙",
+     "第八行商品名称乙",
+     "第九行商品名称乙",
+     "第零行商品名称丙",
+     "第一行商品名称丙",
+     "第二行商品名称丙",
+     "第三行商品名称丙",
+     "第四行商品名称丙",
+     "第五行商品名称丙",
+     "第六行商品名称丙",
+     "第七行商品名称丙",
+     "第八行商品名称丙",
+     "第九行商品名称丙",
+     "第零行商品名称丁",
+     "第一行商品名称丁",
+     "第二行商品名称丁",
+     "第三行商品名称丁",
+     "第四行商品名称丁",
+     "第五行商品名称丁",
+     "第六行商品名称丁",
+     "第七行商品名称丁",
+     "第八行商品名称丁",
+     "第九行商品名称丁",
+     "私聊下单"
+    ],
+    "blocks": [
+     "第零行商品名称甲第一行商品名称甲第二行商品名称甲第三行商品名称甲第四行商品名称甲第五行商品名称甲第六行商品名称甲第七行商品名称甲第八行商品名称甲第九行商品名称甲第零行商品名称乙第一行商品名称乙第二行商品名称乙第三行商品名称乙第四行商品名称乙第五行商品名称乙第六行商品名称乙第七行商品名称乙第八行商品名称乙第九行商品名称乙第零行商品名称丙第一行商品名称丙第二行商品名称丙第三行商品名称丙第四行商品名称丙第五行商品名称丙第六行商品名称丙第七行商品名称丙第八行商品名称丙第九行商品名称丙第零行商品名称丁第一行商品名称丁第二行商品名称丁第三行商品名称丁第四行商品名称丁第五行商品名称丁第六行商品名称丁第七行商品名称丁第八行商品名称丁第九行商品名称丁私聊下单"
+    ],
+    "links": [],
+    "strong": [
+     "pointer"
+    ],
+    "weak": [],
+    "mentionCount": 0,
+    "keys": [
+     {
+      "kind": "TEXT",
+      "tag": "text",
+      "payload": "第零行商品名称甲第一行商品名称甲第二行商品名称甲第三行商品名称甲第四行商品名称甲第五行商品名称甲第六行商品名称甲第七行商品名称甲第八行商品名称甲第九行商品名称甲第零行商品名称乙第一行商品名称乙第二行商品名称乙第三行商品名称乙第四行商品名称乙第五行商品名称乙第六行商品名称乙第七行商品名称乙第八行商品名称乙第九行商品名称乙第零行商品名称丙第一行商品名称丙第二行商品名称丙第三行商品名称丙第四行商品名称丙第五行商品名称丙第六行商品名称丙第七行商品名称丙第八行商品名称丙第九行商品名称丙第零行商品名称丁第一行商品名称丁第二行商品名称丁第三行商品名称丁第四行商品名称丁第五行商品名称丁第六行商品名称丁第七行商品名称丁第八行商品名称丁第九行商品名称丁私聊下单",
+      "hash": "734cb037f5affc91"
+     },
+     {
+      "kind": "CJK",
+      "tag": "cjk",
+      "payload": "第零行商品名称甲第一行商品名称甲第二行商品名称甲第三行商品名称甲第四行商品名称甲第五行商品名称甲第六行商品名称甲第七行商品名称甲第八行商品名称甲第九行商品名称甲第零行商品名称乙第一行商品名称乙第二行商品名称乙第三行商品名称乙第四行商品名称乙第五行商品名称乙第六行商品名称乙第七行商品名称乙第八行商品名称乙第九行商品名称乙第零行商品名称丙第一行商品名称丙第二行商品名称丙第三行商品名称丙第四行商品名称丙第五行商品名称丙第六行商品名称丙第七行商品名称丙第八行商品名称丙第九行商品名称丙第零行商品名称丁第一行商品名称丁第二行商品名称丁第三行商品名称丁第四行商品名称丁第五行商品名称丁第六行商品名称丁第七行商品名称丁第八行商品名称丁第九行商品名称丁私聊下单",
+      "hash": "470a102f890000eb"
+     },
+     {
+      "kind": "TMPL",
+      "tag": "tmpl",
+      "payload": "第零行商品名称甲第一行商品名称甲第二行商品名称甲第三行商品名称甲第四行商品名称甲第五行商品名称甲第六行商品名称甲第七行商品名称甲第八行商品名称甲第九行商品名称甲第零行商品名称乙第一行商品名称乙第二行商品名称乙第三行商品名称乙第四行商品名称乙第五行商品名称乙第六行商品名称乙第七行商品名称乙第八行商品名称乙第九行商品名称乙第零行商品名称丙第一行商品名称丙第二行商品名称丙第三行商品名称丙第四行商品名称丙第五行商品名称丙第六行商品名称丙第七行商品名称丙第八行商品名称丙第九行商品名称丙第零行商品名称丁第一行商品名称丁第二行商品名称丁第三行商品名称丁第四行商品名称丁第五行商品名称丁第六行商品名称丁第七行商品名称丁第八行商品名称丁第九行商品名称丁私聊下单\u001e",
+      "hash": "319ae251fcaec79e"
+     },
+     {
+      "kind": "VAR",
+      "tag": "var",
+      "payload": "第零行商品名称甲第一行商品名称甲第二行商品名称甲第三行商品名称甲第四行商品名称甲第五行商品名称甲第六行商品名称甲第七行商品名称甲第八行商品名称甲第九行商品名称甲第零行商品名称乙第一行商品名称乙第二行商品名称乙第三行商品名称乙第四行商品名称乙第五行商品名称乙第六行商品名称乙第七行商品名称乙第八行商品名称乙第九行商品名称乙第零行商品名称丙第一行商品名称丙第二行商品名称丙第三行商品名称丙第四行商品名称丙第五行商品名称丙第六行商品名称丙第七行商品名称丙第八行商品名称丙第九行商品名称丙第零行商品名称丁第一行商品名称丁第二行商品名称丁第三行商品名称丁第四行商品名称丁第五行商品名称丁第六行商品名称丁第七行商品名称丁第八行商品名称丁第九行商品名称丁私聊下单",
+      "hash": "4512d5aadaa4c5fc"
+     },
+     {
+      "kind": "VARS",
+      "tag": "var",
+      "payload": "第一行商品名称甲第二行商品名称甲第三行商品名称甲第四行商品名称甲第五行商品名称甲第六行商品名称甲第七行商品名称甲第八行商品名称甲第九行商品名称甲第零行商品名称乙第一行商品名称乙第二行商品名称乙第三行商品名称乙第四行商品名称乙第五行商品名称乙第六行商品名称乙第七行商品名称乙第八行商品名称乙第九行商品名称乙第零行商品名称丙第一行商品名称丙第二行商品名称丙第三行商品名称丙第四行商品名称丙第五行商品名称丙第六行商品名称丙第七行商品名称丙第八行商品名称丙第九行商品名称丙第零行商品名称丁第一行商品名称丁第二行商品名称丁第三行商品名称丁第四行商品名称丁第五行商品名称丁第六行商品名称丁第七行商品名称丁第八行商品名称丁第九行商品名称丁私聊下单",
+      "hash": "0042aad9545a7c34"
+     },
+     {
+      "kind": "VARS",
+      "tag": "var",
+      "payload": "第零行商品名称甲第二行商品名称甲第三行商品名称甲第四行商品名称甲第五行商品名称甲第六行商品名称甲第七行商品名称甲第八行商品名称甲第九行商品名称甲第零行商品名称乙第一行商品名称乙第二行商品名称乙第三行商品名称乙第四行商品名称乙第五行商品名称乙第六行商品名称乙第七行商品名称乙第八行商品名称乙第九行商品名称乙第零行商品名称丙第一行商品名称丙第二行商品名称丙第三行商品名称丙第四行商品名称丙第五行商品名称丙第六行商品名称丙第七行商品名称丙第八行商品名称丙第九行商品名称丙第零行商品名称丁第一行商品名称丁第二行商品名称丁第三行商品名称丁第四行商品名称丁第五行商品名称丁第六行商品名称丁第七行商品名称丁第八行商品名称丁第九行商品名称丁私聊下单",
+      "hash": "311fd1bb37d6bdff"
+     },
+     {
+      "kind": "VARS",
+      "tag": "var",
+      "payload": "第零行商品名称甲第一行商品名称甲第三行商品名称甲第四行商品名称甲第五行商品名称甲第六行商品名称甲第七行商品名称甲第八行商品名称甲第九行商品名称甲第零行商品名称乙第一行商品名称乙第二行商品名称乙第三行商品名称乙第四行商品名称乙第五行商品名称乙第六行商品名称乙第七行商品名称乙第八行商品名称乙第九行商品名称乙第零行商品名称丙第一行商品名称丙第二行商品名称丙第三行商品名称丙第四行商品名称丙第五行商品名称丙第六行商品名称丙第七行商品名称丙第八行商品名称丙第九行商品名称丙第零行商品名称丁第一行商品名称丁第二行商品名称丁第三行商品名称丁第四行商品名称丁第五行商品名称丁第六行商品名称丁第七行商品名称丁第八行商品名称丁第九行商品名称丁私聊下单",
+      "hash": "82fb3cecb55190e7"
+     },
+     {
+      "kind": "VARS",
+      "tag": "var",
+      "payload": "第零行商品名称甲第一行商品名称甲第二行商品名称甲第四行商品名称甲第五行商品名称甲第六行商品名称甲第七行商品名称甲第八行商品名称甲第九行商品名称甲第零行商品名称乙第一行商品名称乙第二行商品名称乙第三行商品名称乙第四行商品名称乙第五行商品名称乙第六行商品名称乙第七行商品名称乙第八行商品名称乙第九行商品名称乙第零行商品名称丙第一行商品名称丙第二行商品名称丙第三行商品名称丙第四行商品名称丙第五行商品名称丙第六行商品名称丙第七行商品名称丙第八行商品名称丙第九行商品名称丙第零行商品名称丁第一行商品名称丁第二行商品名称丁第三行商品名称丁第四行商品名称丁第五行商品名称丁第六行商品名称丁第七行商品名称丁第八行商品名称丁第九行商品名称丁私聊下单",
+      "hash": "5dd921fc057c83cf"
+     },
+     {
+      "kind": "VARS",
+      "tag": "var",
+      "payload": "第零行商品名称甲第一行商品名称甲第二行商品名称甲第三行商品名称甲第五行商品名称甲第六行商品名称甲第七行商品名称甲第八行商品名称甲第九行商品名称甲第零行商品名称乙第一行商品名称乙第二行商品名称乙第三行商品名称乙第四行商品名称乙第五行商品名称乙第六行商品名称乙第七行商品名称乙第八行商品名称乙第九行商品名称乙第零行商品名称丙第一行商品名称丙第二行商品名称丙第三行商品名称丙第四行商品名称丙第五行商品名称丙第六行商品名称丙第七行商品名称丙第八行商品名称丙第九行商品名称丙第零行商品名称丁第一行商品名称丁第二行商品名称丁第三行商品名称丁第四行商品名称丁第五行商品名称丁第六行商品名称丁第七行商品名称丁第八行商品名称丁第九行商品名称丁私聊下单",
+      "hash": "3db5fb8361a0801c"
+     },
+     {
+      "kind": "VARS",
+      "tag": "var",
+      "payload": "第零行商品名称甲第一行商品名称甲第二行商品名称甲第三行商品名称甲第四行商品名称甲第六行商品名称甲第七行商品名称甲第八行商品名称甲第九行商品名称甲第零行商品名称乙第一行商品名称乙第二行商品名称乙第三行商品名称乙第四行商品名称乙第五行商品名称乙第六行商品名称乙第七行商品名称乙第八行商品名称乙第九行商品名称乙第零行商品名称丙第一行商品名称丙第二行商品名称丙第三行商品名称丙第四行商品名称丙第五行商品名称丙第六行商品名称丙第七行商品名称丙第八行商品名称丙第九行商品名称丙第零行商品名称丁第一行商品名称丁第二行商品名称丁第三行商品名称丁第四行商品名称丁第五行商品名称丁第六行商品名称丁第七行商品名称丁第八行商品名称丁第九行商品名称丁私聊下单",
+      "hash": "8a5b09a07c12ddd1"
+     },
+     {
+      "kind": "VARS",
+      "tag": "var",
+      "payload": "第零行商品名称甲第一行商品名称甲第二行商品名称甲第三行商品名称甲第四行商品名称甲第五行商品名称甲第七行商品名称甲第八行商品名称甲第九行商品名称甲第零行商品名称乙第一行商品名称乙第二行商品名称乙第三行商品名称乙第四行商品名称乙第五行商品名称乙第六行商品名称乙第七行商品名称乙第八行商品名称乙第九行商品名称乙第零行商品名称丙第一行商品名称丙第二行商品名称丙第三行商品名称丙第四行商品名称丙第五行商品名称丙第六行商品名称丙第七行商品名称丙第八行商品名称丙第九行商品名称丙第零行商品名称丁第一行商品名称丁第二行商品名称丁第三行商品名称丁第四行商品名称丁第五行商品名称丁第六行商品名称丁第七行商品名称丁第八行商品名称丁第九行商品名称丁私聊下单",
+      "hash": "bb1dd946e08d491f"
+     },
+     {
+      "kind": "VARS",
+      "tag": "var",
+      "payload": "第零行商品名称甲第一行商品名称甲第二行商品名称甲第三行商品名称甲第四行商品名称甲第五行商品名称甲第六行商品名称甲第八行商品名称甲第九行商品名称甲第零行商品名称乙第一行商品名称乙第二行商品名称乙第三行商品名称乙第四行商品名称乙第五行商品名称乙第六行商品名称乙第七行商品名称乙第八行商品名称乙第九行商品名称乙第零行商品名称丙第一行商品名称丙第二行商品名称丙第三行商品名称丙第四行商品名称丙第五行商品名称丙第六行商品名称丙第七行商品名称丙第八行商品名称丙第九行商品名称丙第零行商品名称丁第一行商品名称丁第二行商品名称丁第三行商品名称丁第四行商品名称丁第五行商品名称丁第六行商品名称丁第七行商品名称丁第八行商品名称丁第九行商品名称丁私聊下单",
+      "hash": "f8ef94fcf935e165"
+     },
+     {
+      "kind": "VARS",
+      "tag": "var",
+      "payload": "第零行商品名称甲第一行商品名称甲第二行商品名称甲第三行商品名称甲第四行商品名称甲第五行商品名称甲第六行商品名称甲第七行商品名称甲第九行商品名称甲第零行商品名称乙第一行商品名称乙第二行商品名称乙第三行商品名称乙第四行商品名称乙第五行商品名称乙第六行商品名称乙第七行商品名称乙第八行商品名称乙第九行商品名称乙第零行商品名称丙第一行商品名称丙第二行商品名称丙第三行商品名称丙第四行商品名称丙第五行商品名称丙第六行商品名称丙第七行商品名称丙第八行商品名称丙第九行商品名称丙第零行商品名称丁第一行商品名称丁第二行商品名称丁第三行商品名称丁第四行商品名称丁第五行商品名称丁第六行商品名称丁第七行商品名称丁第八行商品名称丁第九行商品名称丁私聊下单",
+      "hash": "3c79f974aaf62ace"
+     },
+     {
+      "kind": "VARS",
+      "tag": "var",
+      "payload": "第零行商品名称甲第一行商品名称甲第二行商品名称甲第三行商品名称甲第四行商品名称甲第五行商品名称甲第六行商品名称甲第七行商品名称甲第八行商品名称甲第零行商品名称乙第一行商品名称乙第二行商品名称乙第三行商品名称乙第四行商品名称乙第五行商品名称乙第六行商品名称乙第七行商品名称乙第八行商品名称乙第九行商品名称乙第零行商品名称丙第一行商品名称丙第二行商品名称丙第三行商品名称丙第四行商品名称丙第五行商品名称丙第六行商品名称丙第七行商品名称丙第八行商品名称丙第九行商品名称丙第零行商品名称丁第一行商品名称丁第二行商品名称丁第三行商品名称丁第四行商品名称丁第五行商品名称丁第六行商品名称丁第七行商品名称丁第八行商品名称丁第九行商品名称丁私聊下单",
+      "hash": "1c238bee40ca786d"
+     },
+     {
+      "kind": "VARS",
+      "tag": "var",
+      "payload": "第零行商品名称甲第一行商品名称甲第二行商品名称甲第三行商品名称甲第四行商品名称甲第五行商品名称甲第六行商品名称甲第七行商品名称甲第八行商品名称甲第九行商品名称甲第一行商品名称乙第二行商品名称乙第三行商品名称乙第四行商品名称乙第五行商品名称乙第六行商品名称乙第七行商品名称乙第八行商品名称乙第九行商品名称乙第零行商品名称丙第一行商品名称丙第二行商品名称丙第三行商品名称丙第四行商品名称丙第五行商品名称丙第六行商品名称丙第七行商品名称丙第八行商品名称丙第九行商品名称丙第零行商品名称丁第一行商品名称丁第二行商品名称丁第三行商品名称丁第四行商品名称丁第五行商品名称丁第六行商品名称丁第七行商品名称丁第八行商品名称丁第九行商品名称丁私聊下单",
+      "hash": "cc1d95817dac6ff3"
+     },
+     {
+      "kind": "VARS",
+      "tag": "var",
+      "payload": "第零行商品名称甲第一行商品名称甲第二行商品名称甲第三行商品名称甲第四行商品名称甲第五行商品名称甲第六行商品名称甲第七行商品名称甲第八行商品名称甲第九行商品名称甲第零行商品名称乙第二行商品名称乙第三行商品名称乙第四行商品名称乙第五行商品名称乙第六行商品名称乙第七行商品名称乙第八行商品名称乙第九行商品名称乙第零行商品名称丙第一行商品名称丙第二行商品名称丙第三行商品名称丙第四行商品名称丙第五行商品名称丙第六行商品名称丙第七行商品名称丙第八行商品名称丙第九行商品名称丙第零行商品名称丁第一行商品名称丁第二行商品名称丁第三行商品名称丁第四行商品名称丁第五行商品名称丁第六行商品名称丁第七行商品名称丁第八行商品名称丁第九行商品名称丁私聊下单",
+      "hash": "aa8db355f9d734f1"
+     },
+     {
+      "kind": "VARS",
+      "tag": "var",
+      "payload": "第零行商品名称甲第一行商品名称甲第二行商品名称甲第三行商品名称甲第四行商品名称甲第五行商品名称甲第六行商品名称甲第七行商品名称甲第八行商品名称甲第九行商品名称甲第零行商品名称乙第一行商品名称乙第三行商品名称乙第四行商品名称乙第五行商品名称乙第六行商品名称乙第七行商品名称乙第八行商品名称乙第九行商品名称乙第零行商品名称丙第一行商品名称丙第二行商品名称丙第三行商品名称丙第四行商品名称丙第五行商品名称丙第六行商品名称丙第七行商品名称丙第八行商品名称丙第九行商品名称丙第零行商品名称丁第一行商品名称丁第二行商品名称丁第三行商品名称丁第四行商品名称丁第五行商品名称丁第六行商品名称丁第七行商品名称丁第八行商品名称丁第九行商品名称丁私聊下单",
+      "hash": "aaf8ddeccc063bf0"
+     },
+     {
+      "kind": "VARS",
+      "tag": "var",
+      "payload": "第零行商品名称甲第一行商品名称甲第二行商品名称甲第三行商品名称甲第四行商品名称甲第五行商品名称甲第六行商品名称甲第七行商品名称甲第八行商品名称甲第九行商品名称甲第零行商品名称乙第一行商品名称乙第二行商品名称乙第四行商品名称乙第五行商品名称乙第六行商品名称乙第七行商品名称乙第八行商品名称乙第九行商品名称乙第零行商品名称丙第一行商品名称丙第二行商品名称丙第三行商品名称丙第四行商品名称丙第五行商品名称丙第六行商品名称丙第七行商品名称丙第八行商品名称丙第九行商品名称丙第零行商品名称丁第一行商品名称丁第二行商品名称丁第三行商品名称丁第四行商品名称丁第五行商品名称丁第六行商品名称丁第七行商品名称丁第八行商品名称丁第九行商品名称丁私聊下单",
+      "hash": "cbfb5d5152cba726"
+     },
+     {
+      "kind": "VARS",
+      "tag": "var",
+      "payload": "第零行商品名称甲第一行商品名称甲第二行商品名称甲第三行商品名称甲第四行商品名称甲第五行商品名称甲第六行商品名称甲第七行商品名称甲第八行商品名称甲第九行商品名称甲第零行商品名称乙第一行商品名称乙第二行商品名称乙第三行商品名称乙第五行商品名称乙第六行商品名称乙第七行商品名称乙第八行商品名称乙第九行商品名称乙第零行商品名称丙第一行商品名称丙第二行商品名称丙第三行商品名称丙第四行商品名称丙第五行商品名称丙第六行商品名称丙第七行商品名称丙第八行商品名称丙第九行商品名称丙第零行商品名称丁第一行商品名称丁第二行商品名称丁第三行商品名称丁第四行商品名称丁第五行商品名称丁第六行商品名称丁第七行商品名称丁第八行商品名称丁第九行商品名称丁私聊下单",
+      "hash": "209bb6e61840fee2"
+     },
+     {
+      "kind": "VARS",
+      "tag": "var",
+      "payload": "第零行商品名称甲第一行商品名称甲第二行商品名称甲第三行商品名称甲第四行商品名称甲第五行商品名称甲第六行商品名称甲第七行商品名称甲第八行商品名称甲第九行商品名称甲第零行商品名称乙第一行商品名称乙第二行商品名称乙第三行商品名称乙第四行商品名称乙第六行商品名称乙第七行商品名称乙第八行商品名称乙第九行商品名称乙第零行商品名称丙第一行商品名称丙第二行商品名称丙第三行商品名称丙第四行商品名称丙第五行商品名称丙第六行商品名称丙第七行商品名称丙第八行商品名称丙第九行商品名称丙第零行商品名称丁第一行商品名称丁第二行商品名称丁第三行商品名称丁第四行商品名称丁第五行商品名称丁第六行商品名称丁第七行商品名称丁第八行商品名称丁第九行商品名称丁私聊下单",
+      "hash": "16d33b0820542237"
+     },
+     {
+      "kind": "VARS",
+      "tag": "var",
+      "payload": "第零行商品名称甲第一行商品名称甲第二行商品名称甲第三行商品名称甲第四行商品名称甲第五行商品名称甲第六行商品名称甲第七行商品名称甲第八行商品名称甲第九行商品名称甲第零行商品名称乙第一行商品名称乙第二行商品名称乙第三行商品名称乙第四行商品名称乙第五行商品名称乙第六行商品名称乙第七行商品名称乙第八行商品名称乙第九行商品名称乙第零行商品名称丙第一行商品名称丙第二行商品名称丙第三行商品名称丙第四行商品名称丙第六行商品名称丙第七行商品名称丙第八行商品名称丙第九行商品名称丙第零行商品名称丁第一行商品名称丁第二行商品名称丁第三行商品名称丁第四行商品名称丁第五行商品名称丁第六行商品名称丁第七行商品名称丁第八行商品名称丁第九行商品名称丁私聊下单",
+      "hash": "e9e10020be59bef6"
+     },
+     {
+      "kind": "VARS",
+      "tag": "var",
+      "payload": "第零行商品名称甲第一行商品名称甲第二行商品名称甲第三行商品名称甲第四行商品名称甲第五行商品名称甲第六行商品名称甲第七行商品名称甲第八行商品名称甲第九行商品名称甲第零行商品名称乙第一行商品名称乙第二行商品名称乙第三行商品名称乙第四行商品名称乙第五行商品名称乙第六行商品名称乙第七行商品名称乙第八行商品名称乙第九行商品名称乙第零行商品名称丙第一行商品名称丙第二行商品名称丙第三行商品名称丙第四行商品名称丙第五行商品名称丙第七行商品名称丙第八行商品名称丙第九行商品名称丙第零行商品名称丁第一行商品名称丁第二行商品名称丁第三行商品名称丁第四行商品名称丁第五行商品名称丁第六行商品名称丁第七行商品名称丁第八行商品名称丁第九行商品名称丁私聊下单",
+      "hash": "feeac731f2b29c69"
+     },
+     {
+      "kind": "VARS",
+      "tag": "var",
+      "payload": "第零行商品名称甲第一行商品名称甲第二行商品名称甲第三行商品名称甲第四行商品名称甲第五行商品名称甲第六行商品名称甲第七行商品名称甲第八行商品名称甲第九行商品名称甲第零行商品名称乙第一行商品名称乙第二行商品名称乙第三行商品名称乙第四行商品名称乙第五行商品名称乙第六行商品名称乙第七行商品名称乙第八行商品名称乙第九行商品名称乙第零行商品名称丙第一行商品名称丙第二行商品名称丙第三行商品名称丙第四行商品名称丙第五行商品名称丙第六行商品名称丙第八行商品名称丙第九行商品名称丙第零行商品名称丁第一行商品名称丁第二行商品名称丁第三行商品名称丁第四行商品名称丁第五行商品名称丁第六行商品名称丁第七行商品名称丁第八行商品名称丁第九行商品名称丁私聊下单",
+      "hash": "caf7d49359d22805"
+     },
+     {
+      "kind": "VARS",
+      "tag": "var",
+      "payload": "第零行商品名称甲第一行商品名称甲第二行商品名称甲第三行商品名称甲第四行商品名称甲第五行商品名称甲第六行商品名称甲第七行商品名称甲第八行商品名称甲第九行商品名称甲第零行商品名称乙第一行商品名称乙第二行商品名称乙第三行商品名称乙第四行商品名称乙第五行商品名称乙第六行商品名称乙第七行商品名称乙第八行商品名称乙第九行商品名称乙第零行商品名称丙第一行商品名称丙第二行商品名称丙第三行商品名称丙第四行商品名称丙第五行商品名称丙第六行商品名称丙第七行商品名称丙第九行商品名称丙第零行商品名称丁第一行商品名称丁第二行商品名称丁第三行商品名称丁第四行商品名称丁第五行商品名称丁第六行商品名称丁第七行商品名称丁第八行商品名称丁第九行商品名称丁私聊下单",
+      "hash": "d010413734f96afc"
+     },
+     {
+      "kind": "VARS",
+      "tag": "var",
+      "payload": "第零行商品名称甲第一行商品名称甲第二行商品名称甲第三行商品名称甲第四行商品名称甲第五行商品名称甲第六行商品名称甲第七行商品名称甲第八行商品名称甲第九行商品名称甲第零行商品名称乙第一行商品名称乙第二行商品名称乙第三行商品名称乙第四行商品名称乙第五行商品名称乙第六行商品名称乙第七行商品名称乙第八行商品名称乙第九行商品名称乙第零行商品名称丙第一行商品名称丙第二行商品名称丙第三行商品名称丙第四行商品名称丙第五行商品名称丙第六行商品名称丙第七行商品名称丙第八行商品名称丙第零行商品名称丁第一行商品名称丁第二行商品名称丁第三行商品名称丁第四行商品名称丁第五行商品名称丁第六行商品名称丁第七行商品名称丁第八行商品名称丁第九行商品名称丁私聊下单",
+      "hash": "2fc1a4dcacdc9f17"
+     },
+     {
+      "kind": "VARS",
+      "tag": "var",
+      "payload": "第零行商品名称甲第一行商品名称甲第二行商品名称甲第三行商品名称甲第四行商品名称甲第五行商品名称甲第六行商品名称甲第七行商品名称甲第八行商品名称甲第九行商品名称甲第零行商品名称乙第一行商品名称乙第二行商品名称乙第三行商品名称乙第四行商品名称乙第五行商品名称乙第六行商品名称乙第七行商品名称乙第八行商品名称乙第九行商品名称乙第零行商品名称丙第一行商品名称丙第二行商品名称丙第三行商品名称丙第四行商品名称丙第五行商品名称丙第六行商品名称丙第七行商品名称丙第八行商品名称丙第九行商品名称丙第一行商品名称丁第二行商品名称丁第三行商品名称丁第四行商品名称丁第五行商品名称丁第六行商品名称丁第七行商品名称丁第八行商品名称丁第九行商品名称丁私聊下单",
+      "hash": "54104b447744dbb5"
+     },
+     {
+      "kind": "VARS",
+      "tag": "var",
+      "payload": "第零行商品名称甲第一行商品名称甲第二行商品名称甲第三行商品名称甲第四行商品名称甲第五行商品名称甲第六行商品名称甲第七行商品名称甲第八行商品名称甲第九行商品名称甲第零行商品名称乙第一行商品名称乙第二行商品名称乙第三行商品名称乙第四行商品名称乙第五行商品名称乙第六行商品名称乙第七行商品名称乙第八行商品名称乙第九行商品名称乙第零行商品名称丙第一行商品名称丙第二行商品名称丙第三行商品名称丙第四行商品名称丙第五行商品名称丙第六行商品名称丙第七行商品名称丙第八行商品名称丙第九行商品名称丙第零行商品名称丁第二行商品名称丁第三行商品名称丁第四行商品名称丁第五行商品名称丁第六行商品名称丁第七行商品名称丁第八行商品名称丁第九行商品名称丁私聊下单",
+      "hash": "c246241912187147"
+     },
+     {
+      "kind": "VARS",
+      "tag": "var",
+      "payload": "第零行商品名称甲第一行商品名称甲第二行商品名称甲第三行商品名称甲第四行商品名称甲第五行商品名称甲第六行商品名称甲第七行商品名称甲第八行商品名称甲第九行商品名称甲第零行商品名称乙第一行商品名称乙第二行商品名称乙第三行商品名称乙第四行商品名称乙第五行商品名称乙第六行商品名称乙第七行商品名称乙第八行商品名称乙第九行商品名称乙第零行商品名称丙第一行商品名称丙第二行商品名称丙第三行商品名称丙第四行商品名称丙第五行商品名称丙第六行商品名称丙第七行商品名称丙第八行商品名称丙第九行商品名称丙第零行商品名称丁第一行商品名称丁第三行商品名称丁第四行商品名称丁第五行商品名称丁第六行商品名称丁第七行商品名称丁第八行商品名称丁第九行商品名称丁私聊下单",
+      "hash": "ccf722ff7b52972f"
+     },
+     {
+      "kind": "VARS",
+      "tag": "var",
+      "payload": "第零行商品名称甲第一行商品名称甲第二行商品名称甲第三行商品名称甲第四行商品名称甲第五行商品名称甲第六行商品名称甲第七行商品名称甲第八行商品名称甲第九行商品名称甲第零行商品名称乙第一行商品名称乙第二行商品名称乙第三行商品名称乙第四行商品名称乙第五行商品名称乙第六行商品名称乙第七行商品名称乙第八行商品名称乙第九行商品名称乙第零行商品名称丙第一行商品名称丙第二行商品名称丙第三行商品名称丙第四行商品名称丙第五行商品名称丙第六行商品名称丙第七行商品名称丙第八行商品名称丙第九行商品名称丙第零行商品名称丁第一行商品名称丁第二行商品名称丁第四行商品名称丁第五行商品名称丁第六行商品名称丁第七行商品名称丁第八行商品名称丁第九行商品名称丁私聊下单",
+      "hash": "be756aedaa9c6d14"
+     },
+     {
+      "kind": "VARS",
+      "tag": "var",
+      "payload": "第零行商品名称甲第一行商品名称甲第二行商品名称甲第三行商品名称甲第四行商品名称甲第五行商品名称甲第六行商品名称甲第七行商品名称甲第八行商品名称甲第九行商品名称甲第零行商品名称乙第一行商品名称乙第二行商品名称乙第三行商品名称乙第四行商品名称乙第五行商品名称乙第六行商品名称乙第七行商品名称乙第八行商品名称乙第九行商品名称乙第零行商品名称丙第一行商品名称丙第二行商品名称丙第三行商品名称丙第四行商品名称丙第五行商品名称丙第六行商品名称丙第七行商品名称丙第八行商品名称丙第九行商品名称丙第零行商品名称丁第一行商品名称丁第二行商品名称丁第三行商品名称丁第五行商品名称丁第六行商品名称丁第七行商品名称丁第八行商品名称丁第九行商品名称丁私聊下单",
+      "hash": "0165155a506f74a9"
+     },
+     {
+      "kind": "VARS",
+      "tag": "var",
+      "payload": "第零行商品名称甲第一行商品名称甲第二行商品名称甲第三行商品名称甲第四行商品名称甲第五行商品名称甲第六行商品名称甲第七行商品名称甲第八行商品名称甲第九行商品名称甲第零行商品名称乙第一行商品名称乙第二行商品名称乙第三行商品名称乙第四行商品名称乙第五行商品名称乙第六行商品名称乙第七行商品名称乙第八行商品名称乙第九行商品名称乙第零行商品名称丙第一行商品名称丙第二行商品名称丙第三行商品名称丙第四行商品名称丙第五行商品名称丙第六行商品名称丙第七行商品名称丙第八行商品名称丙第九行商品名称丙第零行商品名称丁第一行商品名称丁第二行商品名称丁第三行商品名称丁第四行商品名称丁第六行商品名称丁第七行商品名称丁第八行商品名称丁第九行商品名称丁私聊下单",
+      "hash": "6945ff994ad0ce25"
+     },
+     {
+      "kind": "VARS",
+      "tag": "var",
+      "payload": "第零行商品名称甲第一行商品名称甲第二行商品名称甲第三行商品名称甲第四行商品名称甲第五行商品名称甲第六行商品名称甲第七行商品名称甲第八行商品名称甲第九行商品名称甲第零行商品名称乙第一行商品名称乙第二行商品名称乙第三行商品名称乙第四行商品名称乙第五行商品名称乙第六行商品名称乙第七行商品名称乙第八行商品名称乙第九行商品名称乙第零行商品名称丙第一行商品名称丙第二行商品名称丙第三行商品名称丙第四行商品名称丙第五行商品名称丙第六行商品名称丙第七行商品名称丙第八行商品名称丙第九行商品名称丙第零行商品名称丁第一行商品名称丁第二行商品名称丁第三行商品名称丁第四行商品名称丁第五行商品名称丁第七行商品名称丁第八行商品名称丁第九行商品名称丁私聊下单",
+      "hash": "1b7e7c8532a36cfa"
+     },
+     {
+      "kind": "VARS",
+      "tag": "var",
+      "payload": "第零行商品名称甲第一行商品名称甲第二行商品名称甲第三行商品名称甲第四行商品名称甲第五行商品名称甲第六行商品名称甲第七行商品名称甲第八行商品名称甲第九行商品名称甲第零行商品名称乙第一行商品名称乙第二行商品名称乙第三行商品名称乙第四行商品名称乙第五行商品名称乙第六行商品名称乙第七行商品名称乙第八行商品名称乙第九行商品名称乙第零行商品名称丙第一行商品名称丙第二行商品名称丙第三行商品名称丙第四行商品名称丙第五行商品名称丙第六行商品名称丙第七行商品名称丙第八行商品名称丙第九行商品名称丙第零行商品名称丁第一行商品名称丁第二行商品名称丁第三行商品名称丁第四行商品名称丁第五行商品名称丁第六行商品名称丁第八行商品名称丁第九行商品名称丁私聊下单",
+      "hash": "ec2a6961c794535c"
+     },
+     {
+      "kind": "VARS",
+      "tag": "var",
+      "payload": "第零行商品名称甲第一行商品名称甲第二行商品名称甲第三行商品名称甲第四行商品名称甲第五行商品名称甲第六行商品名称甲第七行商品名称甲第八行商品名称甲第九行商品名称甲第零行商品名称乙第一行商品名称乙第二行商品名称乙第三行商品名称乙第四行商品名称乙第五行商品名称乙第六行商品名称乙第七行商品名称乙第八行商品名称乙第九行商品名称乙第零行商品名称丙第一行商品名称丙第二行商品名称丙第三行商品名称丙第四行商品名称丙第五行商品名称丙第六行商品名称丙第七行商品名称丙第八行商品名称丙第九行商品名称丙第零行商品名称丁第一行商品名称丁第二行商品名称丁第三行商品名称丁第四行商品名称丁第五行商品名称丁第六行商品名称丁第七行商品名称丁第九行商品名称丁私聊下单",
+      "hash": "3ab81697a58f5e54"
+     },
+     {
+      "kind": "VARS",
+      "tag": "var",
+      "payload": "第零行商品名称甲第一行商品名称甲第二行商品名称甲第三行商品名称甲第四行商品名称甲第五行商品名称甲第六行商品名称甲第七行商品名称甲第八行商品名称甲第九行商品名称甲第零行商品名称乙第一行商品名称乙第二行商品名称乙第三行商品名称乙第四行商品名称乙第五行商品名称乙第六行商品名称乙第七行商品名称乙第八行商品名称乙第九行商品名称乙第零行商品名称丙第一行商品名称丙第二行商品名称丙第三行商品名称丙第四行商品名称丙第五行商品名称丙第六行商品名称丙第七行商品名称丙第八行商品名称丙第九行商品名称丙第零行商品名称丁第一行商品名称丁第二行商品名称丁第三行商品名称丁第四行商品名称丁第五行商品名称丁第六行商品名称丁第七行商品名称丁第八行商品名称丁私聊下单",
+      "hash": "c74fde2345fad25a"
+     },
+     {
+      "kind": "VARS",
+      "tag": "var",
+      "payload": "第零行商品名称甲第一行商品名称甲第二行商品名称甲第三行商品名称甲第四行商品名称甲第五行商品名称甲第六行商品名称甲第七行商品名称甲第八行商品名称甲第九行商品名称甲第零行商品名称乙第一行商品名称乙第二行商品名称乙第三行商品名称乙第四行商品名称乙第五行商品名称乙第六行商品名称乙第七行商品名称乙第八行商品名称乙第九行商品名称乙第零行商品名称丙第一行商品名称丙第二行商品名称丙第三行商品名称丙第四行商品名称丙第五行商品名称丙第六行商品名称丙第七行商品名称丙第八行商品名称丙第九行商品名称丙第零行商品名称丁第一行商品名称丁第二行商品名称丁第三行商品名称丁第四行商品名称丁第五行商品名称丁第六行商品名称丁第七行商品名称丁第八行商品名称丁第九行商品名称丁",
+      "hash": "a1bde0984dcb6db4"
+     },
+     {
+      "kind": "VARS",
+      "tag": "var",
+      "payload": "第一行商品名称甲第二行商品名称甲第三行商品名称甲第四行商品名称甲第五行商品名称甲第六行商品名称甲第七行商品名称甲第八行商品名称甲第九行商品名称甲第零行商品名称乙第一行商品名称乙第二行商品名称乙第三行商品名称乙第四行商品名称乙第五行商品名称乙第六行商品名称乙第七行商品名称乙第八行商品名称乙第九行商品名称乙第零行商品名称丙第一行商品名称丙第二行商品名称丙第三行商品名称丙第四行商品名称丙第五行商品名称丙第六行商品名称丙第七行商品名称丙第八行商品名称丙第九行商品名称丙第零行商品名称丁第一行商品名称丁第二行商品名称丁第三行商品名称丁第四行商品名称丁第五行商品名称丁第六行商品名称丁第七行商品名称丁第八行商品名称丁第九行商品名称丁",
+      "hash": "25d60decc8b8a7a1"
+     }
+    ],
+    "flags": 327936,
+    "flagNames": [
+     "S_pointer",
+     "F_HAS_TEXT",
+     "F_PURE_TEXT"
+    ],
+    "subsetLinks": [
+     "5bc9075af64dbfa6"
+    ],
+    "pending": [],
+    "resolvedStrong": [
+     "pointer"
+    ],
+    "resolvedWeak": [],
+    "resolvedFlags": 327936,
+    "resolvedFlagNames": [
+     "S_pointer",
+     "F_HAS_TEXT",
+     "F_PURE_TEXT"
+    ],
+    "senderKey": "a00a26d557956804",
+    "store": true,
+    "endorsing": false,
+    "privileged": false
+   }
+  },
+  {
+   "id": "block-keys",
+   "description": "BLOCK：空行／只有 emoji 的行分隔區塊；≥16 的區塊才算；連結被抽走後剩下的字照算",
+   "message": {
+    "id": 62,
+    "date": 1795000062,
+    "sender": {
+     "id": 7062,
+     "role": "member"
+    },
+    "text": "雲端會員限時調價：\n企業採購請私聊 全網最低價\n\n🔥 雲端硬碟會員\n年卡特價：320\n季卡特價：99\n━━━━━━\n⭐ 影音會員 168\n【5件起165】\n\n📍 下單入口\n👉 https://shop-demo-cloud.example/ （需要先註冊）\n\n有任何問題 隨時私聊 @cloud_demo_seller\n\n售後頻道： https://t.me/cloud_demo_ch"
+   },
+   "expect": {
+    "fold": "云端会员限时调价:\n企业采购请私聊 全网最低价\n\n🔥 云端硬碟会员\n年卡特价:320\n季卡特价:99\n━━━━━━\n⭐ 影音会员 168\n【5件起165】\n\n📍 下单入口\n👉 https://shop-demo-cloud.example/ (需要先注册)\n\n有任何问题 随时私聊 @cloud_demo_seller\n\n售后频道: https://t.me/cloud_demo_ch",
+    "foldNoLinks": "云端会员限时调价:\n企业采购请私聊 全网最低价\n\n🔥 云端硬碟会员\n年卡特价:320\n季卡特价:99\n━━━━━━\n⭐ 影音会员 168\n【5件起165】\n\n📍 下单入口\n👉   (需要先注册)\n\n有任何问题 随时私聊  \n\n售后频道:  ",
+    "text": "云端会员限时调价企业采购请私聊全网最低价云端硬碟会员年卡特价#季卡特价#影音会员##件起#下单入口需要先注册有任何问题随时私聊售后频道",
+    "cjk": "云端会员限时调价企业采购请私聊全网最低价云端硬碟会员年卡特价季卡特价影音会员件起下单入口需要先注册有任何问题随时私聊售后频道",
+    "wlen": 129,
+    "cjkCount": 62,
+    "otherLetterCount": 0,
+    "paragraphs": [],
+    "contentLines": [
+     "云端会员限时调价",
+     "企业采购请私聊全网最低价",
+     "云端硬碟会员",
+     "年卡特价#",
+     "季卡特价#",
+     "影音会员#",
+     "#件起#",
+     "下单入口",
+     "需要先注册",
+     "有任何问题随时私聊",
+     "售后频道"
+    ],
+    "blocks": [
+     "云端会员限时调价企业采购请私聊全网最低价",
+     "云端硬碟会员年卡特价#季卡特价#",
+     "影音会员##件起#",
+     "下单入口需要先注册",
+     "有任何问题随时私聊",
+     "售后频道"
+    ],
+    "links": [
+     {
+      "token": "url:shop-demo-cloud.example",
+      "type": "URL:shop-demo-cloud.example",
+      "kind": "url",
+      "source": "text",
+      "feature": "weak",
+      "hash": "2e53792a1a36f9b1"
+     },
+     {
+      "token": "@cloud_demo_ch",
+      "type": "HANDLE",
+      "kind": "handle",
+      "source": "text",
+      "feature": "pending",
+      "hash": "0875be3cd51c132b"
+     },
+     {
+      "token": "@cloud_demo_seller",
+      "type": "HANDLE",
+      "kind": "handle",
+      "source": "text",
+      "feature": "pending",
+      "hash": "bfa53811bccc7f1d"
+     }
+    ],
+    "strong": [
+     "pointer"
+    ],
+    "weak": [
+     "url"
+    ],
+    "mentionCount": 1,
+    "keys": [
+     {
+      "kind": "TEXT",
+      "tag": "text",
+      "payload": "云端会员限时调价企业采购请私聊全网最低价云端硬碟会员年卡特价#季卡特价#影音会员##件起#下单入口需要先注册有任何问题随时私聊售后频道",
+      "hash": "59c0d4707416771e"
+     },
+     {
+      "kind": "CJK",
+      "tag": "cjk",
+      "payload": "云端会员限时调价企业采购请私聊全网最低价云端硬碟会员年卡特价季卡特价影音会员件起下单入口需要先注册有任何问题随时私聊售后频道",
+      "hash": "16127d6e0e5764a1"
+     },
+     {
+      "kind": "TMPL",
+      "tag": "tmpl",
+      "payload": "云端会员限时调价企业采购请私聊全网最低价云端硬碟会员年卡特价#季卡特价#影音会员##件起#下单入口需要先注册有任何问题随时私聊售后频道\u001eHANDLE,URL",
+      "hash": "87e55df6346a40af"
+     },
+     {
+      "kind": "VAR",
+      "tag": "var",
+      "payload": "云端会员限时调价企业采购请私聊全网最低价云端硬碟会员年卡特价#季卡特价#影音会员##件起#下单入口需要先注册有任何问题随时私聊售后频道",
+      "hash": "ded07a8a2bc0ed7e"
+     },
+     {
+      "kind": "VARS",
+      "tag": "var",
+      "payload": "企业采购请私聊全网最低价云端硬碟会员年卡特价#季卡特价#影音会员##件起#下单入口需要先注册有任何问题随时私聊售后频道",
+      "hash": "81c6fbee79bc1015"
+     },
+     {
+      "kind": "VARS",
+      "tag": "var",
+      "payload": "云端会员限时调价云端硬碟会员年卡特价#季卡特价#影音会员##件起#下单入口需要先注册有任何问题随时私聊售后频道",
+      "hash": "c1a78d4d0601cef5"
+     },
+     {
+      "kind": "VARS",
+      "tag": "var",
+      "payload": "云端会员限时调价企业采购请私聊全网最低价年卡特价#季卡特价#影音会员##件起#下单入口需要先注册有任何问题随时私聊售后频道",
+      "hash": "fe68604085df50ca"
+     },
+     {
+      "kind": "VARS",
+      "tag": "var",
+      "payload": "云端会员限时调价企业采购请私聊全网最低价云端硬碟会员季卡特价#影音会员##件起#下单入口需要先注册有任何问题随时私聊售后频道",
+      "hash": "4d739d53808ab152"
+     },
+     {
+      "kind": "VARS",
+      "tag": "var",
+      "payload": "云端会员限时调价企业采购请私聊全网最低价云端硬碟会员年卡特价#影音会员##件起#下单入口需要先注册有任何问题随时私聊售后频道",
+      "hash": "ccdcac06ce24953c"
+     },
+     {
+      "kind": "VARS",
+      "tag": "var",
+      "payload": "云端会员限时调价企业采购请私聊全网最低价云端硬碟会员年卡特价#季卡特价##件起#下单入口需要先注册有任何问题随时私聊售后频道",
+      "hash": "dff9e110ae02fe15"
+     },
+     {
+      "kind": "VARS",
+      "tag": "var",
+      "payload": "云端会员限时调价企业采购请私聊全网最低价云端硬碟会员年卡特价#季卡特价#影音会员#下单入口需要先注册有任何问题随时私聊售后频道",
+      "hash": "a46fce03ee0e7eba"
+     },
+     {
+      "kind": "VARS",
+      "tag": "var",
+      "payload": "云端会员限时调价企业采购请私聊全网最低价云端硬碟会员年卡特价#季卡特价#影音会员##件起#需要先注册有任何问题随时私聊售后频道",
+      "hash": "3a740447960bec40"
+     },
+     {
+      "kind": "VARS",
+      "tag": "var",
+      "payload": "云端会员限时调价企业采购请私聊全网最低价云端硬碟会员年卡特价#季卡特价#影音会员##件起#下单入口有任何问题随时私聊售后频道",
+      "hash": "df4f5972b2e6ddb1"
+     },
+     {
+      "kind": "VARS",
+      "tag": "var",
+      "payload": "云端会员限时调价企业采购请私聊全网最低价云端硬碟会员年卡特价#季卡特价#影音会员##件起#下单入口需要先注册售后频道",
+      "hash": "56063f6a69386154"
+     },
+     {
+      "kind": "VARS",
+      "tag": "var",
+      "payload": "云端会员限时调价企业采购请私聊全网最低价云端硬碟会员年卡特价#季卡特价#影音会员##件起#下单入口需要先注册有任何问题随时私聊",
+      "hash": "011e0a949c6fd471"
+     },
+     {
+      "kind": "VARS",
+      "tag": "var",
+      "payload": "企业采购请私聊全网最低价云端硬碟会员年卡特价#季卡特价#影音会员##件起#下单入口需要先注册有任何问题随时私聊",
+      "hash": "df375182961c8f37"
+     },
+     {
+      "kind": "BLOCK",
+      "tag": "block",
+      "payload": "云端会员限时调价企业采购请私聊全网最低价",
+      "hash": "45856afc821048be"
+     },
+     {
+      "kind": "BLOCK",
+      "tag": "block",
+      "payload": "云端硬碟会员年卡特价#季卡特价#",
+      "hash": "edb5bfbb3b9e360e"
+     },
+     {
+      "kind": "BLOCK",
+      "tag": "block",
+      "payload": "下单入口需要先注册",
+      "hash": "886b8129f2e5c73b"
+     },
+     {
+      "kind": "BLOCK",
+      "tag": "block",
+      "payload": "有任何问题随时私聊",
+      "hash": "2b506e907b61b7d3"
+     }
+    ],
+    "flags": 66816,
+    "flagNames": [
+     "S_pointer",
+     "W_url",
+     "F_HAS_TEXT"
+    ],
+    "subsetLinks": [
+     "2e53792a1a36f9b1",
+     "5bc9075af64dbfa6"
+    ],
+    "pending": [
+     "0875be3cd51c132b",
+     "bfa53811bccc7f1d"
+    ],
+    "resolvedStrong": [
+     "handle",
+     "pointer"
+    ],
+    "resolvedWeak": [
+     "url"
+    ],
+    "resolvedFlags": 66818,
+    "resolvedFlagNames": [
+     "S_handle",
+     "S_pointer",
+     "W_url",
+     "F_HAS_TEXT"
+    ],
+    "senderKey": "4ba8b84b19e07716",
+    "store": true,
+    "endorsing": false,
+    "privileged": false
+   }
+  },
+  {
+   "id": "block-single",
+   "description": "BLOCK：只有 1 個 ≥16 的區塊 → 不產生任何區塊鍵",
+   "message": {
+    "id": 63,
+    "date": 1795000063,
+    "sender": {
+     "id": 7063,
+     "role": "member"
+    },
+    "text": "週末快閃特價活動開跑，全館商品五折起\n\n私聊"
+   },
+   "expect": {
+    "fold": "周末快闪特价活动开跑,全馆商品五折起\n\n私聊",
+    "foldNoLinks": "周末快闪特价活动开跑,全馆商品五折起\n\n私聊",
+    "text": "周末快闪特价活动开跑全馆商品五折起私聊",
+    "cjk": "周末快闪特价活动开跑全馆商品五折起私聊",
+    "wlen": 38,
+    "cjkCount": 19,
+    "otherLetterCount": 0,
+    "paragraphs": [
+     "周末快闪特价活动开跑全馆商品五折起"
+    ],
+    "contentLines": [
+     "周末快闪特价活动开跑全馆商品五折起",
+     "私聊"
+    ],
+    "blocks": [
+     "周末快闪特价活动开跑全馆商品五折起",
+     "私聊"
+    ],
+    "links": [],
+    "strong": [
+     "pointer"
+    ],
+    "weak": [],
+    "mentionCount": 0,
+    "keys": [
+     {
+      "kind": "TEXT",
+      "tag": "text",
+      "payload": "周末快闪特价活动开跑全馆商品五折起私聊",
+      "hash": "6a2d7f59285b6c28"
+     },
+     {
+      "kind": "CJK",
+      "tag": "cjk",
+      "payload": "周末快闪特价活动开跑全馆商品五折起私聊",
+      "hash": "a92025dd3f8c30ed"
+     },
+     {
+      "kind": "TMPL",
+      "tag": "tmpl",
+      "payload": "周末快闪特价活动开跑全馆商品五折起私聊\u001e",
+      "hash": "7130bed730750f43"
+     },
+     {
+      "kind": "PARA",
+      "tag": "para",
+      "payload": "周末快闪特价活动开跑全馆商品五折起",
+      "hash": "131d87bab85289e7"
+     },
+     {
+      "kind": "VAR",
+      "tag": "var",
+      "payload": "周末快闪特价活动开跑全馆商品五折起私聊",
+      "hash": "c604bceb9b0cb738"
+     },
+     {
+      "kind": "VARS",
+      "tag": "var",
+      "payload": "周末快闪特价活动开跑全馆商品五折起",
+      "hash": "e7a7ce6e47a6988a"
+     }
+    ],
+    "flags": 327936,
+    "flagNames": [
+     "S_pointer",
+     "F_HAS_TEXT",
+     "F_PURE_TEXT"
+    ],
+    "subsetLinks": [
+     "5bc9075af64dbfa6"
+    ],
+    "pending": [],
+    "resolvedStrong": [
+     "pointer"
+    ],
+    "resolvedWeak": [],
+    "resolvedFlags": 327936,
+    "resolvedFlagNames": [
+     "S_pointer",
+     "F_HAS_TEXT",
+     "F_PURE_TEXT"
+    ],
+    "senderKey": "e2d9f83d2d0ff2ca",
+    "store": true,
+    "endorsing": false,
+    "privileged": false
+   }
+  },
+  {
+   "id": "priv-sent-as-channel",
+   "description": "特權作者：以本群連結頻道身分發送（role=channel 且 id＝linkedChannel.id）→ ENDORSING + PRIV",
+   "message": {
+    "id": 64,
+    "date": 1795000064,
+    "sender": {
+     "id": -1009876543210,
+     "role": "channel"
+    },
+    "text": "頻道公告：雲端會員限時特價中，有需要的私聊客服"
+   },
+   "expect": {
+    "fold": "频道公告:云端会员限时特价中,有需要的私聊客服",
+    "foldNoLinks": "频道公告:云端会员限时特价中,有需要的私聊客服",
+    "text": "频道公告云端会员限时特价中有需要的私聊客服",
+    "cjk": "频道公告云端会员限时特价中有需要的私聊客服",
+    "wlen": 42,
+    "cjkCount": 21,
+    "otherLetterCount": 0,
+    "paragraphs": [
+     "频道公告云端会员限时特价中有需要的私聊客服"
+    ],
+    "contentLines": [
+     "频道公告云端会员限时特价中有需要的私聊客服"
+    ],
+    "blocks": [
+     "频道公告云端会员限时特价中有需要的私聊客服"
+    ],
+    "links": [],
+    "strong": [
+     "pointer"
+    ],
+    "weak": [],
+    "mentionCount": 0,
+    "keys": [
+     {
+      "kind": "TEXT",
+      "tag": "text",
+      "payload": "频道公告云端会员限时特价中有需要的私聊客服",
+      "hash": "1c270d2f55583f91"
+     },
+     {
+      "kind": "CJK",
+      "tag": "cjk",
+      "payload": "频道公告云端会员限时特价中有需要的私聊客服",
+      "hash": "adb48174c6a8b896"
+     },
+     {
+      "kind": "TMPL",
+      "tag": "tmpl",
+      "payload": "频道公告云端会员限时特价中有需要的私聊客服\u001e",
+      "hash": "8e81ff7e0d411774"
+     },
+     {
+      "kind": "PARA",
+      "tag": "para",
+      "payload": "频道公告云端会员限时特价中有需要的私聊客服",
+      "hash": "3ba3c7e61ea700df"
+     },
+     {
+      "kind": "VAR",
+      "tag": "var",
+      "payload": "频道公告云端会员限时特价中有需要的私聊客服",
+      "hash": "118e04c78470becc"
+     }
+    ],
+    "flags": 8749312,
+    "flagNames": [
+     "S_pointer",
+     "F_PRIV",
+     "F_HAS_TEXT",
+     "F_PURE_TEXT",
+     "F_ENDORSING"
+    ],
+    "subsetLinks": [
+     "5bc9075af64dbfa6"
+    ],
+    "pending": [],
+    "resolvedStrong": [
+     "pointer"
+    ],
+    "resolvedWeak": [],
+    "resolvedFlags": 8749312,
+    "resolvedFlagNames": [
+     "S_pointer",
+     "F_PRIV",
+     "F_HAS_TEXT",
+     "F_PURE_TEXT",
+     "F_ENDORSING"
+    ],
+    "senderKey": "324d84c068f4b305",
+    "store": true,
+    "endorsing": true,
+    "privileged": true
+   }
+  },
+  {
+   "id": "priv-auto-forward",
+   "description": "特權作者：討論群的頻道自動轉發 → ENDORSING + PRIV（頻道貼文裡的帳號降為弱）",
+   "message": {
+    "id": 65,
+    "date": 1795000065,
+    "sender": {
+     "id": -1009876543210,
+     "role": "channel"
+    },
+    "text": "頻道公告：雲端會員限時特價中，有需要的私聊客服 @cloud_demo_seller",
+    "autoForward": true,
+    "forward": {
+     "fromKind": "channel",
+     "fromId": -1009876543210,
+     "postId": 77,
+     "username": "luminatest_ch",
+     "date": 1795000000
+    }
+   },
+   "expect": {
+    "fold": "频道公告:云端会员限时特价中,有需要的私聊客服 @cloud_demo_seller",
+    "foldNoLinks": "频道公告:云端会员限时特价中,有需要的私聊客服  ",
+    "text": "频道公告云端会员限时特价中有需要的私聊客服",
+    "cjk": "频道公告云端会员限时特价中有需要的私聊客服",
+    "wlen": 42,
+    "cjkCount": 21,
+    "otherLetterCount": 0,
+    "paragraphs": [
+     "频道公告云端会员限时特价中有需要的私聊客服"
+    ],
+    "contentLines": [
+     "频道公告云端会员限时特价中有需要的私聊客服"
+    ],
+    "blocks": [
+     "频道公告云端会员限时特价中有需要的私聊客服"
+    ],
+    "links": [
+     {
+      "token": "@cloud_demo_seller",
+      "type": "HANDLE",
+      "kind": "handle",
+      "source": "text",
+      "feature": "weak",
+      "hash": "bfa53811bccc7f1d"
+     }
+    ],
+    "strong": [
+     "pointer"
+    ],
+    "weak": [
+     "url"
+    ],
+    "mentionCount": 1,
+    "keys": [
+     {
+      "kind": "FWD",
+      "tag": "fwd",
+      "payload": "c|-1009876543210|77",
+      "hash": "43122a8e0205fc13"
+     },
+     {
+      "kind": "TEXT",
+      "tag": "text",
+      "payload": "频道公告云端会员限时特价中有需要的私聊客服",
+      "hash": "1c270d2f55583f91"
+     },
+     {
+      "kind": "CJK",
+      "tag": "cjk",
+      "payload": "频道公告云端会员限时特价中有需要的私聊客服",
+      "hash": "adb48174c6a8b896"
+     },
+     {
+      "kind": "TMPL",
+      "tag": "tmpl",
+      "payload": "频道公告云端会员限时特价中有需要的私聊客服\u001eHANDLE",
+      "hash": "cea9eeede89d06f1"
+     },
+     {
+      "kind": "PARA",
+      "tag": "para",
+      "payload": "频道公告云端会员限时特价中有需要的私聊客服",
+      "hash": "3ba3c7e61ea700df"
+     },
+     {
+      "kind": "VAR",
+      "tag": "var",
+      "payload": "频道公告云端会员限时特价中有需要的私聊客服",
+      "hash": "118e04c78470becc"
+     }
+    ],
+    "flags": 277186304,
+    "flagNames": [
+     "S_pointer",
+     "W_url",
+     "F_PRIV_STRONG",
+     "F_PRIV",
+     "F_HAS_TEXT",
+     "F_PURE_TEXT",
+     "F_ENDORSING",
+     "F_HAS_FWD_KEY"
+    ],
+    "subsetLinks": [
+     "bfa53811bccc7f1d",
+     "5bc9075af64dbfa6"
+    ],
+    "pending": [],
+    "resolvedStrong": [
+     "pointer"
+    ],
+    "resolvedWeak": [
+     "url"
+    ],
+    "resolvedFlags": 277186304,
+    "resolvedFlagNames": [
+     "S_pointer",
+     "W_url",
+     "F_PRIV_STRONG",
+     "F_PRIV",
+     "F_HAS_TEXT",
+     "F_PURE_TEXT",
+     "F_ENDORSING",
+     "F_HAS_FWD_KEY"
+    ],
+    "senderKey": "324d84c068f4b305",
+    "store": true,
+    "endorsing": true,
+    "privileged": true
+   }
+  },
+  {
+   "id": "priv-other-channel",
+   "description": "以「別的」頻道身分發送 → 不是背書、不是特權（照一般成員處理）",
+   "message": {
+    "id": 66,
+    "date": 1795000066,
+    "sender": {
+     "id": -1005555555555,
+     "role": "channel"
+    },
+    "text": "頻道公告：雲端會員限時特價中，有需要的私聊客服"
+   },
+   "expect": {
+    "fold": "频道公告:云端会员限时特价中,有需要的私聊客服",
+    "foldNoLinks": "频道公告:云端会员限时特价中,有需要的私聊客服",
+    "text": "频道公告云端会员限时特价中有需要的私聊客服",
+    "cjk": "频道公告云端会员限时特价中有需要的私聊客服",
+    "wlen": 42,
+    "cjkCount": 21,
+    "otherLetterCount": 0,
+    "paragraphs": [
+     "频道公告云端会员限时特价中有需要的私聊客服"
+    ],
+    "contentLines": [
+     "频道公告云端会员限时特价中有需要的私聊客服"
+    ],
+    "blocks": [
+     "频道公告云端会员限时特价中有需要的私聊客服"
+    ],
+    "links": [],
+    "strong": [
+     "pointer"
+    ],
+    "weak": [],
+    "mentionCount": 0,
+    "keys": [
+     {
+      "kind": "TEXT",
+      "tag": "text",
+      "payload": "频道公告云端会员限时特价中有需要的私聊客服",
+      "hash": "1c270d2f55583f91"
+     },
+     {
+      "kind": "CJK",
+      "tag": "cjk",
+      "payload": "频道公告云端会员限时特价中有需要的私聊客服",
+      "hash": "adb48174c6a8b896"
+     },
+     {
+      "kind": "TMPL",
+      "tag": "tmpl",
+      "payload": "频道公告云端会员限时特价中有需要的私聊客服\u001e",
+      "hash": "8e81ff7e0d411774"
+     },
+     {
+      "kind": "PARA",
+      "tag": "para",
+      "payload": "频道公告云端会员限时特价中有需要的私聊客服",
+      "hash": "3ba3c7e61ea700df"
+     },
+     {
+      "kind": "VAR",
+      "tag": "var",
+      "payload": "频道公告云端会员限时特价中有需要的私聊客服",
+      "hash": "118e04c78470becc"
+     }
+    ],
+    "flags": 327936,
+    "flagNames": [
+     "S_pointer",
+     "F_HAS_TEXT",
+     "F_PURE_TEXT"
+    ],
+    "subsetLinks": [
+     "5bc9075af64dbfa6"
+    ],
+    "pending": [],
+    "resolvedStrong": [
+     "pointer"
+    ],
+    "resolvedWeak": [],
+    "resolvedFlags": 327936,
+    "resolvedFlagNames": [
+     "S_pointer",
+     "F_HAS_TEXT",
+     "F_PURE_TEXT"
+    ],
+    "senderKey": "3a9560d5374f187f",
+    "store": true,
+    "endorsing": false,
+    "privileged": false
+   }
+  },
+  {
+   "id": "not-priv-member-fwd-linked",
+   "description": "成員轉發連結頻道貼文 → ENDORSING，但不是 PRIV（新選項不影響它）",
+   "message": {
+    "id": 67,
+    "date": 1795000067,
+    "sender": {
+     "id": 7067,
+     "role": "member"
+    },
+    "text": "頻道公告：雲端會員限時特價中，有需要的私聊客服",
+    "forward": {
+     "fromKind": "channel",
+     "fromId": -1009876543210,
+     "postId": 78,
+     "username": "luminatest_ch",
+     "date": 1795000000
+    }
+   },
+   "expect": {
+    "fold": "频道公告:云端会员限时特价中,有需要的私聊客服",
+    "foldNoLinks": "频道公告:云端会员限时特价中,有需要的私聊客服",
+    "text": "频道公告云端会员限时特价中有需要的私聊客服",
+    "cjk": "频道公告云端会员限时特价中有需要的私聊客服",
+    "wlen": 42,
+    "cjkCount": 21,
+    "otherLetterCount": 0,
+    "paragraphs": [
+     "频道公告云端会员限时特价中有需要的私聊客服"
+    ],
+    "contentLines": [
+     "频道公告云端会员限时特价中有需要的私聊客服"
+    ],
+    "blocks": [
+     "频道公告云端会员限时特价中有需要的私聊客服"
+    ],
+    "links": [],
+    "strong": [
+     "pointer"
+    ],
+    "weak": [],
+    "mentionCount": 0,
+    "keys": [
+     {
+      "kind": "FWD",
+      "tag": "fwd",
+      "payload": "c|-1009876543210|78",
+      "hash": "71fe22e106d2b122"
+     },
+     {
+      "kind": "TEXT",
+      "tag": "text",
+      "payload": "频道公告云端会员限时特价中有需要的私聊客服",
+      "hash": "1c270d2f55583f91"
+     },
+     {
+      "kind": "CJK",
+      "tag": "cjk",
+      "payload": "频道公告云端会员限时特价中有需要的私聊客服",
+      "hash": "adb48174c6a8b896"
+     },
+     {
+      "kind": "TMPL",
+      "tag": "tmpl",
+      "payload": "频道公告云端会员限时特价中有需要的私聊客服\u001e",
+      "hash": "8e81ff7e0d411774"
+     },
+     {
+      "kind": "PARA",
+      "tag": "para",
+      "payload": "频道公告云端会员限时特价中有需要的私聊客服",
+      "hash": "3ba3c7e61ea700df"
+     },
+     {
+      "kind": "VAR",
+      "tag": "var",
+      "payload": "频道公告云端会员限时特价中有需要的私聊客服",
+      "hash": "118e04c78470becc"
+     }
+    ],
+    "flags": 277152000,
+    "flagNames": [
+     "S_pointer",
+     "F_HAS_TEXT",
+     "F_PURE_TEXT",
+     "F_ENDORSING",
+     "F_HAS_FWD_KEY"
+    ],
+    "subsetLinks": [
+     "5bc9075af64dbfa6"
+    ],
+    "pending": [],
+    "resolvedStrong": [
+     "pointer"
+    ],
+    "resolvedWeak": [],
+    "resolvedFlags": 277152000,
+    "resolvedFlagNames": [
+     "S_pointer",
+     "F_HAS_TEXT",
+     "F_PURE_TEXT",
+     "F_ENDORSING",
+     "F_HAS_FWD_KEY"
+    ],
+    "senderKey": "c9056a49e0d72912",
+    "store": true,
+    "endorsing": true,
+    "privileged": false
+   }
+  },
+  {
+   "id": "not-priv-pinned-member",
+   "description": "被置頂的成員訊息 → ENDORSING，但不是 PRIV",
+   "message": {
+    "id": 68,
+    "date": 1795000068,
+    "sender": {
+     "id": 7068,
+     "role": "member"
+    },
+    "text": "社團活動報名今天截止，有問題請私聊幹部",
+    "pinned": true
+   },
+   "expect": {
+    "fold": "社团活动报名今天截止,有问题请私聊干部",
+    "foldNoLinks": "社团活动报名今天截止,有问题请私聊干部",
+    "text": "社团活动报名今天截止有问题请私聊干部",
+    "cjk": "社团活动报名今天截止有问题请私聊干部",
+    "wlen": 36,
+    "cjkCount": 18,
+    "otherLetterCount": 0,
+    "paragraphs": [
+     "社团活动报名今天截止有问题请私聊干部"
+    ],
+    "contentLines": [
+     "社团活动报名今天截止有问题请私聊干部"
+    ],
+    "blocks": [
+     "社团活动报名今天截止有问题请私聊干部"
+    ],
+    "links": [],
+    "strong": [
+     "pointer"
+    ],
+    "weak": [],
+    "mentionCount": 0,
+    "keys": [
+     {
+      "kind": "TEXT",
+      "tag": "text",
+      "payload": "社团活动报名今天截止有问题请私聊干部",
+      "hash": "1bb39bb3a7c565d6"
+     },
+     {
+      "kind": "CJK",
+      "tag": "cjk",
+      "payload": "社团活动报名今天截止有问题请私聊干部",
+      "hash": "fa9f956ae18146d7"
+     },
+     {
+      "kind": "TMPL",
+      "tag": "tmpl",
+      "payload": "社团活动报名今天截止有问题请私聊干部\u001e",
+      "hash": "948431040bc1b2f3"
+     },
+     {
+      "kind": "PARA",
+      "tag": "para",
+      "payload": "社团活动报名今天截止有问题请私聊干部",
+      "hash": "70db94f50034e8df"
+     },
+     {
+      "kind": "VAR",
+      "tag": "var",
+      "payload": "社团活动报名今天截止有问题请私聊干部",
+      "hash": "1f76d849c977c856"
+     }
+    ],
+    "flags": 8716544,
+    "flagNames": [
+     "S_pointer",
+     "F_HAS_TEXT",
+     "F_PURE_TEXT",
+     "F_ENDORSING"
+    ],
+    "subsetLinks": [
+     "5bc9075af64dbfa6"
+    ],
+    "pending": [],
+    "resolvedStrong": [
+     "pointer"
+    ],
+    "resolvedWeak": [],
+    "resolvedFlags": 8716544,
+    "resolvedFlagNames": [
+     "S_pointer",
+     "F_HAS_TEXT",
+     "F_PURE_TEXT",
+     "F_ENDORSING"
+    ],
+    "senderKey": "2e8e15e6af97f5d4",
+    "store": true,
+    "endorsing": true,
+    "privileged": false
+   }
+  },
+  {
+   "id": "not-priv-self",
+   "description": "自己（self）→ ENDORSING，永遠不是 PRIV（自己永遠不收）",
+   "message": {
+    "id": 69,
+    "date": 1795000069,
+    "sender": {
+     "id": 7069,
+     "role": "self"
+    },
+    "text": "社團活動報名今天截止，有問題請私聊幹部"
+   },
+   "expect": {
+    "fold": "社团活动报名今天截止,有问题请私聊干部",
+    "foldNoLinks": "社团活动报名今天截止,有问题请私聊干部",
+    "text": "社团活动报名今天截止有问题请私聊干部",
+    "cjk": "社团活动报名今天截止有问题请私聊干部",
+    "wlen": 36,
+    "cjkCount": 18,
+    "otherLetterCount": 0,
+    "paragraphs": [
+     "社团活动报名今天截止有问题请私聊干部"
+    ],
+    "contentLines": [
+     "社团活动报名今天截止有问题请私聊干部"
+    ],
+    "blocks": [
+     "社团活动报名今天截止有问题请私聊干部"
+    ],
+    "links": [],
+    "strong": [
+     "pointer"
+    ],
+    "weak": [],
+    "mentionCount": 0,
+    "keys": [
+     {
+      "kind": "TEXT",
+      "tag": "text",
+      "payload": "社团活动报名今天截止有问题请私聊干部",
+      "hash": "1bb39bb3a7c565d6"
+     },
+     {
+      "kind": "CJK",
+      "tag": "cjk",
+      "payload": "社团活动报名今天截止有问题请私聊干部",
+      "hash": "fa9f956ae18146d7"
+     },
+     {
+      "kind": "TMPL",
+      "tag": "tmpl",
+      "payload": "社团活动报名今天截止有问题请私聊干部\u001e",
+      "hash": "948431040bc1b2f3"
+     },
+     {
+      "kind": "PARA",
+      "tag": "para",
+      "payload": "社团活动报名今天截止有问题请私聊干部",
+      "hash": "70db94f50034e8df"
+     },
+     {
+      "kind": "VAR",
+      "tag": "var",
+      "payload": "社团活动报名今天截止有问题请私聊干部",
+      "hash": "1f76d849c977c856"
+     }
+    ],
+    "flags": 75825408,
+    "flagNames": [
+     "S_pointer",
+     "F_HAS_TEXT",
+     "F_PURE_TEXT",
+     "F_ENDORSING",
+     "F_SELF"
+    ],
+    "subsetLinks": [
+     "5bc9075af64dbfa6"
+    ],
+    "pending": [],
+    "resolvedStrong": [
+     "pointer"
+    ],
+    "resolvedWeak": [],
+    "resolvedFlags": 75825408,
+    "resolvedFlagNames": [
+     "S_pointer",
+     "F_HAS_TEXT",
+     "F_PURE_TEXT",
+     "F_ENDORSING",
+     "F_SELF"
+    ],
+    "senderKey": "e3e1151f1860eb95",
+    "store": true,
+    "endorsing": true,
+    "privileged": false
+   }
+  },
+  {
+   "id": "not-priv-admin-fwd-user",
+   "description": "管理員轉發使用者訊息 → 不背書、也不是 PRIV",
+   "message": {
+    "id": 70,
+    "date": 1795000070,
+    "sender": {
+     "id": 7070,
+     "role": "admin"
+    },
+    "text": "恭喜中獎請私聊客服領取獎金",
+    "forward": {
+     "fromKind": "user",
+     "fromId": 3899,
+     "date": 1794990000
+    }
+   },
+   "expect": {
+    "fold": "恭喜中奖请私聊客服领取奖金",
+    "foldNoLinks": "恭喜中奖请私聊客服领取奖金",
+    "text": "恭喜中奖请私聊客服领取奖金",
+    "cjk": "恭喜中奖请私聊客服领取奖金",
+    "wlen": 26,
+    "cjkCount": 13,
+    "otherLetterCount": 0,
+    "paragraphs": [],
+    "contentLines": [
+     "恭喜中奖请私聊客服领取奖金"
+    ],
+    "blocks": [
+     "恭喜中奖请私聊客服领取奖金"
+    ],
+    "links": [],
+    "strong": [
+     "pointer"
+    ],
+    "weak": [],
+    "mentionCount": 0,
+    "keys": [
+     {
+      "kind": "FWD",
+      "tag": "fwd",
+      "payload": "u|3899|1794990000|t:恭喜中奖请私聊客服领取奖金",
+      "hash": "4f384dad53426513"
+     },
+     {
+      "kind": "TEXT",
+      "tag": "text",
+      "payload": "恭喜中奖请私聊客服领取奖金",
+      "hash": "64ae808d612a3437"
+     },
+     {
+      "kind": "CJK",
+      "tag": "cjk",
+      "payload": "恭喜中奖请私聊客服领取奖金",
+      "hash": "82af4aa0a41f2446"
+     },
+     {
+      "kind": "TMPL",
+      "tag": "tmpl",
+      "payload": "恭喜中奖请私聊客服领取奖金\u001e",
+      "hash": "a0c87ae192702dbe"
+     },
+     {
+      "kind": "VAR",
+      "tag": "var",
+      "payload": "恭喜中奖请私聊客服领取奖金",
+      "hash": "4cdb1c3b95b78426"
+     }
+    ],
+    "flags": 268763392,
+    "flagNames": [
+     "S_pointer",
+     "F_HAS_TEXT",
+     "F_PURE_TEXT",
+     "F_HAS_FWD_KEY"
+    ],
+    "subsetLinks": [
+     "5bc9075af64dbfa6"
+    ],
+    "pending": [],
+    "resolvedStrong": [
+     "pointer"
+    ],
+    "resolvedWeak": [],
+    "resolvedFlags": 268763392,
+    "resolvedFlagNames": [
+     "S_pointer",
+     "F_HAS_TEXT",
+     "F_PURE_TEXT",
+     "F_HAS_FWD_KEY"
+    ],
+    "senderKey": "2cfddd24ec53952f",
+    "store": true,
+    "endorsing": false,
+    "privileged": false
+   }
+  },
+  {
+   "id": "priv-admin-pinned",
+   "description": "管理員自己的置頂訊息 → ENDORSING + PRIV（選項開時照常計數）",
+   "message": {
+    "id": 71,
+    "date": 1795000071,
+    "sender": {
+     "id": 7071,
+     "role": "creator"
+    },
+    "text": "本群合作推廣：雲端會員特價，有需要的私聊管理員",
+    "pinned": true
+   },
+   "expect": {
+    "fold": "本群合作推广:云端会员特价,有需要的私聊管理员",
+    "foldNoLinks": "本群合作推广:云端会员特价,有需要的私聊管理员",
+    "text": "本群合作推广云端会员特价有需要的私聊管理员",
+    "cjk": "本群合作推广云端会员特价有需要的私聊管理员",
+    "wlen": 42,
+    "cjkCount": 21,
+    "otherLetterCount": 0,
+    "paragraphs": [
+     "本群合作推广云端会员特价有需要的私聊管理员"
+    ],
+    "contentLines": [
+     "本群合作推广云端会员特价有需要的私聊管理员"
+    ],
+    "blocks": [
+     "本群合作推广云端会员特价有需要的私聊管理员"
+    ],
+    "links": [],
+    "strong": [
+     "pointer"
+    ],
+    "weak": [],
+    "mentionCount": 0,
+    "keys": [
+     {
+      "kind": "TEXT",
+      "tag": "text",
+      "payload": "本群合作推广云端会员特价有需要的私聊管理员",
+      "hash": "e82505d7ab13b663"
+     },
+     {
+      "kind": "CJK",
+      "tag": "cjk",
+      "payload": "本群合作推广云端会员特价有需要的私聊管理员",
+      "hash": "e7c15e84446c47ab"
+     },
+     {
+      "kind": "TMPL",
+      "tag": "tmpl",
+      "payload": "本群合作推广云端会员特价有需要的私聊管理员\u001e",
+      "hash": "81d3b7a6d2e82f14"
+     },
+     {
+      "kind": "PARA",
+      "tag": "para",
+      "payload": "本群合作推广云端会员特价有需要的私聊管理员",
+      "hash": "365b3a84405ced89"
+     },
+     {
+      "kind": "VAR",
+      "tag": "var",
+      "payload": "本群合作推广云端会员特价有需要的私聊管理员",
+      "hash": "33a98f80a896caf6"
+     }
+    ],
+    "flags": 8749312,
+    "flagNames": [
+     "S_pointer",
+     "F_PRIV",
+     "F_HAS_TEXT",
+     "F_PURE_TEXT",
+     "F_ENDORSING"
+    ],
+    "subsetLinks": [
+     "5bc9075af64dbfa6"
+    ],
+    "pending": [],
+    "resolvedStrong": [
+     "pointer"
+    ],
+    "resolvedWeak": [],
+    "resolvedFlags": 8749312,
+    "resolvedFlagNames": [
+     "S_pointer",
+     "F_PRIV",
+     "F_HAS_TEXT",
+     "F_PURE_TEXT",
+     "F_ENDORSING"
+    ],
+    "senderKey": "9319f961dde50405",
+    "store": true,
+    "endorsing": true,
+    "privileged": true
+   }
+  },
+  {
+   "id": "var-kinds",
+   "description": "VAR 家族三種：全文 VAR；去掉短行（4×D ≤ K）VARS；去掉中等長度的行（2×D ≤ K < 4×D）VARL；去掉長行不產生",
+   "message": {
+    "id": 72,
+    "date": 1795000072,
+    "sender": {
+     "id": 7072,
+     "role": "member"
+    },
+    "text": "今日特價\n雲端會員年卡限時特價全網最低價格\n季卡月卡全部現貨下單後立即開通\n有需要的私聊我"
+   },
+   "expect": {
+    "fold": "今日特价\n云端会员年卡限时特价全网最低价格\n季卡月卡全部现货下单后立即开通\n有需要的私聊我",
+    "foldNoLinks": "今日特价\n云端会员年卡限时特价全网最低价格\n季卡月卡全部现货下单后立即开通\n有需要的私聊我",
+    "text": "今日特价云端会员年卡限时特价全网最低价格季卡月卡全部现货下单后立即开通有需要的私聊我",
+    "cjk": "今日特价云端会员年卡限时特价全网最低价格季卡月卡全部现货下单后立即开通有需要的私聊我",
+    "wlen": 84,
+    "cjkCount": 42,
+    "otherLetterCount": 0,
+    "paragraphs": [
+     "云端会员年卡限时特价全网最低价格"
+    ],
+    "contentLines": [
+     "今日特价",
+     "云端会员年卡限时特价全网最低价格",
+     "季卡月卡全部现货下单后立即开通",
+     "有需要的私聊我"
+    ],
+    "blocks": [
+     "今日特价云端会员年卡限时特价全网最低价格季卡月卡全部现货下单后立即开通有需要的私聊我"
+    ],
+    "links": [],
+    "strong": [
+     "pointer"
+    ],
+    "weak": [],
+    "mentionCount": 0,
+    "keys": [
+     {
+      "kind": "TEXT",
+      "tag": "text",
+      "payload": "今日特价云端会员年卡限时特价全网最低价格季卡月卡全部现货下单后立即开通有需要的私聊我",
+      "hash": "0531499d5512d167"
+     },
+     {
+      "kind": "CJK",
+      "tag": "cjk",
+      "payload": "今日特价云端会员年卡限时特价全网最低价格季卡月卡全部现货下单后立即开通有需要的私聊我",
+      "hash": "65eb8232b472a4bc"
+     },
+     {
+      "kind": "TMPL",
+      "tag": "tmpl",
+      "payload": "今日特价云端会员年卡限时特价全网最低价格季卡月卡全部现货下单后立即开通有需要的私聊我\u001e",
+      "hash": "403552940c00d134"
+     },
+     {
+      "kind": "PARA",
+      "tag": "para",
+      "payload": "云端会员年卡限时特价全网最低价格",
+      "hash": "dfc8f09cd3c1eac1"
+     },
+     {
+      "kind": "VAR",
+      "tag": "var",
+      "payload": "今日特价云端会员年卡限时特价全网最低价格季卡月卡全部现货下单后立即开通有需要的私聊我",
+      "hash": "e9784c537949a1b1"
+     },
+     {
+      "kind": "VARS",
+      "tag": "var",
+      "payload": "云端会员年卡限时特价全网最低价格季卡月卡全部现货下单后立即开通有需要的私聊我",
+      "hash": "2e07914246f6a3bb"
+     },
+     {
+      "kind": "VARS",
+      "tag": "var",
+      "payload": "今日特价云端会员年卡限时特价全网最低价格季卡月卡全部现货下单后立即开通",
+      "hash": "7d4b38ed18468711"
+     },
+     {
+      "kind": "VARL",
+      "tag": "var",
+      "payload": "云端会员年卡限时特价全网最低价格季卡月卡全部现货下单后立即开通",
+      "hash": "f8629fedebaad2ea"
+     }
+    ],
+    "flags": 327936,
+    "flagNames": [
+     "S_pointer",
+     "F_HAS_TEXT",
+     "F_PURE_TEXT"
+    ],
+    "subsetLinks": [
+     "5bc9075af64dbfa6"
+    ],
+    "pending": [],
+    "resolvedStrong": [
+     "pointer"
+    ],
+    "resolvedWeak": [],
+    "resolvedFlags": 327936,
+    "resolvedFlagNames": [
+     "S_pointer",
+     "F_HAS_TEXT",
+     "F_PURE_TEXT"
+    ],
+    "senderKey": "17f1ced528aa2a3e",
+    "store": true,
+    "endorsing": false,
+    "privileged": false
+   }
+  },
+  {
+   "id": "crlf-and-separators",
+   "description": "CR LF 在 fold 前先變成 LF；U+2028 與單獨的 CR 是換行；只有空白、只有 emoji 的行都是區塊分隔",
+   "message": {
+    "id": 73,
+    "date": 1795000073,
+    "sender": {
+     "id": 7073,
+     "role": "member"
+    },
+    "text": "雲端會員限時調價\r\n企業採購請私聊\r\n\r\n雲端硬碟會員年卡 季卡特價月卡特價\n \t\n影音會員五件起特價\r十件起特價\n🔥🔥\n翻譯點數一百點三十元"
+   },
+   "expect": {
+    "fold": "云端会员限时调价\n企业采购请私聊\n\n云端硬碟会员年卡\n季卡特价月卡特价\n  \n影音会员五件起特价\n十件起特价\n🔥🔥\n翻译点数一百点三十元",
+    "foldNoLinks": "云端会员限时调价\n企业采购请私聊\n\n云端硬碟会员年卡\n季卡特价月卡特价\n  \n影音会员五件起特价\n十件起特价\n🔥🔥\n翻译点数一百点三十元",
+    "text": "云端会员限时调价企业采购请私聊云端硬碟会员年卡季卡特价月卡特价影音会员五件起特价十件起特价翻译点数一百点三十元",
+    "cjk": "云端会员限时调价企业采购请私聊云端硬碟会员年卡季卡特价月卡特价影音会员五件起特价十件起特价翻译点数一百点三十元",
+    "wlen": 110,
+    "cjkCount": 55,
+    "otherLetterCount": 0,
+    "paragraphs": [],
+    "contentLines": [
+     "云端会员限时调价",
+     "企业采购请私聊",
+     "云端硬碟会员年卡",
+     "季卡特价月卡特价",
+     "影音会员五件起特价",
+     "十件起特价",
+     "翻译点数一百点三十元"
+    ],
+    "blocks": [
+     "云端会员限时调价企业采购请私聊",
+     "云端硬碟会员年卡季卡特价月卡特价",
+     "影音会员五件起特价十件起特价",
+     "翻译点数一百点三十元"
+    ],
+    "links": [],
+    "strong": [
+     "pointer"
+    ],
+    "weak": [],
+    "mentionCount": 0,
+    "keys": [
+     {
+      "kind": "TEXT",
+      "tag": "text",
+      "payload": "云端会员限时调价企业采购请私聊云端硬碟会员年卡季卡特价月卡特价影音会员五件起特价十件起特价翻译点数一百点三十元",
+      "hash": "0ca2e6ce7ee8baae"
+     },
+     {
+      "kind": "CJK",
+      "tag": "cjk",
+      "payload": "云端会员限时调价企业采购请私聊云端硬碟会员年卡季卡特价月卡特价影音会员五件起特价十件起特价翻译点数一百点三十元",
+      "hash": "53eebfd3815b48c7"
+     },
+     {
+      "kind": "TMPL",
+      "tag": "tmpl",
+      "payload": "云端会员限时调价企业采购请私聊云端硬碟会员年卡季卡特价月卡特价影音会员五件起特价十件起特价翻译点数一百点三十元\u001e",
+      "hash": "5d00c97d56021cfa"
+     },
+     {
+      "kind": "VAR",
+      "tag": "var",
+      "payload": "云端会员限时调价企业采购请私聊云端硬碟会员年卡季卡特价月卡特价影音会员五件起特价十件起特价翻译点数一百点三十元",
+      "hash": "b8224c2dc57a1d7c"
+     },
+     {
+      "kind": "VARS",
+      "tag": "var",
+      "payload": "企业采购请私聊云端硬碟会员年卡季卡特价月卡特价影音会员五件起特价十件起特价翻译点数一百点三十元",
+      "hash": "6e99bebc156b45a2"
+     },
+     {
+      "kind": "VARS",
+      "tag": "var",
+      "payload": "云端会员限时调价云端硬碟会员年卡季卡特价月卡特价影音会员五件起特价十件起特价翻译点数一百点三十元",
+      "hash": "471d2dca868eb072"
+     },
+     {
+      "kind": "VARS",
+      "tag": "var",
+      "payload": "云端会员限时调价企业采购请私聊季卡特价月卡特价影音会员五件起特价十件起特价翻译点数一百点三十元",
+      "hash": "6dd4a62295bb9e5c"
+     },
+     {
+      "kind": "VARS",
+      "tag": "var",
+      "payload": "云端会员限时调价企业采购请私聊云端硬碟会员年卡影音会员五件起特价十件起特价翻译点数一百点三十元",
+      "hash": "62c5886a7d0e8f0d"
+     },
+     {
+      "kind": "VARS",
+      "tag": "var",
+      "payload": "云端会员限时调价企业采购请私聊云端硬碟会员年卡季卡特价月卡特价十件起特价翻译点数一百点三十元",
+      "hash": "ec9a81bb25efb5b6"
+     },
+     {
+      "kind": "VARS",
+      "tag": "var",
+      "payload": "云端会员限时调价企业采购请私聊云端硬碟会员年卡季卡特价月卡特价影音会员五件起特价翻译点数一百点三十元",
+      "hash": "724502a90b0831dc"
+     },
+     {
+      "kind": "VARS",
+      "tag": "var",
+      "payload": "云端会员限时调价企业采购请私聊云端硬碟会员年卡季卡特价月卡特价影音会员五件起特价十件起特价",
+      "hash": "1aff8ed32f0d470c"
+     },
+     {
+      "kind": "VARL",
+      "tag": "var",
+      "payload": "企业采购请私聊云端硬碟会员年卡季卡特价月卡特价影音会员五件起特价十件起特价",
+      "hash": "9c804dcba0a993f7"
+     },
+     {
+      "kind": "BLOCK",
+      "tag": "block",
+      "payload": "云端会员限时调价企业采购请私聊",
+      "hash": "64c7a9ab9c668d80"
+     },
+     {
+      "kind": "BLOCK",
+      "tag": "block",
+      "payload": "云端硬碟会员年卡季卡特价月卡特价",
+      "hash": "40d99d7c8bb4addf"
+     },
+     {
+      "kind": "BLOCK",
+      "tag": "block",
+      "payload": "影音会员五件起特价十件起特价",
+      "hash": "55969a85d26b9a1f"
+     },
+     {
+      "kind": "BLOCK",
+      "tag": "block",
+      "payload": "翻译点数一百点三十元",
+      "hash": "ec4a67bcc2e2d9bd"
+     }
+    ],
+    "flags": 327936,
+    "flagNames": [
+     "S_pointer",
+     "F_HAS_TEXT",
+     "F_PURE_TEXT"
+    ],
+    "subsetLinks": [
+     "5bc9075af64dbfa6"
+    ],
+    "pending": [],
+    "resolvedStrong": [
+     "pointer"
+    ],
+    "resolvedWeak": [],
+    "resolvedFlags": 327936,
+    "resolvedFlagNames": [
+     "S_pointer",
+     "F_HAS_TEXT",
+     "F_PURE_TEXT"
+    ],
+    "senderKey": "b377689c853bfca7",
+    "store": true,
+    "endorsing": false,
+    "privileged": false
+   }
+  },
+  {
+   "id": "priv-pinned-only-token",
+   "description": "特權作者：只因置頂訊息而可信的帳號（本來是待定 handle）→ F_PRIV_STRONG；群簡介裡的邀請連結不算",
+   "message": {
+    "id": 74,
+    "date": 1795000074,
+    "sender": {
+     "id": 7074,
+     "role": "admin"
+    },
+    "text": "有問題找 @lumina_helpdesk 或加入 t.me/+GroupInvite01"
+   },
+   "expect": {
+    "fold": "有问题找 @lumina_helpdesk 或加入 t.me/+groupinvite01",
+    "foldNoLinks": "有问题找   或加入  ",
+    "text": "有问题找或加入",
+    "cjk": "有问题找或加入",
+    "wlen": 14,
+    "cjkCount": 7,
+    "otherLetterCount": 0,
+    "paragraphs": [],
+    "contentLines": [
+     "有问题找或加入"
+    ],
+    "blocks": [
+     "有问题找或加入"
+    ],
+    "links": [
+     {
+      "token": "invite:groupinvite01",
+      "type": "INVITE",
+      "kind": "invite",
+      "source": "text",
+      "feature": "none",
+      "hash": "8b4639b7d6254032"
+     },
+     {
+      "token": "@lumina_helpdesk",
+      "type": "HANDLE",
+      "kind": "handle",
+      "source": "text",
+      "feature": "none",
+      "hash": "7f360187161e10d8"
+     }
+    ],
+    "strong": [],
+    "weak": [],
+    "mentionCount": 1,
+    "keys": [
+     {
+      "kind": "TEXT",
+      "tag": "text",
+      "payload": "有问题找或加入",
+      "hash": "7c055ccbfd0e9642"
+     }
+    ],
+    "flags": 8487424,
+    "flagNames": [
+     "F_PRIV_STRONG",
+     "F_PRIV",
+     "F_HAS_TEXT",
+     "F_ENDORSING"
+    ],
+    "subsetLinks": [],
+    "pending": [],
+    "resolvedStrong": [],
+    "resolvedWeak": [],
+    "resolvedFlags": 8487424,
+    "resolvedFlagNames": [
+     "F_PRIV_STRONG",
+     "F_PRIV",
+     "F_HAS_TEXT",
+     "F_ENDORSING"
+    ],
+    "senderKey": "c6176a5c102be86c",
+    "store": true,
+    "endorsing": true,
+    "privileged": true
+   }
+  },
+  {
+   "id": "priv-admin-fwd-linked",
+   "description": "管理員轉發本群連結頻道的貼文 → 作者（senderKey）＝連結頻道；頻道貼文降級的帳號 → F_PRIV_STRONG",
+   "message": {
+    "id": 75,
+    "date": 1795000075,
+    "sender": {
+     "id": 7075,
+     "role": "admin"
+    },
+    "text": "頻道公告：雲端會員限時特價中，詳情洽 @cloud_demo_seller",
+    "forward": {
+     "fromKind": "channel",
+     "fromId": -1009876543210,
+     "postId": 79,
+     "username": "luminatest_ch",
+     "date": 1795000000
+    }
+   },
+   "expect": {
+    "fold": "频道公告:云端会员限时特价中,详情洽 @cloud_demo_seller",
+    "foldNoLinks": "频道公告:云端会员限时特价中,详情洽  ",
+    "text": "频道公告云端会员限时特价中详情洽",
+    "cjk": "频道公告云端会员限时特价中详情洽",
+    "wlen": 32,
+    "cjkCount": 16,
+    "otherLetterCount": 0,
+    "paragraphs": [
+     "频道公告云端会员限时特价中详情洽"
+    ],
+    "contentLines": [
+     "频道公告云端会员限时特价中详情洽"
+    ],
+    "blocks": [
+     "频道公告云端会员限时特价中详情洽"
+    ],
+    "links": [
+     {
+      "token": "@cloud_demo_seller",
+      "type": "HANDLE",
+      "kind": "handle",
+      "source": "text",
+      "feature": "weak",
+      "hash": "bfa53811bccc7f1d"
+     }
+    ],
+    "strong": [],
+    "weak": [
+     "url"
+    ],
+    "mentionCount": 1,
+    "keys": [
+     {
+      "kind": "FWD",
+      "tag": "fwd",
+      "payload": "c|-1009876543210|79",
+      "hash": "33b71836183e81b0"
+     },
+     {
+      "kind": "TEXT",
+      "tag": "text",
+      "payload": "频道公告云端会员限时特价中详情洽",
+      "hash": "ee3f71aceeb8312c"
+     },
+     {
+      "kind": "CJK",
+      "tag": "cjk",
+      "payload": "频道公告云端会员限时特价中详情洽",
+      "hash": "cc61674207668629"
+     },
+     {
+      "kind": "PARA",
+      "tag": "para",
+      "payload": "频道公告云端会员限时特价中详情洽",
+      "hash": "699fc976c7e16b7c"
+     },
+     {
+      "kind": "VAR",
+      "tag": "var",
+      "payload": "频道公告云端会员限时特价中详情洽",
+      "hash": "632d2eacdad8bc1a"
+     }
+    ],
+    "flags": 277186048,
+    "flagNames": [
+     "W_url",
+     "F_PRIV_STRONG",
+     "F_PRIV",
+     "F_HAS_TEXT",
+     "F_PURE_TEXT",
+     "F_ENDORSING",
+     "F_HAS_FWD_KEY"
+    ],
+    "subsetLinks": [
+     "bfa53811bccc7f1d"
+    ],
+    "pending": [],
+    "resolvedStrong": [],
+    "resolvedWeak": [
+     "url"
+    ],
+    "resolvedFlags": 277186048,
+    "resolvedFlagNames": [
+     "W_url",
+     "F_PRIV_STRONG",
+     "F_PRIV",
+     "F_HAS_TEXT",
+     "F_PURE_TEXT",
+     "F_ENDORSING",
+     "F_HAS_FWD_KEY"
+    ],
+    "senderKey": "324d84c068f4b305",
+    "store": true,
+    "endorsing": true,
+    "privileged": true
+   }
+  },
+  {
+   "id": "self-as-channel",
+   "description": "我自己以連結頻道身分發言：角色 self 優先 → ENDORSING、不是 PRIV（自己永遠不收）",
+   "message": {
+    "id": 76,
+    "date": 1795000076,
+    "sender": {
+     "id": -1009876543210,
+     "role": "self"
+    },
+    "text": "頻道公告：雲端會員限時特價中，有需要的私聊客服"
+   },
+   "expect": {
+    "fold": "频道公告:云端会员限时特价中,有需要的私聊客服",
+    "foldNoLinks": "频道公告:云端会员限时特价中,有需要的私聊客服",
+    "text": "频道公告云端会员限时特价中有需要的私聊客服",
+    "cjk": "频道公告云端会员限时特价中有需要的私聊客服",
+    "wlen": 42,
+    "cjkCount": 21,
+    "otherLetterCount": 0,
+    "paragraphs": [
+     "频道公告云端会员限时特价中有需要的私聊客服"
+    ],
+    "contentLines": [
+     "频道公告云端会员限时特价中有需要的私聊客服"
+    ],
+    "blocks": [
+     "频道公告云端会员限时特价中有需要的私聊客服"
+    ],
+    "links": [],
+    "strong": [
+     "pointer"
+    ],
+    "weak": [],
+    "mentionCount": 0,
+    "keys": [
+     {
+      "kind": "TEXT",
+      "tag": "text",
+      "payload": "频道公告云端会员限时特价中有需要的私聊客服",
+      "hash": "1c270d2f55583f91"
+     },
+     {
+      "kind": "CJK",
+      "tag": "cjk",
+      "payload": "频道公告云端会员限时特价中有需要的私聊客服",
+      "hash": "adb48174c6a8b896"
+     },
+     {
+      "kind": "TMPL",
+      "tag": "tmpl",
+      "payload": "频道公告云端会员限时特价中有需要的私聊客服\u001e",
+      "hash": "8e81ff7e0d411774"
+     },
+     {
+      "kind": "PARA",
+      "tag": "para",
+      "payload": "频道公告云端会员限时特价中有需要的私聊客服",
+      "hash": "3ba3c7e61ea700df"
+     },
+     {
+      "kind": "VAR",
+      "tag": "var",
+      "payload": "频道公告云端会员限时特价中有需要的私聊客服",
+      "hash": "118e04c78470becc"
+     }
+    ],
+    "flags": 75825408,
+    "flagNames": [
+     "S_pointer",
+     "F_HAS_TEXT",
+     "F_PURE_TEXT",
+     "F_ENDORSING",
+     "F_SELF"
+    ],
+    "subsetLinks": [
+     "5bc9075af64dbfa6"
+    ],
+    "pending": [],
+    "resolvedStrong": [
+     "pointer"
+    ],
+    "resolvedWeak": [],
+    "resolvedFlags": 75825408,
+    "resolvedFlagNames": [
+     "S_pointer",
+     "F_HAS_TEXT",
+     "F_PURE_TEXT",
+     "F_ENDORSING",
+     "F_SELF"
+    ],
+    "senderKey": "324d84c068f4b305",
+    "store": true,
+    "endorsing": true,
+    "privileged": false
    }
   }
  ]

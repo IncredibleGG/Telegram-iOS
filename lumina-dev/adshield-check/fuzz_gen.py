@@ -204,13 +204,63 @@ def random_text(max_frags=8):
     if R.random() < 0.15:
         para = frag_cjk() + frag_cjk()
         s = para + "\n" + s + "\n" + para
+    if R.random() < 0.3:
+        s = multiline_text()
+    return crlf_variant(s)
+
+
+def multiline_text():
+    """v3: a price-list style text (short lines, blank / emoji / link-only separator lines) so content lines, the VAR
+    family and BLOCK keys get exercised."""
+    lines = []
+    for _ in range(R.randint(1, 45)):
+        k = R.random()
+        if k < 0.55:
+            lines.append(frag_cjk()[:R.randint(1, 20)] + R.choice(["", " " + rs(DIG, 1, 4) + "元", "：", " " + frag_number()]))
+        elif k < 0.7:
+            lines.append(R.choice(["", " ", "\t", "🔥🔥", "👉", "———", frag_url(), frag_tme(), frag_mention()]))
+        elif k < 0.8:
+            lines.append(R.choice(FRAGS)())
+        else:
+            lines.append(rs(LOW + " ", 1, 30))
+    return "\n".join(lines)
+
+
+def crlf_variant(s):
+    """v3 §2.1: the same text with CR LF / lone CR / U+2028 line breaks now and then."""
+    k = R.random()
+    if k < 0.1:
+        return s.replace("\n", "\r\n")
+    if k < 0.13:
+        return s.replace("\n", R.choice(["\r", "\r\r\n", "\u2028", "\n\r"]))
     return s
+
+
+def edit_variant(t):
+    """v3: a small edit of a template: add / remove / replace one line, add a short first line, or swap blocks."""
+    lines = t.split("\n")
+    k = R.random()
+    if k < 0.25:
+        lines.insert(0, R.choice(["丝滑提交：", "最新：", "更新", frag_cjk()[:6]]))
+        if R.random() < 0.5:
+            lines.insert(1, "")
+    elif k < 0.45 and len(lines) > 1:
+        del lines[R.randrange(len(lines))]
+    elif k < 0.65:
+        lines[R.randrange(len(lines))] = frag_cjk()[:R.randint(1, 16)]
+    elif k < 0.8:
+        lines.insert(R.randint(0, len(lines)), frag_cjk()[:R.randint(1, 12)])
+    else:
+        blocks = "\n".join(lines).split("\n\n")
+        R.shuffle(blocks)
+        return "\n\n".join(blocks)
+    return "\n".join(lines)
 
 
 def random_message(mid, date, sender=None):
     m = {"id": mid, "date": date}
     if sender is None:
-        sender = {"id": R.choice([7001, 7002, 7003, 0, -1001234567890, 8008]),
+        sender = {"id": R.choice([7001, 7002, 7003, 0, -1001234567890, -1009876543210, 8008]),
                   "role": R.choice(["member"] * 6 + ["admin", "creator", "anon_admin", "bot", "contact", "self", "channel"])}
         if R.random() < 0.6:
             sender["username"] = R.choice(["Spam_Bot1", "alice_member", "bob_member", "lumina_me", "deal_x88", "@Mixed_Case", "ab", name(2, 34)])
@@ -241,7 +291,7 @@ def random_message(mid, date, sender=None):
         fk = R.choice(["channel", "user", "hidden"])
         fwd = {"fromKind": fk, "date": R.choice([0, 1794000000, 1795000000])}
         if R.random() < 0.7:
-            fwd["fromId"] = R.choice([-1009876543210, -1001111, 7001, 0])
+            fwd["fromId"] = R.choice([-1009876543210, -1002000000002, -1001111, 7001, 0])
         if R.random() < 0.6:
             fwd["postId"] = R.choice([0, 1, 77])
         if R.random() < 0.5:
@@ -250,7 +300,7 @@ def random_message(mid, date, sender=None):
             fwd["username"] = R.choice(["luminatest_ch", "bigsale", "news_ch"])
         m["forward"] = fwd
     for f in ("viaBot", "replyToMe", "mentionsMe", "pinned", "autoForward"):
-        if R.random() < 0.05:
+        if R.random() < (0.12 if f in ("pinned", "autoForward") else 0.05):
             m[f] = True
     if R.random() < 0.15:
         m["replyTo"] = R.choice([1, 2, 99])
@@ -271,6 +321,7 @@ def fp_expect(fp, key):
         "resolvedStrong": fp.resolved_strong, "resolvedWeak": fp.resolved_weak,
         "resolvedFlags": fp.resolved_flags, "resolvedFlagNames": GV.flag_names(fp.resolved_flags),
         "senderKey": A.hex64(fp.sender_key), "store": fp.store, "endorsing": fp.endorsing,
+        "contentLines": fp.content_lines, "blocks": fp.blocks, "privileged": fp.privileged,
     }
 
 
@@ -287,7 +338,7 @@ def gen_fingerprints():
             fp = A.fingerprint(m, ctx, key, known_handles=set())
             cases.append({"id": "fz%d-%d" % (ci, i), "description": "fuzz", "message": m, "expect": fp_expect(fp, key)})
         with open(os.path.join(OUT, "fuzz_fingerprints_%d.json" % ci), "w", encoding="utf-8") as f:
-            json.dump({"tablesVersion": T.version, "algoVersion": 2, "key": key.hex(), "context": ctxd, "cases": cases},
+            json.dump({"tablesVersion": T.version, "algoVersion": A.ALGO_VERSION, "key": key.hex(), "context": ctxd, "cases": cases},
                       f, ensure_ascii=False)
 
 
@@ -309,13 +360,21 @@ def gen_scenarios():
         for k in ("exemptContacts", "exemptBots", "exemptReplies"):
             if R.random() < 0.15:
                 settings[k] = False
+        if R.random() < 0.5:
+            settings["foldPrivilegedRepeats"] = True
         # templates and senders shared inside the scenario so clusters form
         templates = [random_text(6) for _ in range(R.randint(2, 6))]
+        if R.random() < 0.5:
+            templates += [multiline_text() for _ in range(R.randint(1, 3))]
         focused = R.random() < 0.4
         pure = ["".join(R.choice(CJK_POOL) for _ in range(R.randint(12, 30))) for _ in range(R.randint(1, 3))]
         senders = []
         for i in range(R.randint(2, 7)):
-            s = {"id": 9000 + i, "role": R.choice(["member"] * 8 + ["admin", "bot", "contact", "self", "anon_admin"])}
+            s = {"id": 9000 + i, "role": R.choice(["member"] * 8 + ["admin", "bot", "contact", "self", "anon_admin", "creator", "channel"])}
+            if s["role"] == "channel":
+                s["id"] = R.choice([-1002000000002, -1004000000004])     # the linked channel, or another channel
+            elif s["role"] == "anon_admin":
+                s["id"] = ctxd["chatId"]
             if R.random() < 0.7:
                 s["username"] = R.choice(["deal_x88", "spam_bot1", "user_%d" % i, "me_demo_user", "lumina_me", "U_%d" % i])
             senders.append(s)
@@ -340,6 +399,13 @@ def gen_scenarios():
                 m = random_message(mid, date, R.choice(senders))
                 if R.random() < 0.75:
                     m["text"] = R.choice(templates) + R.choice(["", "", " " + frag_cjk(), " " + rs(DIG, 1, 3)])
+                    if R.random() < 0.35:
+                        m["text"] = crlf_variant(edit_variant(m["text"]))
+                if R.random() < 0.1 and ctxd["linkedChannel"]["id"]:
+                    m["forward"] = {"fromKind": "channel", "fromId": ctxd["linkedChannel"]["id"], "postId": R.choice([5, 6, 7]),
+                                    "username": "lumina_demo_ch", "date": 1794000000}
+                    if R.random() < 0.5:
+                        m["autoForward"] = True
                 if focused:
                     kind = R.random()
                     m.pop("entities", None)

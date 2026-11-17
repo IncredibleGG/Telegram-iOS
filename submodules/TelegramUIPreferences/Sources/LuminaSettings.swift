@@ -343,6 +343,10 @@ public struct LuminaSettings: Codable, Equatable {
     // adShieldDialogs: per-group override (true = on in this group, false = off in this group; absent =
     //   follow the global switch), keyed by PeerId.toInt64() like every other per-dialog list here.
     //   Cleared by "Clear Local Data".
+    // adShieldFoldPrivilegedDialogs: groups (PeerId.toInt64()) where 「連管理員和頻道的也收」 is on: repeats posted by
+    //   the same privileged sender (admin, creator, anonymous admin, the group's linked channel) fold like anyone
+    //   else's (engine Settings.foldPrivilegedRepeats, SPEC §6.12). Absent = off (default). Stored next to the per-group
+    //   mode and cleared together with it.
     public var adShieldEnabled: Bool
     public var adShieldSensitivity: String
     public var adShieldExemptContacts: Bool
@@ -351,6 +355,7 @@ public struct LuminaSettings: Codable, Equatable {
     public var adShieldDryRun: Bool
     public var adShieldExplainerShown: Bool
     public var adShieldDialogs: [DialogBoolValue]
+    public var adShieldFoldPrivilegedDialogs: [Int64]
 
     public static var defaultSettings: LuminaSettings {
         return LuminaSettings(
@@ -448,7 +453,8 @@ public struct LuminaSettings: Codable, Equatable {
             adShieldExemptReplies: true,
             adShieldDryRun: false,
             adShieldExplainerShown: false,
-            adShieldDialogs: []
+            adShieldDialogs: [],
+            adShieldFoldPrivilegedDialogs: []
         )
     }
 
@@ -547,7 +553,8 @@ public struct LuminaSettings: Codable, Equatable {
         adShieldExemptReplies: Bool = true,
         adShieldDryRun: Bool = false,
         adShieldExplainerShown: Bool = false,
-        adShieldDialogs: [DialogBoolValue] = []
+        adShieldDialogs: [DialogBoolValue] = [],
+        adShieldFoldPrivilegedDialogs: [Int64] = []
     ) {
         self.trMode = trMode
         self.trReadLang = trReadLang
@@ -644,6 +651,7 @@ public struct LuminaSettings: Codable, Equatable {
         self.adShieldDryRun = adShieldDryRun
         self.adShieldExplainerShown = adShieldExplainerShown
         self.adShieldDialogs = adShieldDialogs
+        self.adShieldFoldPrivilegedDialogs = adShieldFoldPrivilegedDialogs
     }
 
     public init(from decoder: Decoder) throws {
@@ -752,6 +760,7 @@ public struct LuminaSettings: Codable, Equatable {
         self.adShieldDryRun = try container.decodeIfPresent(Bool.self, forKey: "adShieldDryRun") ?? defaults.adShieldDryRun
         self.adShieldExplainerShown = try container.decodeIfPresent(Bool.self, forKey: "adShieldExplainerShown") ?? defaults.adShieldExplainerShown
         self.adShieldDialogs = try container.decodeIfPresent([DialogBoolValue].self, forKey: "adShieldDialogs") ?? defaults.adShieldDialogs
+        self.adShieldFoldPrivilegedDialogs = try container.decodeIfPresent([Int64].self, forKey: "adShieldFoldPrivilegedDialogs") ?? defaults.adShieldFoldPrivilegedDialogs
     }
 
     public func encode(to encoder: Encoder) throws {
@@ -859,6 +868,7 @@ public struct LuminaSettings: Codable, Equatable {
         try container.encode(self.adShieldDryRun, forKey: "adShieldDryRun")
         try container.encode(self.adShieldExplainerShown, forKey: "adShieldExplainerShown")
         try container.encode(self.adShieldDialogs, forKey: "adShieldDialogs")
+        try container.encode(self.adShieldFoldPrivilegedDialogs, forKey: "adShieldFoldPrivilegedDialogs")
     }
 }
 

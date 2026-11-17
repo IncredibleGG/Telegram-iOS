@@ -502,6 +502,8 @@ public enum LuminaL10n {
             "Off in This Group": "在此群关闭",
             "1 message folded in the last 7 days": "最近 7 天已收合 1 则",
             "%@ messages folded in the last 7 days": "最近 7 天已收合 %@ 则",
+            "Also fold admins and the group's channel": "连管理员和频道的也收",
+            "Repeats posted by the owner, admins or the group's channel itself also fold; announcements re-posted by members still don't.": "群主、管理员或群组频道自己重复发的也收合；成员转贴的公告仍不收。",
             // 隱藏重複廣告: chat list (fold row, expanded header, long-press menu, trial label, toast)
             "1 repeated message replying to you folded (suspected ad) · Tap to show": "已收合 1 则回复你的重复消息（疑似广告）· 点击显示",
             "%@ repeated messages replying to you folded (suspected ads) · Tap to show": "已收合 %@ 则回复你的重复消息（疑似广告）· 点击显示",
@@ -962,6 +964,8 @@ public enum LuminaL10n {
             "Off in This Group": "在此群關閉",
             "1 message folded in the last 7 days": "最近 7 天已收合 1 則",
             "%@ messages folded in the last 7 days": "最近 7 天已收合 %@ 則",
+            "Also fold admins and the group's channel": "連管理員和頻道的也收",
+            "Repeats posted by the owner, admins or the group's channel itself also fold; announcements re-posted by members still don't.": "群主、管理員或群組頻道自己重複發的也收合；成員轉貼的公告仍不收。",
             // 隱藏重複廣告: chat list (fold row, expanded header, long-press menu, trial label, toast)
             "1 repeated message replying to you folded (suspected ad) · Tap to show": "已收合 1 則回覆你的重複訊息（疑似廣告）· 點擊顯示",
             "%@ repeated messages replying to you folded (suspected ads) · Tap to show": "已收合 %@ 則回覆你的重複訊息（疑似廣告）· 點擊顯示",

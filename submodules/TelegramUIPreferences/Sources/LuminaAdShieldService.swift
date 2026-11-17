@@ -7,7 +7,8 @@ import SwiftSignalKit
 // LuminaAdShield.swift / LuminaAdShieldStore.swift / LuminaAdShieldAccount.swift (SPEC §8.4, §9).
 //
 // What lives here (no Postbox, no UI):
-//  - per-group mode helpers on LuminaSettings (`adShieldDialogs`, Postbox raw peer id keys);
+//  - per-group mode helpers on LuminaSettings (`adShieldDialogs`, Postbox raw peer id keys) and the per-group
+//    「連管理員和頻道的也收」 switch (`adShieldFoldPrivilegedDialogs`, engine Settings.foldPrivilegedRepeats);
 //  - `LuminaAdShieldService`: the process-wide owner of the AdShield queue, the install key (Keychain,
 //    AfterFirstUnlockThisDeviceOnly), one `AccountStore` per logged-in account while the feature is effectively
 //    on, the 5 s per-chat debounced flush, flush on background / terminate, purgeOrphans at startup, the 10 MiB
@@ -70,14 +71,39 @@ public extension LuminaSettings {
         return LuminaAdShield.Sensitivity(rawValue: self.adShieldSensitivity) ?? .standard
     }
 
-    var luminaAdShieldEngineSettings: LuminaAdShield.Settings {
+    /// The engine settings of the group `peerId`: the global ones plus the group's own 「連管理員和頻道的也收」.
+    func luminaAdShieldEngineSettings(peerId: Int64) -> LuminaAdShield.Settings {
         return LuminaAdShield.Settings(
             sensitivity: self.luminaAdShieldSensitivity,
             exemptContacts: self.adShieldExemptContacts,
             exemptBots: self.adShieldExemptBots,
             exemptReplies: self.adShieldExemptReplies,
-            dryRun: self.adShieldDryRun
+            dryRun: self.adShieldDryRun,
+            foldPrivilegedRepeats: self.luminaAdShieldFoldPrivileged(peerId: peerId)
         )
+    }
+
+    /// 「連管理員和頻道的也收」 is on in the group `peerId` (default off). Only takes effect while the group is on.
+    func luminaAdShieldFoldPrivileged(peerId: Int64) -> Bool {
+        return self.adShieldFoldPrivilegedDialogs.contains(peerId)
+    }
+
+    /// A copy with 「連管理員和頻道的也收」 of `peerId` set (off removes the entry).
+    func withLuminaAdShieldFoldPrivileged(_ on: Bool, peerId: Int64) -> LuminaSettings {
+        var result = self
+        result.adShieldFoldPrivilegedDialogs.removeAll(where: { $0 == peerId })
+        if on {
+            result.adShieldFoldPrivilegedDialogs.append(peerId)
+        }
+        return result
+    }
+
+    /// A copy without any per-group setting (the modes and 「連管理員和頻道的也收」): 清除本機資料 and the emergency wipe.
+    func withoutLuminaAdShieldGroupSettings() -> LuminaSettings {
+        var result = self
+        result.adShieldDialogs = []
+        result.adShieldFoldPrivilegedDialogs = []
+        return result
     }
 
     /// A copy with the per-group mode of `peerId` replaced.
@@ -589,8 +615,9 @@ public final class LuminaAdShieldService {
     }
 
     /// 清除本機資料: ForgetAll (whole AdShield directory) for every logged-in account, image tables included; open
-    /// chats start over. The caller clears the per-group modes in LuminaSettings. If the feature stays on, new
-    /// stores are created (a forgotten AccountStore refuses writes for good).
+    /// chats start over. The caller clears the per-group settings in LuminaSettings (modes and 「連管理員和頻道的也收」,
+    /// `withoutLuminaAdShieldGroupSettings`). If the feature stays on, new stores are created (a forgotten AccountStore
+    /// refuses writes for good).
     public func clearAllLocalData() {
         self.queue.async { [weak self] in
             self?.qWipeAll(reactivate: true)
@@ -602,8 +629,9 @@ public final class LuminaAdShieldService {
     }
 
     /// Emergency wipe entry point for a future iOS panic wipe (iOS has none yet): wipeRoot of every account's
-    /// AdShield directory (orphans and image tables included) and the per-group modes in LuminaSettings. Open chats
-    /// start over; if the global switch is still on, the next batch creates fresh stores.
+    /// AdShield directory (orphans and image tables included) and the per-group settings in LuminaSettings (modes and
+    /// 「連管理員和頻道的也收」). Open chats start over; if the global switch is still on, the next batch creates fresh
+    /// stores.
     public func panicWipe(accountManager: AccountManager<TelegramAccountManagerTypes>) {
         self.queue.async { [weak self] in
             self?.qWipeAll(reactivate: false)
@@ -613,9 +641,7 @@ public final class LuminaAdShieldService {
             session.resetAfterDataCleared()
         }
         let _ = updateLuminaSettingsInteractively(accountManager: accountManager, { settings in
-            var settings = settings
-            settings.adShieldDialogs = []
-            return settings
+            return settings.withoutLuminaAdShieldGroupSettings()
         }).start()
     }
 
@@ -647,12 +673,13 @@ public final class LuminaAdShieldService {
 
     /// 「最近 7 天已收合 N 則」: units of the chat the engine folds whose message date is within 7 days. 0 when the chat
     /// was not opened with the feature on in this run, when nothing is stored, or in trial run. Call on the main
-    /// thread; the count is computed on the AdShield queue (cached per store version, settings and hour).
-    public func foldedCountLast7Days(basePath: String, chatId: Int64) -> Signal<Int, NoError> {
+    /// thread; the count is computed on the AdShield queue (cached per store version, settings and hour). `peerId` is
+    /// the group's Postbox raw peer id (its own settings, e.g. 「連管理員和頻道的也收」).
+    public func foldedCountLast7Days(basePath: String, chatId: Int64, peerId: Int64) -> Signal<Int, NoError> {
         guard let settings = self.settings, settings.luminaAdShieldAnyOn, !settings.adShieldDryRun else {
             return .single(0)
         }
-        let engineSettings = settings.luminaAdShieldEngineSettings
+        let engineSettings = settings.luminaAdShieldEngineSettings(peerId: peerId)
         return Signal { [weak self] subscriber in
             guard let self else {
                 subscriber.putNext(0)
@@ -1531,7 +1558,7 @@ public final class LuminaAdShieldChatSession {
             basePath: self.basePath,
             chatId: self.chatId,
             context: context,
-            settings: settings.luminaAdShieldEngineSettings,
+            settings: settings.luminaAdShieldEngineSettings(peerId: self.peerId),
             prepare: prepare,
             deletes: deletes,
             notAd: notAd,
