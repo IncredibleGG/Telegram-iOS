@@ -165,7 +165,7 @@ struct ServiceCheck {
             session.setActive(true, trialRun: false)
 
             // not an ad
-            session.markNotAd(12, segmentIds: [11, 12])
+            session.markNotAd([12], segmentIds: [11, 12])
             T.check(waitUntil { session.decision(12)?.state == .notAd }, "not ad: cluster unfolds (\(String(describing: session.decision(12)?.state)))")
             T.check(session.decision(11)?.fold == false, "not ad: whole cluster")
 
@@ -283,6 +283,55 @@ struct ServiceCheck {
             s3.noteDisplayed([101])
             s3.setActive(true, trialRun: false)
             T.check(!s3.isFoldCandidate(101) && s3.isFoldCandidate(102), "trial: a labelled message seen on screen stays unfolded after the trial")
+        }
+
+        // ---- 2c. 「不是廣告」 on one segment of two different ads records both; remembered contexts are bounded ----
+        do {
+            // Its own account directory, so that the many chats below leave the later checks' directory alone.
+            let accountDir = tmp + "/account-3"
+            try! FileManager.default.createDirectory(atPath: accountDir, withIntermediateDirectories: true)
+            let chatId3: Int64 = -1005550002
+            let service = makeService()
+            service.settingsLoaded(settings(global: true))
+            service.updateAccounts([accountDir: userId])
+            func post(_ id: Int32, sender: Int64, date: Int64, _ text: String) -> LuminaAdShieldObserveItem {
+                return LuminaAdShieldObserveItem(input: LuminaAdShield.MessageInput(id: id, date: date, sender: LuminaAdShield.Sender(id: sender, username: "user_\(sender)"), text: text))
+            }
+            let textA = "私聊我領取高額返利 t.me/+VipRoomX 名額有限"
+            let textB = "專業代刷流水 日結高薪 立即聯繫 t.me/FastPayDesk 馬上上車"
+            let ctx3 = LuminaAdShield.ChatContext(chatId: chatId3, type: .supergroup, adminsKnown: true)
+            let session = LuminaAdShieldChatSession(userId: userId, basePath: accountDir, chatId: chatId3, peerId: peerId + 2, service: service)
+            session.setActive(true, trialRun: false)
+            session.submit(context: ctx3, prepare: { [post(1, sender: 1, date: now - 600, textA), post(2, sender: 2, date: now - 500, textA), post(3, sender: 3, date: now - 400, textA), post(4, sender: 4, date: now - 300, textB), post(5, sender: 5, date: now - 200, textB), post(6, sender: 6, date: now - 100, textB)] }, decideIds: [1, 2, 3, 4, 5, 6])
+            T.check(waitUntil { session.hasDecided }, "two ads: decisions")
+            T.check(session.isFoldCandidate(2) && session.isFoldCandidate(3) && session.isFoldCandidate(5) && session.isFoldCandidate(6) && !session.isFoldCandidate(4), "two ads: both clusters fold")
+            let segs = session.foldSegments(units: [[3], [5], [6]])
+            T.check(segs.count == 1 && segs[0].unitCount == 3 && segs[0].messageIds == [3, 5, 6], "two ads: one segment holds both clusters")
+            session.markNotAd([3, 5, 6], segmentIds: [3, 5, 6])
+            T.check(waitUntil { session.decision(3)?.state == .notAd && session.decision(5)?.state == .notAd }, "two ads: both clusters recorded (\(String(describing: session.decision(3)?.state)), \(String(describing: session.decision(5)?.state)))")
+            T.check(!session.isFoldCandidate(2) && !session.isFoldCandidate(6) && session.decision(6)?.fold == false, "two ads: every member of both clusters unfolds")
+
+            // The last ChatContext of at most 32 chats is remembered (the 7-day count needs it): the oldest is forgotten.
+            func count(_ chat: Int64) -> Int {
+                var result = -1
+                let _ = service.foldedCountLast7Days(basePath: accountDir, chatId: chat).start(next: { result = $0 })
+                let _ = waitUntil { result >= 0 }
+                return result
+            }
+            let base: Int64 = -1005560000
+            for i in 0 ... LuminaAdShieldService.maxRememberedContexts {
+                let chat = base - Int64(i)
+                let s = LuminaAdShieldChatSession(userId: userId, basePath: accountDir, chatId: chat, peerId: peerId + 100 + Int64(i), service: service)
+                s.setActive(true, trialRun: false)
+                s.submit(context: LuminaAdShield.ChatContext(chatId: chat, type: .supergroup, adminsKnown: true), prepare: { [post(1, sender: 1, date: now - 300, textA), post(2, sender: 2, date: now - 200, textA), post(3, sender: 3, date: now - 100, textA)] }, decideIds: [1, 2, 3])
+                let _ = waitUntil { s.hasDecided }
+                if i == LuminaAdShieldService.maxRememberedContexts - 1 {
+                    T.check(count(base) == 2, "contexts: the first of 32 chats still counts (\(count(base)))")
+                }
+            }
+            T.check(count(base) == 0, "contexts: the oldest beyond 32 chats is forgotten (\(count(base)))")
+            T.check(count(base - Int64(LuminaAdShieldService.maxRememberedContexts)) == 2, "contexts: the newest counts")
+            T.check(count(chatId3) == 0, "contexts: a not-an-ad segment counts 0")
         }
 
         // ---- 3. Reload from disk in a new process: the stored rows count ------------------------------------

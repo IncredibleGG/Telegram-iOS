@@ -24,8 +24,8 @@ import AppBundle
 //    Idle unless the feature is in effect for that group; then it builds the ChatContext (admins, bots, pinned
 //    texts, linked channel, description, my username), hands new / edited loaded messages to the AdShield queue
 //    and keeps `session` (a LuminaAdShieldChatSession, the decision cache the chat list reads) current.
-//  - Postbox → LuminaAdShield.MessageInput mapping (SPEC §9.1, media whitelist §3), the dHash of the stripped
-//    thumbnail (SPEC §5.4) and the 「隱藏重複廣告」 row of the chat header menu (LuminaChatLanguageMenu).
+//  - Postbox → LuminaAdShield.MessageInput mapping (SPEC §9.1, media whitelist §3) and the dHash of the stripped
+//    thumbnail (SPEC §5.4). The per-group mode row is in ChatListUI (LuminaAdShieldGroupMenu.swift).
 //
 // Nothing here logs. With the feature off (default) an observer holds one settings subscription and never
 // subscribes to anything else, maps a message or touches the engine.
@@ -432,6 +432,9 @@ private struct LuminaAdShieldAdmins: Equatable {
     var usernames: [String]
 }
 
+/// The admin list of a supergroup / forum / gigagroup. PeerChannelMemberCategoriesContextsManager is main-confined
+/// (getContext asserts the main queue), and this is subscribed from inside a Postbox peerView emission, so it runs
+/// on the main queue like upstream's own wrappers there (recentOnline, profileData).
 private func luminaAdShieldChannelAdmins(context: AccountContext, peerId: PeerId) -> Signal<LuminaAdShieldAdmins, NoError> {
     return Signal { subscriber in
         let (disposable, _) = context.peerChannelMemberCategoriesContextsManager.admins(engine: context.engine, accountPeerId: context.account.peerId, peerId: peerId, updated: { state in
@@ -460,6 +463,7 @@ private func luminaAdShieldChannelAdmins(context: AccountContext, peerId: PeerId
         })
         return disposable
     }
+    |> runOn(Queue.mainQueue())
 }
 
 private func luminaAdShieldChatEnv(context: AccountContext, peerId: PeerId) -> Signal<LuminaAdShieldChatEnv?, NoError> {
@@ -497,7 +501,8 @@ private func luminaAdShieldChatEnv(context: AccountContext, peerId: PeerId) -> S
         } else {
             admins = .single(nil)
         }
-        return combineLatest(peerView, accountPeer, pinned, admins)
+        // Combined on the serial env queue: the inputs come from the Postbox queue and the main queue (admins).
+        return combineLatest(queue: LuminaAdShieldHistoryObserver.envQueue, peerView, accountPeer, pinned, admins)
         |> map { view, selfUsername, pinnedTexts, admins -> LuminaAdShieldChatEnv? in
             let peer = view.peers[view.peerId]
             var env = LuminaAdShieldChatEnv(type: luminaAdShieldChatType(peer), username: peer?.addressName, linkedChannelPeerId: nil, linkedChannelUsername: nil, description: "", pinnedTexts: pinnedTexts, adminsKnown: false, adminIds: Set(), creatorId: nil, memberHandles: [], selfUsername: selfUsername)
@@ -608,9 +613,24 @@ final class LuminaAdShieldHistoryObserver {
     private var lastDecideIds: [Int32] = []
     private var engineSettings: LuminaAdShield.Settings?
     private var isEffective = false
+    private var trialRun = false
+    /// An eligible group's env has arrived (the chat type is known): only then is the session active. A broadcast
+    /// channel or monoforum (ineligible) never activates it, so it gets no fold work, no jump expansion, no toast.
+    private var isEligible = false
+    /// The env stream has said whether the chat is an eligible group (since the feature became effective here).
+    private var envArrived = false
+    /// The chat's first loaded view, kept until the session activates: its unread incoming messages are this opening's
+    /// "new messages" (the all-folded toast). A view is a snapshot, so they are the ones unread when it loaded.
+    private var openingView: MessageHistoryView?
+    /// Messages jumped to before the session activated: unfolded on activation.
+    private var pendingJumpIds = Set<Int32>()
 
     static let envCoalesceDelay: Double = 0.4
     static let refreshInterval: Double = 10.0 * 60.0
+    /// Serial: the env inputs are combined here and the ChatContexts built here, in arrival order, so the newest env
+    /// always reaches the main thread last (a concurrent queue, or inputs combined on several threads, could deliver
+    /// an older one after it).
+    fileprivate static let envQueue = Queue(name: "org.luminagram.adshield.env", qos: .utility)
 
     /// nil unless the node shows a group's normal history (or a forum topic) in bubbles: never scheduled / pinned /
     /// search / custom lists, private or secret chats, channels.
@@ -676,11 +696,12 @@ final class LuminaAdShieldHistoryObserver {
         let effective = settings?.luminaAdShieldIsOn(peerId: self.peerId.toInt64()) ?? false
         let trialRun = settings?.adShieldDryRun ?? false
         let engineSettings = settings?.luminaAdShieldEngineSettings
+        self.trialRun = trialRun
         if effective != self.isEffective {
             self.isEffective = effective
             if effective {
+                // The session activates when the env shows an eligible group (envUpdated).
                 self.engineSettings = engineSettings
-                self.session.setActive(true, trialRun: trialRun)
                 self.startEnv()
             } else {
                 self.stopEnv()
@@ -691,7 +712,9 @@ final class LuminaAdShieldHistoryObserver {
         if !effective {
             return
         }
-        self.session.setActive(true, trialRun: trialRun)
+        if self.isEligible {
+            self.session.setActive(true, trialRun: trialRun)
+        }
         if engineSettings != self.engineSettings {
             self.engineSettings = engineSettings
             self.process(force: true)
@@ -701,7 +724,7 @@ final class LuminaAdShieldHistoryObserver {
     private func startEnv() {
         let chatId = self.chatId
         self.envDisposable.set((luminaAdShieldChatEnv(context: self.context, peerId: self.peerId)
-        |> deliverOn(Queue.concurrentDefaultQueue())
+        |> deliverOn(LuminaAdShieldHistoryObserver.envQueue)
         |> map { env -> (LuminaAdShieldChatEnv, LuminaAdShield.ChatContext)? in
             // Building a ChatContext extracts the links of the description and every pinned text: off the main thread.
             guard let env else {
@@ -731,6 +754,10 @@ final class LuminaAdShieldHistoryObserver {
         self.env = nil
         self.chatContext = nil
         self.roles = nil
+        self.isEligible = false
+        self.envArrived = false
+        self.openingView = nil
+        self.pendingJumpIds.removeAll()
         self.observed.removeAll()
         self.known.removeAll()
         self.maxKnownId = 0
@@ -743,15 +770,33 @@ final class LuminaAdShieldHistoryObserver {
         guard self.isEffective else {
             return
         }
+        self.envArrived = true
         guard let value else {
-            // Not an eligible group (e.g. a channel): stay idle.
+            // Not an eligible group (a broadcast channel, a monoforum): stay idle, session inactive.
             self.envApplyTimer?.invalidate()
             self.envApplyTimer = nil
             self.pendingEnv = nil
             self.env = nil
             self.chatContext = nil
             self.roles = nil
+            self.isEligible = false
+            self.openingView = nil
+            self.pendingJumpIds.removeAll()
+            self.session.setActive(false, trialRun: self.trialRun)
             return
+        }
+        if !self.isEligible {
+            self.isEligible = true
+            self.session.setActive(true, trialRun: self.trialRun)
+            if !self.pendingJumpIds.isEmpty {
+                let ids = Array(self.pendingJumpIds)
+                self.pendingJumpIds.removeAll()
+                self.session.expand(ids)
+            }
+            if let openingView = self.openingView {
+                self.openingView = nil
+                self.captureOpeningUnread(openingView)
+            }
         }
         self.pendingEnv = value
         self.envApplyTimer?.invalidate()
@@ -788,6 +833,22 @@ final class LuminaAdShieldHistoryObserver {
         self.process(force: true)
     }
 
+    /// A jump to message `id` of this chat (reply quote, search, link, pinned bar, opening at a message): unfold its
+    /// segment. Before the session is active (the env of an eligible group not here yet, e.g. a chat opened at a
+    /// message) it is remembered and applied on activation; nothing at all while the feature is off here or the chat
+    /// is not an eligible group. Dispatched, so that a location set while a history transition is being computed
+    /// never re-enters it; the new history view arrives later anyway.
+    func expandForJump(_ id: Int32) {
+        if self.session.isActive {
+            let session = self.session
+            Queue.mainQueue().justDispatch {
+                session.expand([id])
+            }
+        } else if self.isEffective && !self.envArrived {
+            self.pendingJumpIds.insert(id)
+        }
+    }
+
     /// ChatHistoryListNodeImpl calls this with every history view (main thread). Cheap when idle.
     func historyViewUpdated(_ view: MessageHistoryView) {
         self.lastView = view
@@ -796,7 +857,12 @@ final class LuminaAdShieldHistoryObserver {
             // (the all-folded toast). Captured before anything is shown, so before they are read.
             self.sawFirstView = true
             if self.isEffective {
-                self.captureOpeningUnread(view)
+                if self.session.isActive {
+                    self.captureOpeningUnread(view)
+                } else {
+                    // Captured when the session activates (the chat is then known to be an eligible group).
+                    self.openingView = view
+                }
             }
         }
         if self.isEffective && self.chatContext != nil {
@@ -912,107 +978,8 @@ final class LuminaAdShieldHistoryObserver {
     }
 }
 
-// MARK: - Chat header menu row (LuminaChatLanguageMenu)
+// MARK: - Per-group mode row
 
-struct LuminaAdShieldMenuInfo {
-    let eligible: Bool
-    let foldedCount: Int
-
-    static let none = LuminaAdShieldMenuInfo(eligible: false, foldedCount: 0)
-}
-
-/// Whether the chat gets the 「隱藏重複廣告」 row, and its 7-day folded count.
-func luminaAdShieldMenuInfo(context: AccountContext, peerId: PeerId) -> Signal<LuminaAdShieldMenuInfo, NoError> {
-    guard let chatId = luminaAdShieldGroupChatId(peerId) else {
-        return .single(.none)
-    }
-    let basePath = context.account.basePath
-    return context.engine.data.get(TelegramEngine.EngineData.Item.Peer.Peer(id: peerId))
-    |> deliverOnMainQueue // LuminaAdShieldService's main-thread state is read below
-    |> mapToSignal { peer -> Signal<LuminaAdShieldMenuInfo, NoError> in
-        guard let peer, luminaAdShieldChatType(peer._asPeer()) != .other else {
-            return .single(.none)
-        }
-        // A big chat may take a moment to count (every stored message is decided once per change); the menu never
-        // waits more than 0.5 s for it and opens without the count instead.
-        return LuminaAdShieldService.shared.foldedCountLast7Days(basePath: basePath, chatId: chatId)
-        |> timeout(0.5, queue: Queue.mainQueue(), alternate: .single(0))
-        |> map { count -> LuminaAdShieldMenuInfo in
-            return LuminaAdShieldMenuInfo(eligible: true, foldedCount: count)
-        }
-    }
-}
-
-/// Applies a per-group mode; the first time the feature is turned on anywhere, the explainer comes first. Also the
-/// entry point of the fold row's 「在此群關閉」 (stage 2): `luminaAdShieldSetChatMode(context:peerId:mode:present:)`.
-func luminaAdShieldSetChatMode(context: AccountContext, peerId: PeerId, mode: LuminaAdShieldChatMode, present: @escaping (ViewController) -> Void) {
-    let settings = LuminaAdShieldService.shared.settings ?? LuminaSettingsCache.settings
-    luminaAdShieldApplyChatMode(context: context, peerId: peerId, mode: mode, settings: settings, presentationData: context.sharedContext.currentPresentationData.with { $0 }, present: present)
-}
-
-private func luminaAdShieldApplyChatMode(context: AccountContext, peerId: PeerId, mode: LuminaAdShieldChatMode, settings: LuminaSettings, presentationData: PresentationData, present: @escaping (ViewController) -> Void) {
-    let accountManager = context.sharedContext.accountManager
-    let peerIdValue = peerId.toInt64()
-    let apply: () -> Void = {
-        let _ = updateLuminaSettingsInteractively(accountManager: accountManager, { current in
-            var updated = current.withLuminaAdShieldMode(mode, peerId: peerIdValue)
-            if mode == .on {
-                updated.adShieldExplainerShown = true
-            }
-            return updated
-        }).startStandalone()
-    }
-    if mode == .on && !settings.adShieldExplainerShown {
-        present(textAlertController(context: context, title: LuminaL10n.tr("Hide Repeated Ads"), text: LuminaAdShieldTexts.explainerText(), actions: [
-            TextAlertAction(type: .genericAction, title: presentationData.strings.Common_Cancel, action: {}),
-            TextAlertAction(type: .defaultAction, title: LuminaL10n.tr("Turn On"), action: {
-                apply()
-            })
-        ]))
-    } else {
-        apply()
-    }
-}
-
-/// The 「隱藏重複廣告」 row of the chat header menu for an eligible group: its second line names the current mode, and
-/// it opens 跟隨預設（目前：開/關）/ 在此群開啟 / 在此群關閉 plus 「最近 7 天已收合 N 則」 when N > 0.
-func luminaAdShieldMenuItem(context: AccountContext, peerId: PeerId, settings: LuminaSettings, info: LuminaAdShieldMenuInfo, presentationData: PresentationData, present: @escaping (ViewController) -> Void) -> ContextMenuItem? {
-    if !info.eligible {
-        return nil
-    }
-    let currentMode = settings.luminaAdShieldMode(peerId: peerId.toInt64())
-    let globalOn = settings.adShieldEnabled
-    let checkIcon: (PresentationTheme) -> UIImage? = { theme in
-        return generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/Check"), color: theme.contextMenu.primaryColor)
-    }
-    let noIcon: (PresentationTheme) -> UIImage? = { _ in
-        return nil
-    }
-    let foldedCount = info.foldedCount
-    return .action(ContextMenuActionItem(text: LuminaL10n.tr("Hide Repeated Ads"), textLayout: .secondLineWithValue(LuminaAdShieldTexts.modeLabel(currentMode, globalOn: globalOn)), icon: { theme in
-        return generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/AntiSpam"), color: theme.contextMenu.primaryColor)
-    }, action: { c, _ in
-        var items: [ContextMenuItem] = []
-        items.append(.action(ContextMenuActionItem(text: presentationData.strings.Common_Back, icon: { theme in
-            return generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/Back"), color: theme.contextMenu.primaryColor)
-        }, iconPosition: .left, action: { c, _ in
-            c?.popItems()
-        })))
-        items.append(.separator)
-        for mode in [LuminaAdShieldChatMode.followDefault, .on, .off] {
-            let selected = mode == currentMode
-            items.append(.action(ContextMenuActionItem(text: LuminaAdShieldTexts.modeLabel(mode, globalOn: globalOn), icon: selected ? checkIcon : noIcon, action: { c, _ in
-                c?.dismiss(completion: {
-                    if mode != currentMode {
-                        luminaAdShieldApplyChatMode(context: context, peerId: peerId, mode: mode, settings: settings, presentationData: presentationData, present: present)
-                    }
-                })
-            }, accessibilityIsSelected: selected)))
-        }
-        if foldedCount > 0 {
-            items.append(.separator)
-            items.append(.action(ContextMenuActionItem(text: LuminaAdShieldTexts.foldedLast7Days(foldedCount), textLayout: .multiline, textFont: .small, icon: noIcon, action: nil as ((ContextControllerProtocol?, @escaping (ContextMenuActionResult) -> Void) -> Void)?)))
-        }
-        c?.pushItems(items: .single(ContextController.Items(content: .list(items))))
-    }))
-}
+// The 「隱藏重複廣告」 row of the chat header menu (LuminaChatLanguageMenu) and of the forum's own menu, and
+// `luminaAdShieldSetChatMode` (the fold row's 「在此群關閉」), live in ChatListUI (LuminaAdShieldGroupMenu.swift), the
+// lowest module both menus can reach.

@@ -3994,6 +3994,15 @@ public class ChatListControllerImpl: TelegramBaseController, ChatListController 
                 })))
             }
             
+            // LuminaGram: the 隱藏重複廣告 per-group mode. A forum topic has no Lumina header menu, so forum users set it
+            // here (LuminaAdShieldGroupMenu.swift).
+            let luminaPresentationData = context.sharedContext.currentPresentationData.with { $0 }
+            if let luminaAdShieldItem = luminaAdShieldForumMenuItem(context: context, peer: .channel(channel), presentationData: luminaPresentationData, present: { [weak sourceController] controller in
+                sourceController?.present(controller, in: .window(.root))
+            }) {
+                items.append(luminaAdShieldItem)
+            }
+
             var needsSeparatorForCreateTopic = true
             if let sourceController = sourceController as? ChatController {
                 items.append(.separator)

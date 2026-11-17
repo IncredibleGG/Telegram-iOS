@@ -16,6 +16,7 @@ import ChatMessageItemImpl
 import ContextUI
 import UndoUI
 import AppBundle
+import ChatListUI
 
 // LuminaGram「隱藏重複廣告」(hide repeated ads), stage 2: the chat list side.
 //
@@ -100,17 +101,13 @@ extension ChatHistoryListNodeImpl {
     }
 
     /// A jump to a message of this chat (reply quote, search result, link, pinned bar, opening at a message): unfold
-    /// its segment so that the message is there to scroll to. Dispatched, so that a location set while a history
-    /// transition is being computed never re-enters it; the new history view arrives later anyway. Nothing at all
-    /// while the feature is not in effect here.
+    /// its segment so that the message is there to scroll to (LuminaAdShieldHistoryObserver.expandForJump). Nothing
+    /// at all while the feature is not in effect here or the chat is not an eligible group.
     func luminaAdShieldExpandJumpTarget(_ location: ChatHistoryLocationInput?) {
-        guard let observer = self.luminaAdShield, observer.session.isActive, let target = luminaAdShieldJumpTarget(location), target.peerId == observer.peerId, target.namespace == Namespaces.Message.Cloud else {
+        guard let observer = self.luminaAdShield, let target = luminaAdShieldJumpTarget(location), target.peerId == observer.peerId, target.namespace == Namespaces.Message.Cloud else {
             return
         }
-        let session = observer.session
-        Queue.mainQueue().justDispatch {
-            session.expand([target.id])
-        }
+        observer.expandForJump(target.id)
     }
 
     /// The visible-range handling reports the message rows on screen (never the hidden members of a folded segment)
@@ -173,12 +170,14 @@ final class LuminaAdShieldFoldInteraction {
         self.observer?.session.collapse(data.messageIds.map { $0.id })
     }
 
-    /// 「不是廣告」: remember the cluster for 90 days and unfold it.
+    /// 「不是廣告」: remember every cluster of the segment for 90 days (two different ads posted back to back share one
+    /// fold row) and unfold it.
     func notAd(_ data: LuminaAdFoldEntryData) {
-        guard let session = self.observer?.session, let head = data.messageIds.first else {
+        guard let session = self.observer?.session, !data.messageIds.isEmpty else {
             return
         }
-        session.markNotAd(head.id, segmentIds: data.messageIds.map { $0.id })
+        let ids = data.messageIds.map { $0.id }
+        session.markNotAd(ids, segmentIds: ids)
     }
 
     /// 「在此群關閉」

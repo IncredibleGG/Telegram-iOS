@@ -393,7 +393,8 @@ struct LuminaAdShieldBatch {
     let settings: LuminaAdShield.Settings
     let prepare: () -> [LuminaAdShieldObserveItem]
     let deletes: [Int32]
-    let notAd: Int32?
+    /// 「不是廣告」: the segment's messages in display order (one segment may join several clusters).
+    let notAd: [Int32]
     let decideIds: [Int32]
 }
 
@@ -410,8 +411,10 @@ private final class LuminaAdShieldQueueState {
         var dirty = Set<Int64>()
         var flushTimers: [Int64: SwiftSignalKit.Timer] = [:]
         var images: [Int64: LuminaAdShieldImageTable] = [:]
-        /// The last ChatContext a session used, for the per-group 7-day count.
+        /// The last ChatContext a session used, for the per-group 7-day count. Bounded: at most
+        /// `maxRememberedContexts` chats, least recently used first in `contextOrder` (with their cached counts).
         var contexts: [Int64: LuminaAdShield.ChatContext] = [:]
+        var contextOrder: [Int64] = []
         /// 7-day folded count per chat, valid while the store version, settings and hour stay the same.
         var foldedCounts: [Int64: (version: Int, settings: LuminaAdShield.Settings, hour: Int64, count: Int)] = [:]
         var startupDone = false
@@ -457,6 +460,8 @@ public final class LuminaAdShieldService {
     static let flushDelay: Double = 5.0
     static let capCheckInterval: Double = 60.0
     static let countWindow: Int64 = 7 * 86400
+    /// Chats whose last ChatContext (plaintext description and pinned texts) is kept in memory per account.
+    static let maxRememberedContexts = 32
 
     // ---- AdShield queue ----
     private let queue = Queue(name: "org.luminagram.adshield", qos: .utility)
@@ -822,6 +827,7 @@ public final class LuminaAdShieldService {
         account.dirty.removeAll()
         account.images.removeAll()
         account.contexts.removeAll()
+        account.contextOrder.removeAll()
         account.foldedCounts.removeAll()
         account.appliedPolicy = nil
     }
@@ -878,6 +884,7 @@ public final class LuminaAdShieldService {
         account.dirty.remove(chatId)
         account.images.removeValue(forKey: chatId)
         account.contexts.removeValue(forKey: chatId)
+        account.contextOrder.removeAll(where: { $0 == chatId })
         account.foldedCounts.removeValue(forKey: chatId)
         account.lru.removeAll(where: { $0 == chatId })
         guard let store = account.store else {
@@ -890,6 +897,19 @@ public final class LuminaAdShieldService {
             if self.fs.fileExists(path) {
                 self.fs.removeItem(path)
             }
+        }
+    }
+
+    /// Keeps the chat's last ChatContext for the 7-day count, forgetting the least recently used chat's context and
+    /// cached count beyond `maxRememberedContexts` (the menu then shows no count for it until it is opened again).
+    private func qRememberContext(_ account: LuminaAdShieldQueueState.Account, _ chatId: Int64, _ context: LuminaAdShield.ChatContext) {
+        account.contexts[chatId] = context
+        account.contextOrder.removeAll(where: { $0 == chatId })
+        account.contextOrder.append(chatId)
+        while account.contextOrder.count > LuminaAdShieldService.maxRememberedContexts {
+            let victim = account.contextOrder.removeFirst()
+            account.contexts.removeValue(forKey: victim)
+            account.foldedCounts.removeValue(forKey: victim)
         }
     }
 
@@ -1073,7 +1093,7 @@ public final class LuminaAdShieldService {
         guard let store = account.store, let chat = self.qLoadChat(account, batch.chatId) else {
             return nil
         }
-        account.contexts[batch.chatId] = batch.context
+        self.qRememberContext(account, batch.chatId, batch.context)
         let now = Int64(Date().timeIntervalSince1970)
         var wrote = false
         let items = batch.prepare()
@@ -1106,10 +1126,20 @@ public final class LuminaAdShieldService {
                 }
             }
         }
-        if let notAd = batch.notAd {
+        if !batch.notAd.isEmpty {
+            // Two different ads posted back to back fold into one segment: record every cluster the segment folds.
+            // The first message is always recorded; each later one only while it still folds after the records
+            // made so far (one record per distinct cluster; an album's other members are covered by its first).
+            var marked = false
             do {
-                if try chat.markNotAd(notAd, context: batch.context, now: now) {
-                    wrote = true
+                for id in batch.notAd {
+                    if marked && !chat.decide(id, context: batch.context, settings: batch.settings, now: now).fold {
+                        continue
+                    }
+                    if try chat.markNotAd(id, context: batch.context, now: now) {
+                        wrote = true
+                        marked = true
+                    }
                 }
             } catch {
                 return nil
@@ -1371,13 +1401,15 @@ public final class LuminaAdShieldChatSession {
         }
     }
 
-    /// 「不是廣告」: remember the cluster of `messageId` for 90 days (SPEC §6.4) and unfold the segment at once.
-    public func markNotAd(_ messageId: Int32, segmentIds: [Int32]) {
-        self.expand(segmentIds + [messageId])
-        guard self.isActive, let context = self.lastContext else {
+    /// 「不是廣告」: remember for 90 days (SPEC §6.4) every cluster that `messageIds` (a segment's messages in display
+    /// order) fold, and unfold the segment at once. A segment is any run of folded messages, so it may hold several
+    /// different ads; each of them is recorded, not only the first.
+    public func markNotAd(_ messageIds: [Int32], segmentIds: [Int32]) {
+        self.expand(segmentIds + messageIds)
+        guard self.isActive, let context = self.lastContext, !messageIds.isEmpty else {
             return
         }
-        self.submit(context: context, prepare: { return [] }, notAd: messageId, decideIds: self.lastDecideIds)
+        self.submit(context: context, prepare: { return [] }, notAd: messageIds, decideIds: self.lastDecideIds)
     }
 
     /// The chat list reports the message ids it renders on screen now (message rows only, never the hidden members of
@@ -1487,7 +1519,7 @@ public final class LuminaAdShieldChatSession {
 
     /// Hands one batch to the AdShield queue: `prepare` (run there) maps the messages to observe; `decideIds` are
     /// all loaded message ids, re-decided after the writes.
-    public func submit(context: LuminaAdShield.ChatContext, prepare: @escaping () -> [LuminaAdShieldObserveItem], deletes: [Int32] = [], notAd: Int32? = nil, decideIds: [Int32]) {
+    public func submit(context: LuminaAdShield.ChatContext, prepare: @escaping () -> [LuminaAdShieldObserveItem], deletes: [Int32] = [], notAd: [Int32] = [], decideIds: [Int32]) {
         guard self.isActive, let settings = self.service.settings else {
             return
         }

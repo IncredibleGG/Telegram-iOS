@@ -11,6 +11,7 @@ import ContextUI
 import PromptUI
 import AppBundle
 import TranslationLanguagesContextMenuContent
+import ChatListUI
 
 // LuminaGram: the small menu behind the header translate capsule -- the iOS twin of Android's
 // LuminaChatLanguageMenu.java (and desktop lumina_chat_language_menu.cpp), so all three
@@ -24,7 +25,7 @@ import TranslationLanguagesContextMenuContent
 //   3. Register -- "This chat's tone: <register or not set>". Opens the register options
 //      (None + presets + Custom, where Custom opens a text prompt).
 // In groups (basic group, supergroup, forum, gigagroup) a fourth row follows, after a separator: the
-// per-group mode of 隱藏重複廣告 / Hide Repeated Ads (LuminaAdShieldHook.swift, luminaAdShieldMenuItem).
+// per-group mode of 隱藏重複廣告 / Hide Repeated Ads (ChatListUI LuminaAdShieldGroupMenu.swift, luminaAdShieldMenuItem).
 //
 // The presentation copies the stock translate panel's near-button context menu
 // (ChatTranslationPanelNode.morePressed): makeContextController with a .reference source
