@@ -133,7 +133,9 @@ private enum LuminaSecuritySettingsEntry: ItemListNodeEntry {
                 arguments.updateFileGuard(value)
             })
         case .guardsFooter:
-            return ItemListTextItem(presentationData: presentationData, text: .plain(LuminaL10n.tr("Every guard runs on this device only. Nothing you type, paste or receive is uploaded anywhere to power these checks.")), sectionId: self.section)
+            // The second line: opening a short link with Link Safety Check on asks that short-link service
+            // where it leads (LuminaShortLink.swift in TelegramUIPreferences).
+            return ItemListTextItem(presentationData: presentationData, text: .plain(LuminaL10n.tr("Every guard runs on this device only. Nothing you type, paste or receive is uploaded anywhere to power these checks.") + "\n\n" + LuminaL10n.tr("Link Safety Check: opening a short link contacts that short-link service once to look up its real address.")), sectionId: self.section)
         case .checkup:
             return ItemListDisclosureItem(presentationData: presentationData, icon: PresentationResourcesSettings.security, title: LuminaL10n.tr("Security Checkup"), label: "", sectionId: self.section, style: .blocks, action: {
                 arguments.openCheckup()
