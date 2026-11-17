@@ -67,6 +67,9 @@ public enum ChatHistoryEntry: Identifiable, Comparable {
     case UnreadEntry(EngineMessage.Index, ChatPresentationData)
     case ReplyCountEntry(EngineMessage.Index, Bool, Int, ChatPresentationData)
     case ChatInfoEntry(ChatInfoData, ChatPresentationData)
+    /// LuminaGram 隱藏重複廣告 (hide repeated ads): a fold row, the header of an expanded segment or a trial label,
+    /// placed at the index of the entry it stands for or sits on (LuminaAdFoldEntryData).
+    case LuminaAdFoldEntry(EngineMessage.Index, LuminaAdFoldEntryData, ChatPresentationData)
     
     public var stableId: UInt64 {
         switch self {
@@ -97,6 +100,8 @@ public enum ChatHistoryEntry: Identifiable, Comparable {
             default:
                 return UInt64(6) << 40
             }   
+        case let .LuminaAdFoldEntry(_, data, _):
+            return data.stableId
         }
     }
     
@@ -117,6 +122,8 @@ public enum ChatHistoryEntry: Identifiable, Comparable {
             default:
                 return EngineMessage.Index.absoluteLowerBound()
             }
+        case let .LuminaAdFoldEntry(index, _, _):
+            return index
         }
     }
     
@@ -137,6 +144,8 @@ public enum ChatHistoryEntry: Identifiable, Comparable {
                 default:
                     return EngineMessage.Index.absoluteLowerBound()
                 }
+            case let .LuminaAdFoldEntry(index, _, _):
+                return index
         }
     }
     
@@ -305,6 +314,12 @@ public enum ChatHistoryEntry: Identifiable, Comparable {
                 }
             case let .ChatInfoEntry(lhsData, lhsPresentationData):
                 if case let .ChatInfoEntry(rhsData, rhsPresentationData) = rhs, lhsData == rhsData, lhsPresentationData === rhsPresentationData {
+                    return true
+                } else {
+                    return false
+                }
+            case let .LuminaAdFoldEntry(lhsIndex, lhsData, lhsPresentationData):
+                if case let .LuminaAdFoldEntry(rhsIndex, rhsData, rhsPresentationData) = rhs, lhsIndex == rhsIndex, lhsData == rhsData, lhsPresentationData === rhsPresentationData {
                     return true
                 } else {
                     return false

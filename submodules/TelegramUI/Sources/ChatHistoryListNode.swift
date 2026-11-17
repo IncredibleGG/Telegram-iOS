@@ -227,7 +227,7 @@ extension ListMessageItemInteraction {
     }
 }
 
-private func mappedInsertEntries(context: AccountContext, chatLocation: ChatLocation, associatedData: ChatMessageItemAssociatedData, controllerInteraction: ChatControllerInteraction, mode: ChatHistoryListMode, lastHeaderId: Int64, isSavedMusic: Bool, canReorder: Bool, richMessageQueueId: EngineMessage.Id?, entries: [ChatHistoryViewTransitionInsertEntry], systemStyle: ItemListSystemStyle) -> [ChatHistoryListViewInsertItem] {
+private func mappedInsertEntries(context: AccountContext, chatLocation: ChatLocation, associatedData: ChatMessageItemAssociatedData, controllerInteraction: ChatControllerInteraction, mode: ChatHistoryListMode, lastHeaderId: Int64, isSavedMusic: Bool, canReorder: Bool, richMessageQueueId: EngineMessage.Id?, entries: [ChatHistoryViewTransitionInsertEntry], systemStyle: ItemListSystemStyle, luminaAdShieldFold: LuminaAdShieldFoldInteraction? = nil) -> [ChatHistoryListViewInsertItem] {
     var disableFloatingDateHeaders = false
     if case .customChatContents = chatLocation {
         disableFloatingDateHeaders = true
@@ -278,11 +278,13 @@ private func mappedInsertEntries(context: AccountContext, chatLocation: ChatLoca
                     item = ChatNewThreadInfoItem(controllerInteraction: controllerInteraction, presentationData: presentationData, context: context)
                 }
                 return ChatHistoryListViewInsertItem(index: entry.index, previousIndex: entry.previousIndex, stableId: entry.entry.stableId, item: item, directionHint: entry.directionHint)
+            case let .LuminaAdFoldEntry(index, data, presentationData):
+                return ChatHistoryListViewInsertItem(index: entry.index, previousIndex: entry.previousIndex, stableId: entry.entry.stableId, item: LuminaAdShieldFoldItem(index: index, data: data, presentationData: presentationData, context: context, controllerInteraction: controllerInteraction, interaction: luminaAdShieldFold), directionHint: entry.directionHint)
         }
     }
 }
 
-private func mappedUpdateEntries(context: AccountContext, chatLocation: ChatLocation, associatedData: ChatMessageItemAssociatedData, controllerInteraction: ChatControllerInteraction, mode: ChatHistoryListMode, lastHeaderId: Int64, isSavedMusic: Bool, canReorder: Bool, richMessageQueueId: EngineMessage.Id?, entries: [ChatHistoryViewTransitionUpdateEntry], systemStyle: ItemListSystemStyle) -> [ChatHistoryListViewUpdateItem] {
+private func mappedUpdateEntries(context: AccountContext, chatLocation: ChatLocation, associatedData: ChatMessageItemAssociatedData, controllerInteraction: ChatControllerInteraction, mode: ChatHistoryListMode, lastHeaderId: Int64, isSavedMusic: Bool, canReorder: Bool, richMessageQueueId: EngineMessage.Id?, entries: [ChatHistoryViewTransitionUpdateEntry], systemStyle: ItemListSystemStyle, luminaAdShieldFold: LuminaAdShieldFoldInteraction? = nil) -> [ChatHistoryListViewUpdateItem] {
     var disableFloatingDateHeaders = false
     if case .customChatContents = chatLocation {
         disableFloatingDateHeaders = true
@@ -333,12 +335,14 @@ private func mappedUpdateEntries(context: AccountContext, chatLocation: ChatLoca
                     item = ChatNewThreadInfoItem(controllerInteraction: controllerInteraction, presentationData: presentationData, context: context)
                 }
                 return ChatHistoryListViewUpdateItem(index: entry.index, previousIndex: entry.previousIndex, stableId: entry.entry.stableId, item: item, directionHint: entry.directionHint)
+            case let .LuminaAdFoldEntry(index, data, presentationData):
+                return ChatHistoryListViewUpdateItem(index: entry.index, previousIndex: entry.previousIndex, stableId: entry.entry.stableId, item: LuminaAdShieldFoldItem(index: index, data: data, presentationData: presentationData, context: context, controllerInteraction: controllerInteraction, interaction: luminaAdShieldFold), directionHint: entry.directionHint)
         }
     }
 }
 
-private func mappedChatHistoryViewListTransition(context: AccountContext, chatLocation: ChatLocation, associatedData: ChatMessageItemAssociatedData, controllerInteraction: ChatControllerInteraction, mode: ChatHistoryListMode, lastHeaderId: Int64, isSavedMusic: Bool, canReorder: Bool, richMessageQueueId: EngineMessage.Id?, animateFromPreviousFilter: Bool, transition: ChatHistoryViewTransition, systemStyle: ItemListSystemStyle) -> ChatHistoryListViewTransition {
-    return ChatHistoryListViewTransition(historyView: transition.historyView, deleteItems: transition.deleteItems, insertItems: mappedInsertEntries(context: context, chatLocation: chatLocation, associatedData: associatedData, controllerInteraction: controllerInteraction, mode: mode, lastHeaderId: lastHeaderId, isSavedMusic: isSavedMusic, canReorder: canReorder, richMessageQueueId: richMessageQueueId, entries: transition.insertEntries, systemStyle: systemStyle), updateItems: mappedUpdateEntries(context: context, chatLocation: chatLocation, associatedData: associatedData, controllerInteraction: controllerInteraction, mode: mode, lastHeaderId: lastHeaderId, isSavedMusic: isSavedMusic, canReorder: canReorder, richMessageQueueId: richMessageQueueId, entries: transition.updateEntries, systemStyle: systemStyle), options: transition.options, scrollToItem: transition.scrollToItem, stationaryItemRange: transition.stationaryItemRange, initialData: transition.initialData, keyboardButtonsMessage: transition.keyboardButtonsMessage, cachedData: transition.cachedData, cachedDataMessages: transition.cachedDataMessages, readStateData: transition.readStateData, scrolledToIndex: transition.scrolledToIndex, scrolledToSomeIndex: transition.scrolledToSomeIndex, peerType: associatedData.automaticDownloadPeerType, networkType: associatedData.automaticDownloadNetworkType, animateIn: transition.animateIn, reason: transition.reason, flashIndicators: transition.flashIndicators, animateFromPreviousFilter: animateFromPreviousFilter, pinnedAnchor: transition.pinnedAnchor, keepInPlaceAnchor: transition.keepInPlaceAnchor)
+private func mappedChatHistoryViewListTransition(context: AccountContext, chatLocation: ChatLocation, associatedData: ChatMessageItemAssociatedData, controllerInteraction: ChatControllerInteraction, mode: ChatHistoryListMode, lastHeaderId: Int64, isSavedMusic: Bool, canReorder: Bool, richMessageQueueId: EngineMessage.Id?, animateFromPreviousFilter: Bool, transition: ChatHistoryViewTransition, systemStyle: ItemListSystemStyle, luminaAdShieldFold: LuminaAdShieldFoldInteraction? = nil) -> ChatHistoryListViewTransition {
+    return ChatHistoryListViewTransition(historyView: transition.historyView, deleteItems: transition.deleteItems, insertItems: mappedInsertEntries(context: context, chatLocation: chatLocation, associatedData: associatedData, controllerInteraction: controllerInteraction, mode: mode, lastHeaderId: lastHeaderId, isSavedMusic: isSavedMusic, canReorder: canReorder, richMessageQueueId: richMessageQueueId, entries: transition.insertEntries, systemStyle: systemStyle, luminaAdShieldFold: luminaAdShieldFold), updateItems: mappedUpdateEntries(context: context, chatLocation: chatLocation, associatedData: associatedData, controllerInteraction: controllerInteraction, mode: mode, lastHeaderId: lastHeaderId, isSavedMusic: isSavedMusic, canReorder: canReorder, richMessageQueueId: richMessageQueueId, entries: transition.updateEntries, systemStyle: systemStyle, luminaAdShieldFold: luminaAdShieldFold), options: transition.options, scrollToItem: transition.scrollToItem, stationaryItemRange: transition.stationaryItemRange, initialData: transition.initialData, keyboardButtonsMessage: transition.keyboardButtonsMessage, cachedData: transition.cachedData, cachedDataMessages: transition.cachedDataMessages, readStateData: transition.readStateData, scrolledToIndex: transition.scrolledToIndex, scrolledToSomeIndex: transition.scrolledToSomeIndex, peerType: associatedData.automaticDownloadPeerType, networkType: associatedData.automaticDownloadNetworkType, animateIn: transition.animateIn, reason: transition.reason, flashIndicators: transition.flashIndicators, animateFromPreviousFilter: animateFromPreviousFilter, pinnedAnchor: transition.pinnedAnchor, keepInPlaceAnchor: transition.keepInPlaceAnchor)
 }
 
 final class ChatHistoryTransactionOpaqueState {
@@ -519,6 +523,11 @@ public final class ChatHistoryListNodeImpl: ASDisplayNode, ChatHistoryNode, Chat
     // LuminaGram: 隱藏重複廣告 (hide repeated ads) observer of this history: nil unless this node shows a group's
     // normal history or a forum topic, idle unless the feature is on there (Lumina/LuminaAdShieldHook.swift).
     var luminaAdShield: LuminaAdShieldHistoryObserver?
+    // Its fold rows' actions, and the session's version carried as the 8th member of the `promises` slot of the
+    // history combine (Lumina/LuminaAdShieldFold.swift).
+    let luminaAdShieldFold: LuminaAdShieldFoldInteraction
+    let luminaAdShieldVersionPromise = Promise<Int>(0)
+    var luminaAdShieldAppliedVersion: Int = 0
     public var originalHistoryView: MessageHistoryView? {
         return self.historyView?.originalView
     }
@@ -572,6 +581,7 @@ public final class ChatHistoryListNodeImpl: ASDisplayNode, ChatHistoryNode, Chat
     private var chatHistoryLocationValue: ChatHistoryLocationInput? {
         didSet {
             if let chatHistoryLocationValue = self.chatHistoryLocationValue, chatHistoryLocationValue != oldValue {
+                self.luminaAdShieldExpandJumpTarget(chatHistoryLocationValue)
                 self.chatHistoryLocationPromise.set(chatHistoryLocationValue)
             }
         }
@@ -870,6 +880,7 @@ public final class ChatHistoryListNodeImpl: ASDisplayNode, ChatHistoryNode, Chat
         self.messageTransitionNode = messageTransitionNode
         self.mode = mode
         self.luminaAdShield = LuminaAdShieldHistoryObserver.make(context: context, chatLocation: chatLocation, subject: subject, source: source, mode: mode)
+        self.luminaAdShieldFold = LuminaAdShieldFoldInteraction(context: context, controllerInteraction: controllerInteraction)
         
         if let data = context.currentAppConfiguration.with({ $0 }).data {
             if let _ = data["ios_killswitch_disable_unread_alignment"] {
@@ -1007,6 +1018,7 @@ public final class ChatHistoryListNodeImpl: ASDisplayNode, ChatHistoryNode, Chat
         self.listView = ChatHistoryListNodeImpl.makeListView(rotated: rotated, useCoreListBackend: useCoreListBackend, scrollTrace: context.sharedContext.immediateExperimentalUISettings.coreListScrollTrace)
 
         super.init()
+        self.luminaAdShieldAttach()
         
         // Force-load this node's view in the initializer. ChatHistoryListNodeImpl used to *be* the
         // ListViewImpl, whose view was loaded eagerly during init, so `self.isNodeLoaded` was always
@@ -1139,6 +1151,7 @@ public final class ChatHistoryListNodeImpl: ASDisplayNode, ChatHistoryNode, Chat
             self.chatHistoryLocationValue = ChatHistoryLocationInput(content: .Initial(count: historyMessageCount), id: 0)
         }
         self.chatHistoryLocationPromise.set(self.chatHistoryLocationValue!)
+        self.luminaAdShieldExpandJumpTarget(self.chatHistoryLocationValue)
         
         self.listView.generalScrollDirectionUpdated = { [weak self] direction in
             guard let strongSelf = self else {
@@ -1371,6 +1384,7 @@ public final class ChatHistoryListNodeImpl: ASDisplayNode, ChatHistoryNode, Chat
         }
         self.chatLocation = chatLocation
         self.luminaAdShield = LuminaAdShieldHistoryObserver.make(context: self.context, chatLocation: chatLocation, subject: self.subject, source: self.source, mode: self.mode)
+        self.luminaAdShieldAttach()
         
         self.interactiveReadActionDisposable?.dispose()
         self.interactiveReadActionDisposable = nil
@@ -1877,7 +1891,8 @@ public final class ChatHistoryListNodeImpl: ASDisplayNode, ChatHistoryNode, Chat
             self.currentlyPlayingMessageIdPromise.get(),
             self.scrollToMessageIdPromise.get(),
             self.chatHasBotsPromise.get(),
-            self.allAdMessagesPromise.get()
+            self.allAdMessagesPromise.get(),
+            self.luminaAdShieldVersionPromise.get()
         )
         
         let contentSettings = self.context.engine.data.subscribe(TelegramEngine.EngineData.Item.Configuration.ContentSettings())
@@ -1991,7 +2006,7 @@ public final class ChatHistoryListNodeImpl: ASDisplayNode, ChatHistoryNode, Chat
             contentSettings |> debug_measureTimeToFirstEvent(label: "chatHistoryNode_contentSettings")
         ) |> debug_measureTimeToFirstEvent(label: "chatHistoryNode_firstChatHistoryTransition")).startStrict(next: { [weak self] update, chatPresentationData, selectedMessages, updatingMedia, networkType, preferredStoryHighQuality, animatedEmojiAndGiftStickers, additionalAnimatedEmojiStickers, customChannelDiscussionReadState, customThreadOutgoingReadState, availableReactions, availableMessageEffects, savedMessageTags, defaultReaction, accountPeer, accountCountry, suggestAudioTranscription, promises, topicAuthorId, translationState, maxReadStoryId, recommendedChannels, audioTranscriptionTrial, chatThemes, deviceContactsNumbers, contentSettings in
             let (animatedEmojiStickers, premiumGiftStickers, tonGiftStickers) = animatedEmojiAndGiftStickers
-            let (historyAppearsCleared, pendingUnpinnedAllMessages, pendingRemovedMessages, currentlyPlayingMessageIdAndType, scrollToMessageId, chatHasBots, allAdMessages) = promises
+            let (historyAppearsCleared, pendingUnpinnedAllMessages, pendingRemovedMessages, currentlyPlayingMessageIdAndType, scrollToMessageId, chatHasBots, allAdMessages, luminaAdShieldVersion) = promises
             
             if measure_isFirstTime {
                 measure_isFirstTime = false
@@ -2301,7 +2316,8 @@ public final class ChatHistoryListNodeImpl: ASDisplayNode, ChatHistoryNode, Chat
                     adMessage: allAdMessages.fixed,
                     dynamicAdMessages: allAdMessages.opportunistic,
                     isMusicPlaylist: isMusicPlaylist,
-                    pinToTopStableId: pinToTopStableId
+                    pinToTopStableId: pinToTopStableId,
+                    luminaAdShield: tag == nil ? self?.luminaAdShield?.session : nil
                 )
                 let lastHeaderId = filteredEntries.last.flatMap { listMessageDateHeaderId(timestamp: $0.index.timestamp) } ?? 0
                 let processedView = ChatHistoryView(originalView: view, filteredEntries: filteredEntries, associatedData: associatedData, lastHeaderId: lastHeaderId, id: id, locationInput: update.2, ignoreMessagesInTimestampRange: update.3, ignoreMessageIds: update.4)
@@ -2373,6 +2389,17 @@ public final class ChatHistoryListNodeImpl: ASDisplayNode, ChatHistoryNode, Chat
                     reason = ChatHistoryViewTransitionReason.Reload
                     disableAnimations = true
                     forceSynchronous = true
+                }
+
+                // LuminaGram 隱藏重複廣告: folds changed over the same history (new decisions, show / fold again):
+                // redraw in place, like a change of the sponsored messages above.
+                if let strongSelf = self, luminaAdShieldVersion != strongSelf.luminaAdShieldAppliedVersion {
+                    strongSelf.luminaAdShieldAppliedVersion = luminaAdShieldVersion
+                    if case .InteractiveChanges = reason, updatedScrollPosition == nil {
+                        reason = ChatHistoryViewTransitionReason.Reload
+                        disableAnimations = true
+                        forceSynchronous = true
+                    }
                 }
                 
                 var scrollAnimationCurve: ListViewAnimationCurve? = nil
@@ -2554,7 +2581,7 @@ public final class ChatHistoryListNodeImpl: ASDisplayNode, ChatHistoryNode, Chat
                 if !updatedScrollPositionHolds, let scrollToItem = rawTransition.scrollToItem {
                     rawTransition.scrollToItem = scrollToItem.withHold(.none)
                 }
-                var mappedTransition = mappedChatHistoryViewListTransition(context: context, chatLocation: chatLocation, associatedData: associatedData, controllerInteraction: controllerInteraction, mode: mode, lastHeaderId: lastHeaderId, isSavedMusic: isSavedMusic, canReorder: processedView.filteredEntries.count > 1 && canReorder, richMessageQueueId: richMessageQueueId, animateFromPreviousFilter: resetScrolling, transition: rawTransition, systemStyle: systemStyle)
+                var mappedTransition = mappedChatHistoryViewListTransition(context: context, chatLocation: chatLocation, associatedData: associatedData, controllerInteraction: controllerInteraction, mode: mode, lastHeaderId: lastHeaderId, isSavedMusic: isSavedMusic, canReorder: processedView.filteredEntries.count > 1 && canReorder, richMessageQueueId: richMessageQueueId, animateFromPreviousFilter: resetScrolling, transition: rawTransition, systemStyle: systemStyle, luminaAdShieldFold: self?.luminaAdShieldFold)
                 
                 if disableAnimations {
                     mappedTransition.options.remove(.AnimateInsertion)
@@ -3394,10 +3421,17 @@ public final class ChatHistoryListNodeImpl: ASDisplayNode, ChatHistoryNode, Chat
                                 allVisibleAnchorMessageIds.append((message.0.id, nodeIndex))
                             }
                         }
+                    case let .LuminaAdFoldEntry(_, data, _):
+                        // LuminaGram 隱藏重複廣告: a fold row on screen shows the messages it stands for.
+                        if data.kind == .folded, let lowerBound = data.messageIndices.min(), let upperBound = data.messageIndices.max() {
+                            messageIdsWithUnseenPersonalMention.append(contentsOf: data.unseenMentionIds)
+                            topVisibleMessageRange = ChatTopVisibleMessageRange(lowerBound: topVisibleMessageRange?.lowerBound ?? lowerBound, upperBound: upperBound, isLast: i == historyView.filteredEntries.count - 1, isLoading: isLoading)
+                        }
                     default:
                         break
                     }
                 }
+                self.luminaAdShieldNoteDisplayed(historyView.filteredEntries, range: indexRange)
             }
             
             var messageIdsWithPossibleReactions: [MessageId] = []
@@ -4110,6 +4144,12 @@ public final class ChatHistoryListNodeImpl: ASDisplayNode, ChatHistoryNode, Chat
         self.forEachVisibleMessageItemNode { itemNode in
             if let item = itemNode.item, let itemFrame = self.listView.itemNodeFrame(itemNode) {
                 rows.append(ChatHistoryVisibleReadRow(frame: itemFrame, messages: item.content.map { $0.0.index }))
+            }
+        }
+        // LuminaGram 隱藏重複廣告: a fold row on screen reads the messages it stands for (no stuck unread badge).
+        self.forEachVisibleItemNode { itemNode in
+            if let itemNode = itemNode as? LuminaAdShieldFoldItemNode, let readIndices = itemNode.readIndices, let itemFrame = self.listView.itemNodeFrame(itemNode) {
+                rows.append(ChatHistoryVisibleReadRow(frame: itemFrame, messages: readIndices))
             }
         }
         if let maxMessage = chatHistoryMaxVisibleReadIndex(rows: rows, topInset: self.insets.top, lastMessageId: lastMessageId, isThread: self.chatLocation.threadId != nil) {

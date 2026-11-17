@@ -5,7 +5,8 @@ import TelegramCore
 // Integration checks for LuminaAdShieldService / LuminaAdShieldChatSession (the iOS plumbing around the engine):
 // lifecycle (activation only while effectively on, ForgetAll on logout / full deactivation, startup purge of
 // leftovers), per-group policy, debounced flush + flush on demand, the similar-image table (SPEC §5.4), deletions,
-// "Not an ad", clear-local-data, the 7-day count and the session UI API (segments, expand, shown-unfolded, trial).
+// "Not an ad", clear-local-data, the 7-day count and the session UI API (segments, expand, shown-unfolded, trial,
+// the on-screen grace rules and the opening toast).
 //
 // Compiled together with the TelegramUIPreferences sources by run.sh in this directory (same module, so the test
 // can use the internal init with a temp directory and a fixed key). NOT part of any Bazel target.
@@ -188,6 +189,100 @@ struct ServiceCheck {
             session.redecide = nil
             session.submit(context: ctx, prepare: { [] }, decideIds: [20])
             T.check(waitUntil { session.decision(20)?.state == .untracked }, "delete: deleted message is untracked")
+        }
+
+        // ---- 2b. Nothing vanishes under the reader (grace for history loads, none for arrivals), opening toast ----
+        do {
+            let chatId2: Int64 = -1005550001
+            let service = makeService()
+            service.settingsLoaded(settings(global: true))
+            service.updateAccounts([accountDir: userId])
+            var clockNow = 1000.0
+            func open() -> LuminaAdShieldChatSession {
+                let session = LuminaAdShieldChatSession(userId: userId, basePath: accountDir, chatId: chatId2, peerId: peerId + 1, service: service)
+                session.clock = { clockNow }
+                session.setActive(true, trialRun: false)
+                return session
+            }
+            func post(_ id: Int32, sender: Int64, date: Int64, _ text: String) -> LuminaAdShieldObserveItem {
+                return LuminaAdShieldObserveItem(input: LuminaAdShield.MessageInput(id: id, date: date, sender: LuminaAdShield.Sender(id: sender, username: "user_\(sender)"), text: text))
+            }
+            let textB = "限時優惠 加入 t.me/+DealsChannelZ 每天免費領紅包"
+            let ctx2 = LuminaAdShield.ChatContext(chatId: chatId2, type: .supergroup, adminsKnown: true)
+
+            // opening: messages on screen before the first decision pass may still fold; all new ones folded → toast
+            let s = open()
+            var toast: Bool?
+            s.allNewFolded = { ids in toast = s.claimAllNewFoldedToast(newMessageIds: ids) }
+            s.setOpeningUnread([101, 102], complete: true)
+            s.noteObserved(historyIds: [100, 101, 102], arrivalIds: [])
+            s.noteDisplayed([100, 101, 102])
+            s.submit(context: ctx2, prepare: { [ad(100, sender: 11, date: now - 300), ad(101, sender: 12, date: now - 200), ad(102, sender: 13, date: now - 100)] }, decideIds: [100, 101, 102])
+            T.check(waitUntil { s.hasDecided }, "opening: decisions")
+            T.check(s.isFoldCandidate(101) && s.isFoldCandidate(102) && !s.isFoldCandidate(100), "opening: on screen before the first pass, still folds")
+            T.check(toast == true, "opening: every new message folded → toast claimed (\(String(describing: toast)))")
+
+            // arrival while the chat is open, drawn before its decision: stays unfolded until the next opening
+            clockNow += 1.0
+            s.noteObserved(historyIds: [], arrivalIds: [103])
+            s.noteDisplayed([100, 103])
+            s.submit(context: ctx2, prepare: { [ad(103, sender: 14, date: now - 50)] }, decideIds: [100, 101, 102, 103])
+            T.check(waitUntil { s.decision(103) != nil }, "arrival: decision")
+            T.check(s.decision(103)?.fold == true && !s.isFoldCandidate(103), "arrival: drawn before its decision → stays unfolded")
+
+            // history load (newer page): drawn before its decision but within the grace → folds
+            s.noteObserved(historyIds: [104], arrivalIds: [])
+            s.noteDisplayed([100, 104])
+            s.submit(context: ctx2, prepare: { [ad(104, sender: 15, date: now - 40)] }, decideIds: [100, 101, 102, 103, 104])
+            T.check(waitUntil { s.decision(104) != nil }, "history grace: decision")
+            T.check(s.isFoldCandidate(104), "history grace: a just-loaded message may still fold")
+
+            // the grace ends after 3 s
+            s.noteObserved(historyIds: [105], arrivalIds: [])
+            clockNow += 4.0
+            s.noteDisplayed([100, 105])
+            s.submit(context: ctx2, prepare: { [ad(105, sender: 16, date: now - 30)] }, decideIds: [100, 101, 102, 103, 104, 105])
+            T.check(waitUntil { s.decision(105) != nil }, "history grace end: decision")
+            T.check(s.decision(105)?.fold == true && !s.isFoldCandidate(105), "history grace end: stays unfolded")
+
+            // on screen with a settled decision that does not fold: a later fold (same sender re-posts) waits
+            s.noteObserved(historyIds: [200], arrivalIds: [])
+            s.noteDisplayed([200])
+            let versionBefore = s.currentVersion
+            s.submit(context: ctx2, prepare: { [post(200, sender: 21, date: now - 20, textB)] }, decideIds: [200])
+            T.check(waitUntil { s.decision(200) != nil }, "settled: decision")
+            T.check(s.isSettled(200) && s.decision(200)?.fold == false, "settled: a single copy does not fold (\(String(describing: s.decision(200)?.state)))")
+            T.check(s.currentVersion == versionBefore, "version: a decision that draws nothing costs no redraw")
+            s.submit(context: ctx2, prepare: { [post(201, sender: 22, date: now - 15, textB), post(202, sender: 23, date: now - 12, textB), post(203, sender: 21, date: now - 10, textB)] }, decideIds: [200, 201, 202, 203])
+            T.check(waitUntil { s.decision(203) != nil && s.decision(200)?.fold == true }, "settled: the cluster triggers (\(String(describing: s.decision(200)?.state)))")
+            T.check(!s.isFoldCandidate(200) && s.isFoldCandidate(201) && s.isFoldCandidate(203), "settled: the one on screen stays, the others fold")
+            T.check(s.currentVersion > versionBefore, "version: new folds redraw")
+
+            // a new opening: pending (admin list not loaded) is not settled; folds once it is known; no second toast
+            let s2 = open()
+            var toast2: Bool?
+            s2.allNewFolded = { ids in toast2 = s2.claimAllNewFoldedToast(newMessageIds: ids) }
+            s2.setOpeningUnread([101], complete: true)
+            s2.noteObserved(historyIds: [100, 101, 102], arrivalIds: [])
+            s2.noteDisplayed([100, 101, 102])
+            s2.submit(context: LuminaAdShield.ChatContext(chatId: chatId2, type: .supergroup, adminsKnown: false), prepare: { [] }, decideIds: [100, 101, 102])
+            T.check(waitUntil { s2.hasDecided }, "pending: decisions")
+            T.check(s2.decision(101)?.state == .pending && !s2.isSettled(101) && !s2.isFoldCandidate(101) && toast2 == nil, "pending: not settled, no toast yet")
+            s2.noteDisplayed([100, 101, 102])
+            s2.submit(context: ctx2, prepare: { [] }, decideIds: [100, 101, 102])
+            T.check(waitUntil { s2.decision(101)?.fold == true }, "pending → settled: decision")
+            T.check(s2.isFoldCandidate(101) && s2.isFoldCandidate(102), "pending → settled: folds (opening grace)")
+            T.check(toast2 == false, "toast: once per chat per app run (\(String(describing: toast2)))")
+
+            // a trial run never pins what it labels... but a labelled message on screen stays when the trial ends
+            let s3 = open()
+            s3.setActive(true, trialRun: true)
+            s3.submit(context: ctx2, prepare: { [] }, decideIds: [101, 102])
+            T.check(waitUntil { s3.hasDecided }, "trial: decisions")
+            clockNow += 10.0
+            s3.noteDisplayed([101])
+            s3.setActive(true, trialRun: false)
+            T.check(!s3.isFoldCandidate(101) && s3.isFoldCandidate(102), "trial: a labelled message seen on screen stays unfolded after the trial")
         }
 
         // ---- 3. Reload from disk in a new process: the stored rows count ------------------------------------

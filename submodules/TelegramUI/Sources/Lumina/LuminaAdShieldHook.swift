@@ -599,6 +599,12 @@ final class LuminaAdShieldHistoryObserver {
     private var roles: LuminaAdShieldRoles?
     private var lastView: MessageHistoryView?
     private var observed: [Int32: UInt32] = [:]
+    /// Every message id seen since the feature became effective here, its maximum, and whether the last processed
+    /// view reached the newest message: new ids beyond it at the newest edge are arrivals (no fold grace).
+    private var known = Set<Int32>()
+    private var maxKnownId: Int32 = 0
+    private var lastViewAtNewest = false
+    private var sawFirstView = false
     private var lastDecideIds: [Int32] = []
     private var engineSettings: LuminaAdShield.Settings?
     private var isEffective = false
@@ -726,6 +732,9 @@ final class LuminaAdShieldHistoryObserver {
         self.chatContext = nil
         self.roles = nil
         self.observed.removeAll()
+        self.known.removeAll()
+        self.maxKnownId = 0
+        self.lastViewAtNewest = false
         self.lastDecideIds = []
     }
 
@@ -782,9 +791,50 @@ final class LuminaAdShieldHistoryObserver {
     /// ChatHistoryListNodeImpl calls this with every history view (main thread). Cheap when idle.
     func historyViewUpdated(_ view: MessageHistoryView) {
         self.lastView = view
+        if !self.sawFirstView && !view.isLoading {
+            // The chat's first loaded view: its unread incoming messages are the "new messages" of this opening
+            // (the all-folded toast). Captured before anything is shown, so before they are read.
+            self.sawFirstView = true
+            if self.isEffective {
+                self.captureOpeningUnread(view)
+            }
+        }
         if self.isEffective && self.chatContext != nil {
             self.process(force: false)
         }
+    }
+
+    private func captureOpeningUnread(_ view: MessageHistoryView) {
+        let keywords = LuminaSettingsCache.settings.messageFilterKeywords.map { $0.lowercased() }.filter { !$0.isEmpty }
+        let accountPeerId = self.context.account.peerId
+        var filteredAlbums = Set<Int64>()
+        if !keywords.isEmpty {
+            for entry in view.entries {
+                if let groupingKey = entry.message.groupingKey, luminaAdShieldMatchesFilterKeywords(entry.message.text, keywords) {
+                    filteredAlbums.insert(groupingKey)
+                }
+            }
+        }
+        var ids: [Int32] = []
+        for entry in view.entries {
+            let message = entry.message
+            if entry.isRead || message.id.peerId != self.peerId || message.id.namespace != Namespaces.Message.Cloud || !message.effectivelyIncoming(accountPeerId) {
+                continue
+            }
+            if message.media.contains(where: { $0 is TelegramMediaAction }) {
+                continue
+            }
+            if !keywords.isEmpty {
+                if luminaAdShieldMatchesFilterKeywords(message.text, keywords) {
+                    continue
+                }
+                if let groupingKey = message.groupingKey, filteredAlbums.contains(groupingKey) {
+                    continue
+                }
+            }
+            ids.append(message.id.id)
+        }
+        self.session.setOpeningUnread(ids, complete: view.laterId == nil)
     }
 
     private func process(force: Bool) {
@@ -805,6 +855,11 @@ final class LuminaAdShieldHistoryObserver {
         var decideIds: [Int32] = []
         var seen = Set<Int32>()
         var pending: [(Message, Bool)] = []
+        var historyIds: [Int32] = []
+        var arrivalIds: [Int32] = []
+        let atNewest = view.laterId == nil
+        let arrivalsPossible = self.session.hasDecided && self.lastViewAtNewest && atNewest
+        let maxKnownBefore = self.maxKnownId
         for entry in view.entries {
             let message = entry.message
             if message.id.peerId != self.peerId || message.id.namespace != Namespaces.Message.Cloud {
@@ -823,10 +878,22 @@ final class LuminaAdShieldHistoryObserver {
                 continue
             }
             decideIds.append(id)
+            if self.known.insert(id).inserted {
+                if arrivalsPossible && id > maxKnownBefore {
+                    arrivalIds.append(id)
+                } else {
+                    historyIds.append(id)
+                }
+                self.maxKnownId = max(self.maxKnownId, id)
+            }
             if self.observed[id] != message.stableVersion {
                 self.observed[id] = message.stableVersion
                 pending.append((message, entry.attributes.authorIsContact))
             }
+        }
+        self.lastViewAtNewest = atNewest
+        if !historyIds.isEmpty || !arrivalIds.isEmpty {
+            self.session.noteObserved(historyIds: historyIds, arrivalIds: arrivalIds)
         }
         if !force && pending.isEmpty && decideIds == self.lastDecideIds {
             return

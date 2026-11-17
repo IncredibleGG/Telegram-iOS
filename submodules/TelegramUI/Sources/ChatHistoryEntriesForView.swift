@@ -89,7 +89,8 @@ func chatHistoryEntriesForView(
     adMessage: Message?,
     dynamicAdMessages: [Message],
     isMusicPlaylist: Bool,
-    pinToTopStableId: EngineMessage.StableId?
+    pinToTopStableId: EngineMessage.StableId?,
+    luminaAdShield: LuminaAdShieldChatSession? = nil
 ) -> ([ChatHistoryEntry], ChatHistoryEntriesForViewState) {
     var currentState = currentState
     
@@ -903,6 +904,13 @@ func chatHistoryEntriesForView(
                 }
             }
         }
+    }
+
+    // LuminaGram 隱藏重複廣告 (hide repeated ads), after the keyword filter: a folded segment renders as one fold row
+    // (its other messages are left out of the rendered entries only), an expanded one gets a header, a trial run
+    // labels would-be folds (Lumina/LuminaAdShieldFold.swift). No session or feature off: unchanged.
+    if let luminaAdShield, luminaAdShield.isActive, let peerId = location.peerId {
+        entries = luminaAdShieldFoldedEntries(entries, session: luminaAdShield, peerId: peerId, presentationData: presentationData)
     }
 
     if isMusicPlaylist && entries.count == 1 {

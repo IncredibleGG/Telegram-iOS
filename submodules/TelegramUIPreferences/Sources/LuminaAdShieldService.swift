@@ -1182,6 +1182,17 @@ public final class LuminaAdShieldService {
 
 /// One open chat (main thread only). Fed by the platform observer; read by the chat list (ChatHistoryEntriesForView)
 /// through the UI API below. Exists only while the chat is open; everything in it is runtime state.
+///
+/// NOTHING VANISHES UNDER THE READER (product spec D). A message the chat list renders as a normal message is
+/// "pinned" (it stays unfolded until the chat is opened again) when it is on screen and
+///  - it has a settled decision (anything but `pending`) that does not fold it, or
+///  - it has no settled decision yet and no grace.
+/// Grace lets a message fold although it was drawn for a moment before its decision arrived: messages of a history
+/// load (opening the chat, scrolling to older or newer history, a jump) for `historyGrace` seconds after they are
+/// first observed, and every message during the opening phase (until the first decision pass without `pending`
+/// decisions, at most `openingGrace` seconds; a supergroup's admin list may take that long). A message that arrives
+/// while the chat is open gets no grace: if it was drawn before its decision, it stays unfolded until the next
+/// opening. Messages off screen fold whenever their decision says so.
 public final class LuminaAdShieldChatSession {
     public let userId: Int64
     public let basePath: String
@@ -1199,8 +1210,19 @@ public final class LuminaAdShieldChatSession {
     /// The first decision pass after activation has arrived.
     public private(set) var hasDecided = false
 
+    /// Pinned: rendered unfolded while on screen, never folded again in this session.
     private var shownUnfolded = Set<Int32>()
     private var expanded = Set<Int32>()
+    /// The message ids the chat list renders on screen now (noteDisplayed).
+    private var displayed = Set<Int32>()
+    /// History-load grace deadlines (absolute time), and the messages that arrived while the chat was open.
+    private var graceUntil: [Int32: Double] = [:]
+    private var arrivals = Set<Int32>()
+    private var openingUntil: Double = 0
+    private var openingEnded = true
+    /// Unread incoming messages when the chat was opened (nil = not captured), for the all-folded toast.
+    private var openingUnread: [Int32]?
+    private var openingUnreadChecked = false
     private var generation = 0
     private var versionCounter = 0
     private let versionValue = ValuePromise<Int>(0, ignoreRepeated: true)
@@ -1212,6 +1234,15 @@ public final class LuminaAdShieldChatSession {
     public var reobserveAll: (() -> Void)?
     /// Set by the observer: decide the loaded messages again (the store changed outside a batch).
     public var redecide: (() -> Void)?
+    /// Set by the chat list: on the first settled decision pass after opening, when every new (unread incoming)
+    /// message folds. It shows the toast once it can (the chat on screen), after `claimAllNewFoldedToast` (once per
+    /// chat per app run, and re-checked then).
+    public var allNewFolded: ((_ newMessageIds: [Int32]) -> Void)?
+
+    static let historyGrace: Double = 3.0
+    static let openingGrace: Double = 8.0
+    /// Clock of the grace rules (absolute time); replaceable for tests.
+    var clock: () -> Double = { return Date().timeIntervalSinceReferenceDate }
 
     public convenience init(userId: Int64, basePath: String, chatId: Int64, peerId: Int64) {
         self.init(userId: userId, basePath: basePath, chatId: chatId, peerId: peerId, service: .shared)
@@ -1228,8 +1259,9 @@ public final class LuminaAdShieldChatSession {
 
     // MARK: UI API (main thread)
 
-    /// Bumps whenever anything the chat list renders from changes (decisions, expansion, activity, trial run). The
-    /// chat history combine carries it inside an existing slot (no 27th signal).
+    /// Bumps whenever anything the chat list renders from changes (a fold / label / fold-row text, expansion,
+    /// activity, trial run); a new decision that changes nothing drawn does not bump it. The chat history combine
+    /// carries it inside an existing slot (no 27th signal).
     public var version: Signal<Int, NoError> {
         return self.versionValue.get()
     }
@@ -1348,17 +1380,41 @@ public final class LuminaAdShieldChatSession {
         self.submit(context: context, prepare: { return [] }, notAd: messageId, decideIds: self.lastDecideIds)
     }
 
-    /// The chat list reports the message ids currently on screen. After the first decision pass, a message shown
-    /// unfolded stays unfolded until the chat is opened again (product spec D: nothing vanishes under the reader).
+    /// The chat list reports the message ids it renders on screen now (message rows only, never the hidden members of
+    /// a folded segment). Pins what must not vanish (see the class comment). No version bump: these messages already
+    /// render unfolded; this only keeps later decisions from folding them while the chat stays open.
     public func noteDisplayed(_ messageIds: [Int32]) {
-        if !self.isActive || !self.hasDecided || self.isTrialRun {
+        self.displayed = Set(messageIds)
+        if !self.isActive {
             return
         }
-        // No visible change (these messages already render unfolded), so no version bump: this only keeps later
-        // decisions from folding them while the chat stays open.
-        for id in messageIds where !self.isFoldCandidate(id) {
-            self.shownUnfolded.insert(id)
+        let now = self.clock()
+        for id in messageIds where !self.shownUnfolded.contains(id) && !self.isFoldCandidate(id) {
+            if self.isSettled(id) || !self.hasGrace(id, now: now) {
+                self.shownUnfolded.insert(id)
+            }
         }
+    }
+
+    /// The message has a decision other than `pending` (the admin list is known for it).
+    public func isSettled(_ messageId: Int32) -> Bool {
+        guard let decision = self.decisions[messageId] else {
+            return false
+        }
+        return decision.state != .pending
+    }
+
+    private func hasGrace(_ messageId: Int32, now: Double) -> Bool {
+        if self.arrivals.contains(messageId) {
+            return false
+        }
+        if !self.openingEnded && now < self.openingUntil {
+            return true
+        }
+        if let until = self.graceUntil[messageId] {
+            return now < until
+        }
+        return false
     }
 
     /// 「這次的新訊息都是重複廣告，已收合」: true at most once per chat per app run, when every new message is folded.
@@ -1374,6 +1430,33 @@ public final class LuminaAdShieldChatSession {
 
     // MARK: Observer API (main thread)
 
+    /// Messages observed for the first time: `historyIds` came with a history load (they get the history grace),
+    /// `arrivalIds` arrived while the chat was open (no grace).
+    public func noteObserved(historyIds: [Int32], arrivalIds: [Int32]) {
+        if !self.isActive {
+            return
+        }
+        let until = self.clock() + LuminaAdShieldChatSession.historyGrace
+        for id in historyIds where self.graceUntil[id] == nil {
+            self.graceUntil[id] = until
+        }
+        self.arrivals.formUnion(arrivalIds)
+        if self.graceUntil.count > 4000 {
+            let now = self.clock()
+            self.graceUntil = self.graceUntil.filter { $0.value > now }
+        }
+    }
+
+    /// The unread incoming messages of the chat when it was opened (keyword-filtered), once per activation. `complete`
+    /// is false when the opening view does not reach the newest message: then there is no all-folded toast.
+    public func setOpeningUnread(_ messageIds: [Int32], complete: Bool) {
+        if !self.isActive || self.openingUnread != nil {
+            return
+        }
+        self.openingUnread = complete ? messageIds : []
+        self.checkOpeningToast()
+    }
+
     /// The feature became (in)effective in this chat. Deactivation drops every decision and runtime state.
     public func setActive(_ active: Bool, trialRun: Bool) {
         if active == self.isActive && trialRun == self.isTrialRun {
@@ -1384,9 +1467,18 @@ public final class LuminaAdShieldChatSession {
             self.decisions.removeAll()
             self.shownUnfolded.removeAll()
             self.expanded.removeAll()
+            self.graceUntil.removeAll()
+            self.arrivals.removeAll()
+            self.openingUnread = nil
+            self.openingUnreadChecked = false
+            self.openingEnded = true
             self.hasDecided = false
             self.lastContext = nil
             self.lastDecideIds = []
+        } else if !self.isActive {
+            // Becoming effective: the opening phase starts (every message on screen may still fold for a moment).
+            self.openingUntil = self.clock() + LuminaAdShieldChatSession.openingGrace
+            self.openingEnded = false
         }
         self.isActive = active
         self.isTrialRun = trialRun
@@ -1422,15 +1514,67 @@ public final class LuminaAdShieldChatSession {
     }
 
     func apply(_ decisions: [Int32: LuminaAdShield.Decision]) {
-        var changed = !self.hasDecided
-        for (id, decision) in decisions where self.decisions[id] != decision {
+        let now = self.clock()
+        var changed = false
+        var anyPending = false
+        for (id, decision) in decisions {
+            if decision.state == .pending {
+                anyPending = true
+            }
+            if self.decisions[id] == decision {
+                continue
+            }
+            let before = self.renderKey(id)
+            // On screen as a normal message and about to fold: it stays unless it is still in its grace.
+            if decision.fold && !self.isTrialRun && self.displayed.contains(id) && !self.shownUnfolded.contains(id) && !self.isFoldCandidate(id) {
+                if self.isSettled(id) || !self.hasGrace(id, now: now) {
+                    self.shownUnfolded.insert(id)
+                }
+            }
             self.decisions[id] = decision
-            changed = true
+            if self.renderKey(id) != before {
+                changed = true
+            }
         }
         self.hasDecided = true
+        if !anyPending {
+            self.openingEnded = true
+        }
         if changed {
             self.bump()
         }
+        self.checkOpeningToast()
+    }
+
+    private struct RenderKey: Equatable {
+        var folds: Bool
+        var suspected: Bool
+        var occurrence: Int
+        var replyToMe: Bool
+    }
+
+    /// What the chat list draws from a message's decision: a new decision that changes none of it (most new messages)
+    /// does not bump the version, so it costs the chat list no redraw.
+    private func renderKey(_ messageId: Int32) -> RenderKey {
+        let folds = self.isFoldCandidate(messageId)
+        let decision = self.decisions[messageId]
+        return RenderKey(folds: folds, suspected: self.isSuspected(messageId), occurrence: folds ? (decision?.occurrence ?? 0) : 0, replyToMe: folds ? (decision?.replyToMe ?? false) : false)
+    }
+
+    /// The all-folded toast, evaluated once: on the first pass where every opening-unread message has a settled
+    /// decision (or when the opening phase ends without one).
+    private func checkOpeningToast() {
+        guard self.isActive, !self.openingUnreadChecked, self.hasDecided, let ids = self.openingUnread else {
+            return
+        }
+        if !ids.allSatisfy({ self.isSettled($0) }) && !(self.openingEnded || self.clock() >= self.openingUntil) {
+            return
+        }
+        self.openingUnreadChecked = true
+        if ids.isEmpty || self.isTrialRun || !ids.allSatisfy({ self.isFoldCandidate($0) }) {
+            return
+        }
+        self.allNewFolded?(ids)
     }
 
     func resetAfterDataCleared() {
@@ -1438,6 +1582,8 @@ public final class LuminaAdShieldChatSession {
         self.decisions.removeAll()
         self.shownUnfolded.removeAll()
         self.expanded.removeAll()
+        self.graceUntil.removeAll()
+        self.openingUnreadChecked = true
         self.hasDecided = false
         self.bump()
         self.reobserveAll?()
